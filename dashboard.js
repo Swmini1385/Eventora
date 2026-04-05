@@ -9,6 +9,42 @@ document.addEventListener('DOMContentLoaded', () => {
     lucide.createIcons();
 });
 
+// ---------------------------------------------------------
+// REUSABLE JSONP FETCH HELPER (Solving CORS for GAS)
+// ---------------------------------------------------------
+function fetchJSONP(url, callbackName) {
+    return new Promise((resolve, reject) => {
+        const script = document.createElement('script');
+        const name = callbackName || `jsonp_${Date.now()}_${Math.floor(Math.random()*1000)}`;
+        
+        window[name] = (data) => {
+            cleanup();
+            resolve(data);
+        };
+
+        script.onerror = () => {
+            cleanup();
+            reject(new Error('JSONP request failed'));
+        };
+
+        const connector = url.includes('?') ? '&' : '?';
+        script.src = `${url}${connector}callback=${name}`;
+        document.body.appendChild(script);
+
+        function cleanup() {
+            delete window[name];
+            if (script.parentNode) document.body.removeChild(script);
+        }
+        
+        setTimeout(() => {
+            if (window[name]) {
+                cleanup();
+                reject(new Error('JSONP request timeout'));
+            }
+        }, 15000);
+    });
+}
+
 // Authentication check
 function checkAuth() {
     const user = JSON.parse(localStorage.getItem('eventora_user'));
@@ -43,35 +79,29 @@ async function loadDashboardData() {
     eventsListContainer.innerHTML = `<div style="text-align: center; padding: 2rem; color: var(--text-muted);">Fetching your events... 🔍</div>`;
 
     try {
-        // Step 1: Ensure we have the folderId. If not, fetch from backend via Login check
+        // Step 1: Ensure we have the folderId. Using JSONP for compatibility
         if (!user.folderId) {
-            const formData = new URLSearchParams();
-            formData.append('action', 'login'); // Using login to re-fetch metadata
-            formData.append('identifier', user.identifier);
-            // In a real app we'd need the password, but for session resume we'll assume GAS handles it
-            
-            const res = await fetch(API_URL + "?" + formData.toString());
-            const data = await res.json();
+            const data = await fetchJSONP(`${API_URL}?action=login&identifier=${user.identifier}`);
             if (data.success && data.user.folderId) {
                 user.folderId = data.user.folderId;
+                user.name = data.user.name;
                 localStorage.setItem('eventora_user', JSON.stringify(user));
+                document.getElementById('welcome-msg').innerText = `Hello, ${user.name}!`;
             }
         }
 
-        // Step 2: Fetch actual events from the user's folder
-        const res = await fetch(`${API_URL}?action=list_events&folderId=${user.folderId}`);
-        const data = await res.json();
+        // Step 2: Fetch actual events from the user's folder using JSONP
+        const data = await fetchJSONP(`${API_URL}?action=list_events&folderId=${user.folderId}`);
 
         if (data.success) {
             renderEvents(data.events);
             updateStats(data.events);
+            localStorage.setItem('eventora_events_' + user.identifier, JSON.stringify(data.events));
         } else {
-            throw "Failed to fetch events from Cloud.";
+            throw new Error(data.message || "Failed to load events");
         }
-
     } catch (err) {
-        console.error(err);
-        // Fallback to local storage for testing if API fails
+        console.warn("Cloud sync error, falling back to local:", err);
         const events = JSON.parse(localStorage.getItem('eventora_events_' + user.identifier) || '[]');
         renderEvents(events);
         updateStats(events);
