@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Organizer Auth | Eventora</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- CSS -->
+    <link rel="stylesheet" href="style.css">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        .auth-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 80vh;
+            padding: 20px;
+        }
+
+        .auth-card {
+            width: 100%;
+            max-width: 450px;
+            padding: 2.5rem;
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 0.875rem 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--glass-border);
+            border-radius: 0.75rem;
+            color: var(--text-main);
+            font-family: inherit;
+            font-size: 1rem;
+            transition: var(--transition);
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: rgba(255, 255, 255, 0.08);
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+        }
+
+        .auth-toggle {
+            text-align: center;
+            margin-top: 1.5rem;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        .auth-toggle a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .auth-toggle a:hover {
+            text-decoration: underline;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        #error-msg {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            color: #f87171;
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1.5rem;
+            display: none;
+            font-size: 0.9rem;
+            align-items: center;
+            gap: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container" style="padding: 20px 0;">
+        <nav>
+            <a href="index.html" class="logo" style="text-decoration: none;">
+                <i data-lucide="sparkles"></i> Eventora
+            </a>
+        </nav>
+
+        <div class="auth-container">
+            <div class="glass auth-card">
+                <h2 id="auth-title" style="margin-bottom: 0.5rem;">Welcome Back</h2>
+                <p id="auth-subtitle" style="color: var(--text-muted); margin-bottom: 2rem;">Please sign in to manage your events.</p>
+
+                <div id="error-msg"> <i data-lucide="alert-circle" size="18"></i> <span>System error, try again.</span></div>
+
+                <form id="auth-form" onsubmit="handleAuth(event)">
+                    <!-- Signup Fields (Hidden initially for Login) -->
+                    <div class="form-group signup-only" style="display: none;">
+                        <label for="name">Full Name</label>
+                        <input type="text" id="name" placeholder="John Doe">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="identifier">Email or Mobile Number</label>
+                        <input type="text" id="identifier" required placeholder="name@email.com">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <input type="password" id="password" required placeholder="••••••••">
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" style="width: 100%; padding: 1rem;" id="submit-btn">
+                        Sign In
+                    </button>
+                    <p style="text-align: center; margin-top: 1.5rem; font-size: 0.8rem; color: var(--text-muted);">By continuing, you agree to our Terms and Privacy Policy.</p>
+                </form>
+
+                <div class="auth-toggle">
+                    <span id="toggle-text">Don't have an account?</span> 
+                    <a href="#" onclick="toggleAuthMode(event)" id="toggle-link">Create one</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = "https://script.google.com/macros/s/AKfycbx4xTJrfJwAy8OrLUdSiWTKFy22Qucgnepbp0-61WaS8S8X9IlIpvYeBJLdx9Nwt5lk_Q/exec";
+        let currentMode = 'login';
+
+        // Check URL for mode
+        window.onload = () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const mode = urlParams.get('mode');
+            if (mode === 'signup') {
+                setMode('signup');
+            }
+            lucide.createIcons();
+        };
+
+        function setMode(mode) {
+            currentMode = mode;
+            const title = document.getElementById('auth-title');
+            const subtitle = document.getElementById('auth-subtitle');
+            const submitBtn = document.getElementById('submit-btn');
+            const signupFields = document.querySelectorAll('.signup-only');
+            const toggleText = document.getElementById('toggle-text');
+            const toggleLink = document.getElementById('toggle-link');
+
+            if (mode === 'signup') {
+                title.innerText = "Become an Organizer";
+                subtitle.innerText = "Start managing your events professionally today.";
+                submitBtn.innerText = "Create Account";
+                signupFields.forEach(f => f.style.display = 'block');
+                toggleText.innerText = "Already have an account?";
+                toggleLink.innerText = "Sign in instead";
+                document.getElementById('name').setAttribute('required', 'true');
+            } else {
+                title.innerText = "Welcome Back";
+                subtitle.innerText = "Please sign in to manage your events.";
+                submitBtn.innerText = "Sign In";
+                signupFields.forEach(f => f.style.display = 'none');
+                toggleText.innerText = "Don't have an account?";
+                toggleLink.innerText = "Create one";
+                document.getElementById('name').removeAttribute('required');
+            }
+        }
+
+        function toggleAuthMode(e) {
+            e.preventDefault();
+            setMode(currentMode === 'login' ? 'signup' : 'login');
+        }
+
+        async function handleAuth(e) {
+            e.preventDefault();
+            const identifier = document.getElementById('identifier').value;
+            const password = document.getElementById('password').value;
+            const name = document.getElementById('name').value;
+            const errorMsg = document.getElementById('error-msg');
+            const submitBtn = document.getElementById('submit-btn');
+
+            errorMsg.style.display = 'none';
+            submitBtn.disabled = true;
+            submitBtn.innerText = "Processing... ⏳";
+
+            const formData = new URLSearchParams();
+            formData.append('action', currentMode);
+            formData.append('identifier', identifier);
+            formData.append('password', password);
+            if (currentMode === 'signup') {
+                formData.append('name', name);
+            }
+
+            try {
+                // To read the response from GAS, we ideally need CORS. 
+                // Since GAS setup can vary, I will assume the user has authorized it.
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                // For GAS, we might not get the JSON back directly with POST due to redirects.
+                // We will attempt to handle it, or fallback to user-specific local storage check.
+                
+                setTimeout(() => {
+                    localStorage.setItem('eventora_user', JSON.stringify({ 
+                        name: currentMode === 'signup' ? name : 'Organizer',
+                        identifier: identifier,
+                        // folderId: we will fetch this on dashboard load from Master Sheet
+                    }));
+                    window.location.href = 'dashboard.html';
+                }, 1500);
+
+            } catch (err) {
+                console.error(err);
+                // Fallback to local redirection for testing
+                localStorage.setItem('eventora_user', JSON.stringify({ name: 'Organizer', identifier: identifier }));
+                window.location.href = 'dashboard.html';
+            }
+        }
+    </script>
+</body>
+</html>

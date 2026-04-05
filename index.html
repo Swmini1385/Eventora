@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eventora | All-in-One Event Management Platform</title>
+    <meta name="description" content="The ultimate SaaS platform for event organizers. Manage registrations, attendees, and tasks with ease.">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- CSS -->
+    <link rel="stylesheet" href="style.css">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+    <div class="container">
+        <!-- Navbar -->
+        <nav>
+            <div class="logo">
+                <i data-lucide="sparkles"></i> Eventora
+            </div>
+            <div style="display: flex; gap: 1rem;">
+                <a href="auth.html?mode=login" class="btn btn-outline">Login</a>
+                <a href="auth.html?mode=signup" class="btn btn-primary">Get Started</a>
+            </div>
+        </nav>
+
+        <!-- Hero Section -->
+        <main style="padding: 100px 0; text-align: center;">
+            <div class="animate-float" style="display: inline-block; margin-bottom: 2rem; background: rgba(99, 102, 241, 0.1); padding: 0.5rem 1.5rem; border-radius: 2rem; border: 1px solid rgba(99, 102, 241, 0.2); font-weight: 600; color: #a5b4fc;">
+                🚀 Next Generation Event Management
+            </div>
+            <h1>Smart Way to Manage <br> Your <span class="text-gradient">Awesome Events</span></h1>
+            <p style="font-size: 1.25rem; color: var(--text-muted); max-width: 700px; margin: 0 auto 3rem;">
+                Eventora is the all-in-one platform for professional organizers. 
+                Build your attendee lists, manage tasks, and scale your events effortlessly.
+            </p>
+            <div style="display: flex; gap: 1rem; justify-content: center;">
+                <a href="auth.html?mode=signup" class="btn btn-primary" style="padding: 1rem 2.5rem; font-size: 1.1rem;">
+                    Create Your First Event <i data-lucide="arrow-right"></i>
+                </a>
+                <a href="#features" class="btn btn-outline" style="padding: 1rem 2rem;">Explore Features</a>
+            </div>
+
+            <!-- Features Grid -->
+            <section id="features" style="padding: 120px 0;">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem;">
+                    <div class="glass glass-hover" style="padding: 2.5rem; text-align: left;">
+                        <div style="background: rgba(99, 102, 241, 0.1); width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; border-radius: 1rem; margin-bottom: 1.5rem; color: var(--primary);">
+                            <i data-lucide="shield-check" size="32"></i>
+                        </div>
+                        <h3 style="font-size: 1.5rem; margin-bottom: 1rem;">Secure Multi-Tenancy</h3>
+                        <p style="color: var(--text-muted);">Each organizer gets a private space. Your data is isolated and protected at all times.</p>
+                    </div>
+                    <div class="glass glass-hover" style="padding: 2.5rem; text-align: left;">
+                        <div style="background: rgba(236, 72, 153, 0.1); width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; border-radius: 1rem; margin-bottom: 1.5rem; color: var(--secondary);">
+                            <i data-lucide="database" size="32"></i>
+                        </div>
+                        <h3 style="font-size: 1.5rem; margin-bottom: 1rem;">Isolated Cloud Data</h3>
+                        <p style="color: var(--text-muted);">Dynamic creation of dedicated folders and sheets for every single event you create.</p>
+                    </div>
+                    <div class="glass glass-hover" style="padding: 2.5rem; text-align: left;">
+                        <div style="background: rgba(139, 92, 246, 0.1); width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; border-radius: 1rem; margin-bottom: 1.5rem; color: var(--accent);">
+                            <i data-lucide="users" size="32"></i>
+                        </div>
+                        <h3 style="font-size: 1.5rem; margin-bottom: 1rem;">Attendee Management</h3>
+                        <p style="color: var(--text-muted);">Collect registrations, track attendance, and communicate with participants seamlessly.</p>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer style="padding: 40px 0; border-top: 1px solid var(--glass-border); text-align: center; color: var(--text-muted);">
+            <p>&copy; 2026 Eventora. Built with ❤️ for organizers.</p>
+        </footer>
+    </div>
+
+    <!-- Initialize Lucide Icons -->
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>
