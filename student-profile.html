@@ -659,14 +659,31 @@
                 if (!eventData.success) return;
 
                 // Update Event Header
-                const dateOptions = { day: 'numeric', month: 'short', year: 'numeric' };
-                const formattedDate = new Date(eventData.startDate).toLocaleDateString('en-IN', dateOptions);
-                const eventTime = eventData.startTime ? ` • ${eventData.startTime}` : '';
+                // Robust Date & Time Formatting
+                const cleanDate = (raw) => {
+                    if (!raw) return 'Date TBD';
+                    const d = new Date(raw);
+                    return isNaN(d) ? raw : d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+                };
+
+                const cleanTime = (raw) => {
+                    if (!raw) return '';
+                    // Handle ISO strings (T00:00:00.000Z)
+                    if (typeof raw === 'string' && raw.includes('T')) {
+                        const d = new Date(raw);
+                        if (!isNaN(d)) return d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
+                    }
+                    return raw; // Already "10:00 AM" or similar
+                };
+
+                const formattedDate = cleanDate(eventData.startDate);
+                const formattedTime = cleanTime(eventData.startTime);
+                const displayTime = formattedTime ? ` • ${formattedTime}` : '';
 
                 document.getElementById('disp-event-name').innerText = eventData.name;
                 document.getElementById('id-card-event').innerText = eventData.name.toUpperCase();
                 document.getElementById('disp-event-meta').innerHTML = `
-                    <span><i data-lucide="calendar" size="14"></i> ${formattedDate}${eventTime}</span>
+                    <span><i data-lucide="calendar" size="14"></i> ${formattedDate}${displayTime}</span>
                     <span><i data-lucide="map-pin" size="14"></i> ${eventData.venue}</span>
                 `;
                 document.getElementById('id-card-view').querySelector('.id-footer-v2').innerText = `- Official Participant`;
