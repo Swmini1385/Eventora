@@ -238,12 +238,25 @@ function viewEvent(id) {
     window.location.href = `event-detail.html?id=${id}`;
 }
 
-function deleteEvent(id) {
-    const user = JSON.parse(localStorage.getItem('eventora_user'));
-    if (confirm("Are you sure you want to delete this event? This action cannot be undone.")) {
-        let events = JSON.parse(localStorage.getItem('eventora_events_' + user.identifier) || '[]');
-        events = events.filter(e => e.id !== id);
-        localStorage.setItem('eventora_events_' + user.identifier, JSON.stringify(events));
-        loadDashboardData();
+async function deleteEvent(id) {
+    if (confirm("Are you sure you want to delete this event across all devices? This will move the Google Sheet to Trash.")) {
+        try {
+            const data = await fetchJSONP(`${API_URL}?action=delete_event&eventId=${id}`);
+            if (data.success) {
+                alert("✅ Event deleted successfully!");
+                loadDashboardData(); // Refresh UI from cloud
+            } else {
+                alert("❌ Error: " + data.message);
+            }
+        } catch (err) {
+            console.error("Delete Error:", err);
+            alert("⚠️ Cloud sync failed. Delete locally for now?");
+            // Fallback
+            const user = JSON.parse(localStorage.getItem('eventora_user'));
+            let events = JSON.parse(localStorage.getItem('eventora_events_' + user.identifier) || '[]');
+            events = events.filter(e => e.id !== id);
+            localStorage.setItem('eventora_events_' + user.identifier, JSON.stringify(events));
+            loadDashboardData();
+        }
     }
 }

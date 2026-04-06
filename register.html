@@ -100,9 +100,17 @@
                             <input type="tel" id="att-phone" required placeholder="+91 0000000000">
                         </div>
                         <div class="form-group">
-                            <label>Email ID</label>
-                            <input type="email" id="att-email" required placeholder="name@example.com">
+                            <label>Choose a Password</label>
+                            <input type="password" id="att-pw" required placeholder="For your account">
                         </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Payment Mode</label>
+                        <select id="att-payment" style="width: 100%; padding: 0.875rem 1rem; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--glass-border); border-radius: 0.75rem; color: #fff;">
+                            <option value="Online" style="color: #000;">Online (UPI)</option>
+                            <option value="Cash" style="color: #000;">Cash / Office</option>
+                        </select>
                     </div>
 
                     <div class="form-group">
@@ -128,10 +136,19 @@
                 <div style="background: rgba(34, 197, 94, 0.1); width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #4ade80; margin: 0 auto 2rem;">
                     <i data-lucide="party-popper" size="40"></i>
                 </div>
-                <h2 style="margin-bottom: 1rem;">Registration Successful!</h2>
-                <p style="color: var(--text-muted); margin-bottom: 2.5rem; line-height: 1.6;">
-                    Thank you for registering for <b id="success-event-name" style="color: #fff;"></b>. 
-                </p>
+                <h2 style="margin-bottom: 0.5rem;">Registration Successful!</h2>
+                <p style="color: var(--text-muted); margin-bottom: 2rem;">Keep this information for your records.</p>
+                
+                <div style="background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); border-radius: 1rem; padding: 1.5rem; margin-bottom: 2rem; text-align: left;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.75rem;">
+                        <span style="color: var(--text-muted);">User ID:</span>
+                        <span style="font-weight: 800; color: #fff; font-size: 1.25rem;" id="res-uid">A0001</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between;">
+                        <span style="color: var(--text-muted);">Password:</span>
+                        <span style="font-weight: 600; color: #fff;" id="res-pw">******</span>
+                    </div>
+                </div>
 
                 <div id="wa-section" style="display: none; margin-bottom: 1rem;">
                     <a href="#" id="wa-group-btn" target="_blank" class="btn" style="background: #25D366; color: white; width: 100%; padding: 1rem; font-weight: 700; gap: 0.75rem;">
@@ -295,16 +312,18 @@
             e.preventDefault();
             const btn = document.getElementById('submit-btn');
             const originalText = btn.innerText;
+            const paymentMode = document.getElementById('att-payment').value;
+            
             btn.disabled = true;
             btn.innerText = "Securing your spot... ⏳";
 
-            // Use JSONP for registration to ensure data actually reaches the sheet
             const queryParams = new URLSearchParams({
                 action: 'register_attendee',
                 eventId: eventId,
                 name: document.getElementById('att-name').value,
                 phone: document.getElementById('att-phone').value,
-                email: document.getElementById('att-email').value,
+                password: document.getElementById('att-pw').value,
+                paymentMode: paymentMode,
                 address: document.getElementById('att-address').value
             });
 
@@ -312,6 +331,17 @@
                 const data = await fetchJSONP(`${API_URL}?${queryParams.toString()}`);
                 
                 if (data.success) {
+                    // Populate results screen
+                    document.getElementById('res-uid').innerText = data.studentId;
+                    document.getElementById('res-pw').innerText = data.password;
+                    
+                    // Show payment only if online was selected
+                    if (paymentMode === "Online") {
+                        document.getElementById('upi-section').style.display = 'block';
+                    } else {
+                        document.getElementById('upi-section').style.display = 'none';
+                    }
+
                     document.getElementById('registration-form-content').style.display = 'none';
                     document.getElementById('success-msg').style.display = 'block';
                     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -323,7 +353,7 @@
                 }
             } catch (err) {
                 console.error("Registration fail:", err);
-                alert("⚠️ Connection error. Please try again or contact the organizer.");
+                alert("⚠️ Connection error. Please try again.");
                 btn.disabled = false;
                 btn.innerText = originalText;
             }

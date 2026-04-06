@@ -27,6 +27,8 @@ function handleRequest(e) {
     if (action === "signup") return handleSignup(p);
     if (action === "login") return handleLogin(p);
     if (action === "create_event") return handleCreateEvent(p);
+    if (action === "delete_event") return handleDeleteEvent(p);
+    if (action === "register_attendee") return handleAttendeeRegistration(p);
     if (action === "get_attendees") return handleGetAttendees(p);
     if (action === "get_event_info") return handleGetEventInfo(p);
     if (action === "get_profile") return handleGetProfile(p);
@@ -215,7 +217,7 @@ function handleCreateEvent(p) {
   const sheet = ss.getSheets()[0];
   if (sheet.getName() !== "Attendees") sheet.setName("Attendees");
 
-  // STORE METADATA IN ROW 1 (TAG, Start, End, Venue, UPI, WA, Fee)
+  // PREPARE METADATA (Row 1)
   const meta = [
     "METADATA", 
     p.startDate || "", 
@@ -226,42 +228,80 @@ function handleCreateEvent(p) {
     p.fee || "100"
   ];
   
-  // Ensure Row 1 is reserved for metadata
-  sheet.insertRowBefore(1); // Ensure we have space if it's a new sheet
+  // Overwrite Row 1 with Meta
   sheet.getRange(1, 1, 1, 7).setValues([meta]);
   
-  // Set Headers in row 2 (if missing)
+  // Add Headers in Row 2 (if missing)
   if (sheet.getLastRow() < 2) {
-    sheet.appendRow(["Timestamp", "Name", "Phone", "Email", "Address", "Status"]);
+    sheet.appendRow(["ID", "Timestamp", "Name", "Phone", "Email", "Password", "PaymentMode", "Status"]);
   }
 
   return response({ 
     success: true, 
     eventId: ss.getId(), 
     name: eventName,
-    message: eventId ? "Event Updated Successfully" : "Event Created Successfully"
+    message: eventId && eventId !== "undefined" ? "Event Updated Successfully" : "Event Created Successfully"
   }, p.callback);
 }
 
 /**
- * 4. ATTENDEE REGISTRATION (Supports JSONP)
+ * 3.1. DELETE EVENT (Move to Trash)
+ */
+function handleDeleteEvent(p) {
+  const eventId = p.eventId;
+  if (!eventId) return response({ success: false, message: "Missing Event ID" }, p.callback);
+  try {
+    const file = DriveApp.getFileById(eventId);
+    file.setTrashed(true);
+    return response({ success: true, message: "Event deleted successfully." }, p.callback);
+  } catch (e) {
+    return response({ success: false, message: "Error deleting file: " + e.toString() }, p.callback);
+  }
+}
+
+/**
+ * 4. ATTENDEE REGISTRATION (Sequential IDs A0001+)
  */
 function handleAttendeeRegistration(p) {
-  const eventId = p.eventId;
-  const ss = SpreadsheetApp.openById(eventId);
-  const sheet = ss.getSheets()[0];
-  
-  // Always append to the end. Since Row 1 and 2 are busy, it will naturally append to Row 3+
-  sheet.appendRow([
-    new Date(),
-    p.name,
-    p.phone,
-    p.email,
-    p.address || "",
-    "Confirmed"
-  ]);
-  
-  return response({ success: true, message: "Registration successful!" }, p.callback);
+  try {
+    const eventId = p.eventId;
+    const ss = SpreadsheetApp.openById(eventId);
+    const sheet = ss.getSheets()[0];
+    
+    // COUNT EXISTING STUDENT ROWS (Row 1=Meta, Row 2=Headers)
+    const lastRow = sheet.getLastRow();
+    const studentCount = lastRow < 2 ? 0 : lastRow - 2;
+    
+    // GENERATE SEQUENTIAL ID (A0001, A0002, etc.)
+    const sequenceNum = studentCount + 1;
+    const studentId = "A" + ("0000" + sequenceNum).slice(-4);
+    
+    const timestamp = new Date();
+    const password = p.password || "123456"; 
+    const paymentMode = p.paymentMode || "Cash"; 
+
+    // Append to sheet: [ID, Timestamp, Name, Phone, Email, Password, PaymentMode, Status]
+    sheet.appendRow([
+      studentId,
+      timestamp,
+      p.name,
+      p.phone,
+      p.email,
+      password,
+      paymentMode,
+      "Confirmed"
+    ]);
+    
+    return response({ 
+      success: true, 
+      studentId: studentId,
+      password: password,
+      paymentMode: paymentMode,
+      message: "Registration successful!" 
+    }, p.callback);
+  } catch (e) {
+    return response({ success: false, message: "Registration Error: " + e.toString() }, p.callback);
+  }
 }
 
 /**
