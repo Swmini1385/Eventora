@@ -35,7 +35,10 @@ function handleAttendeeRegistration(p, cb) {
       "Confirmed",
       p.address || "",
       p.photoId || "",
-      p.fee || ""
+      p.fee || "",
+      p.dob || "",
+      p.age || "",
+      p.gender || ""
     ]);
     
     // SYNC TO MASTER (for global login without Event ID)
@@ -89,6 +92,9 @@ function handleGetAttendees(p, cb) {
             photoId: row[9] || "",
             amount: row[10] || "",
             utr: row[11] || "",
+            dob: row[12] || "",
+            age: row[13] || "",
+            gender: row[14] || "",
             markedToday: false
         }))
     };
@@ -163,6 +169,9 @@ function handleStudentLogin(p, cb) {
                     address: row[8] || "",
                     photoId: row[9] || "",
                     amount: row[10] || "",
+                    dob: row[12] || "",
+                    age: row[13] || "",
+                    gender: row[14] || "",
                     eventId: finalEventId
                 }
             }, cb);
@@ -202,6 +211,9 @@ function handleGetStudentProfile(p, cb) {
                     photoId: data[i][9] || "",
                     amount: data[i][10] || "",
                     utr: data[i][11] || "",
+                    dob: data[i][12] || "",
+                    age: data[i][13] || "",
+                    gender: data[i][14] || "",
                     eventId: eventId
                 }
             }, cb);
@@ -325,6 +337,9 @@ function handleUpdateStudentProfile(p, cb) {
             if (p.email) sheet.getRange(rowIdx, 5).setValue(p.email);
             if (p.address) sheet.getRange(rowIdx, 9).setValue(p.address);
             if (p.photoId) sheet.getRange(rowIdx, 10).setValue(p.photoId);
+            if (p.dob) sheet.getRange(rowIdx, 13).setValue(p.dob);
+            if (p.age) sheet.getRange(rowIdx, 14).setValue(p.age);
+            if (p.gender) sheet.getRange(rowIdx, 15).setValue(p.gender);
             
             return response({ success: true, message: "Profile updated" }, cb);
         }

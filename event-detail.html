@@ -203,13 +203,12 @@
             <table class="attendee-table">
                 <thead>
                     <tr>
-                        <th style="width: 50px;">Sr</th>
-                        <th style="width: 100px;">Photo & ID</th>
-                        <th>Name</th>
+                        <th style="width: 40px;">Sr</th>
+                        <th style="width: 80px;">Photo & ID</th>
+                        <th>Name & Personal Info</th>
                         <th style="width: 120px;">Attendance</th>
-                        <th style="width: 100px;">Amount</th>
-                        <th style="width: 130px;">Payment Mode</th>
-                        <th>UTR / Transaction ID</th>
+                        <th style="width: 90px;">Amount</th>
+                        <th style="width: 110px;">Payment</th>
                         <th style="width: 100px;">Status</th>
                     </tr>
                 </thead>
@@ -319,7 +318,10 @@
                     </td>
                     <td>
                         <div style="font-weight: 600;">${att.name}</div>
-                        <div style="font-size: 0.75rem; color: var(--text-muted)">${att.phone}</div>
+                        <div style="font-size: 0.75rem; color: var(--text-muted);">${att.phone}</div>
+                        <div style="font-size: 0.7rem; color: var(--primary); margin-top: 4px;">
+                            ${att.gender || ''} | Age: ${att.age || ''} | DOB: ${att.dob || ''}
+                        </div>
                     </td>
                     <td>
                         <button onclick="toggleAttendance(this, '${att.id}')" 
@@ -339,7 +341,7 @@
                         </select>
                     </td>
                     <td>
-                        <input type="text" class="inline-input" value="${att.utr || ''}" placeholder="UTR / UPI ID"
+                        <input type="text" class="inline-input" value="${att.utr || ''}" placeholder="UTR" title="UTR / Trans ID"
                                onchange="updatePaymentInfo('${att.id}', this, 'utr')">
                     </td>
                     <td>

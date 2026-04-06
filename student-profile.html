@@ -438,7 +438,22 @@
                     </div>
                 </div>
 
-                <div style="height: 1.5rem;"></div>
+                <div class="details-list" style="grid-template-columns: 1fr 1fr 1fr;">
+                    <div class="detail-item">
+                        <div class="detail-label">DOB</div>
+                        <div class="detail-value" id="id-dob">--</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Age</div>
+                        <div class="detail-value" id="id-age">--</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Gender</div>
+                        <div class="detail-value" id="id-gender">--</div>
+                    </div>
+                </div>
+
+                <div style="height: 1.25rem;"></div>
 
                 <div class="details-list" style="grid-template-columns: 1fr;">
                     <div class="detail-item">
@@ -553,6 +568,24 @@
                     <label>Mobile Number</label>
                     <input type="tel" id="edit-phone" required>
                 </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div class="form-group">
+                        <label>Date of Birth</label>
+                        <input type="date" id="edit-dob" required onchange="calcEditAge(this.value)">
+                    </div>
+                    <div class="form-group">
+                        <label>Age</label>
+                        <input type="number" id="edit-age" readonly>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Gender</label>
+                    <select id="edit-gender" style="width: 100%; padding: 0.8rem; background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); border-radius: 0.75rem; color: #fff;">
+                        <option value="Male" style="color:#000">Male</option>
+                        <option value="Female" style="color:#000">Female</option>
+                        <option value="Other" style="color:#000">Other</option>
+                    </select>
+                </div>
                 <div class="form-group">
                     <label>Email Address</label>
                     <input type="email" id="edit-email">
@@ -625,6 +658,9 @@
             document.getElementById('id-email').innerText = s.email || 'Not Provided';
             document.getElementById('id-address').innerText = s.address || '--';
             document.getElementById('id-photo').src = photoUrl;
+            document.getElementById('id-dob').innerText = s.dob || '--';
+            document.getElementById('id-age').innerText = s.age || '--';
+            document.getElementById('id-gender').innerText = s.gender || '--';
 
             // Payment UI
             document.getElementById('id-amount').innerText = s.amount ? `₹${s.amount}` : '₹0';
@@ -651,6 +687,20 @@
             document.getElementById('edit-phone').value = s.phone;
             document.getElementById('edit-email').value = s.email || '';
             document.getElementById('edit-address').value = s.address || '';
+            document.getElementById('edit-dob').value = s.dob || '';
+            document.getElementById('edit-age').value = s.age || '';
+            document.getElementById('edit-gender').value = s.gender || 'Male';
+        }
+
+        function calcEditAge(dobStr) {
+            if (!dobStr) return;
+            const dob = new Date(dobStr);
+            const today = new Date();
+            let age = today.getFullYear() - dob.getFullYear();
+            if (today.getMonth() < dob.getMonth() || (today.getMonth() === dob.getMonth() && today.getDate() < dob.getDate())) {
+                age--;
+            }
+            document.getElementById('edit-age').value = age >= 0 ? age : 0;
         }
 
         async function loadAttendance() {
@@ -741,7 +791,10 @@
                 name: document.getElementById('edit-name').value,
                 phone: document.getElementById('edit-phone').value,
                 email: document.getElementById('edit-email').value,
-                address: document.getElementById('edit-address').value
+                address: document.getElementById('edit-address').value,
+                dob: document.getElementById('edit-dob').value,
+                age: document.getElementById('edit-age').value,
+                gender: document.getElementById('edit-gender').value
             };
 
             try {

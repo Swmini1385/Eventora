@@ -53,7 +53,7 @@
             display: block; font-size: 0.875rem; font-weight: 500; margin-bottom: 0.5rem; color: var(--text-muted);
         }
 
-        .form-group input, .form-group textarea {
+        .form-group input, .form-group textarea, .form-group select {
             width: 100%; padding: 0.875rem 1rem; background: rgba(255, 255, 255, 0.05);
             border: 1px solid var(--glass-border); border-radius: 0.75rem; color: #fff;
             font-family: inherit;
@@ -106,6 +106,22 @@
                         <div class="form-group">
                             <label>Choose a Password</label>
                             <input type="password" id="att-pw" required placeholder="For your account">
+                        </div>
+                        <div class="form-group">
+                            <label>Date of Birth</label>
+                            <input type="date" id="att-dob" required onchange="calculateAge(this.value)">
+                        </div>
+                        <div class="form-group">
+                            <label>Age (Auto)</label>
+                            <input type="number" id="att-age" readonly placeholder="0">
+                        </div>
+                        <div class="form-group">
+                            <label>Sex (Gender)</label>
+                            <select id="att-gender">
+                                <option value="Male" style="color:#000">Male</option>
+                                <option value="Female" style="color:#000">Female</option>
+                                <option value="Other" style="color:#000">Other</option>
+                            </select>
                         </div>
                     </div>
 
@@ -190,68 +206,37 @@
 
         let eventId = '';
 
-        // Robust JSONP Fetch Helper
         function fetchJSONP(url, callbackName) {
             return new Promise((resolve, reject) => {
                 const script = document.createElement('script');
                 const name = `jsonp_${Date.now()}_${Math.floor(Math.random()*1000)}`;
-                window[name] = (data) => { 
-                    console.log("JSONP Success:", name, data);
-                    cleanup(); resolve(data); 
-                };
-                script.onerror = (e) => { 
-                    console.error("JSONP Script Error:", name, e);
-                    cleanup(); reject(new Error('JSONP script load failed (Check API_URL or Script Permissions)')); 
-                };
-
+                window[name] = (data) => { cleanup(); resolve(data); };
+                script.onerror = () => { cleanup(); reject(new Error('Cloud failed')); };
                 const connector = url.includes('?') ? '&' : '?';
                 script.src = `${url}${connector}callback=${name}`;
                 document.body.appendChild(script);
-
-                function cleanup() {
-                    delete window[name];
-                    if (script.parentNode) document.body.removeChild(script);
-                }
-                
-                // Increased Timeout to 30 seconds for heavy cloud operations
-                setTimeout(() => {
-                    if (window[name]) {
-                        cleanup();
-                        reject(new Error('Cloud response timed out (30s)'));
-                    }
-                }, 30000);
+                function cleanup() { delete window[name]; if (script.parentNode) document.body.removeChild(script); }
+                setTimeout(() => { if (window[name]) { cleanup(); reject(new Error('Timeout')); } }, 30000);
             });
         }
 
         async function loadEventInfo() {
             const params = new URLSearchParams(window.location.search);
             eventId = params.get('id');
+            if (!eventId) return;
             
-            if (!eventId) {
-                lastCloudError = "Event ID is missing from the URL. Please use the link provided by your organizer.";
-                renderError();
-                return;
-            }
-            
-            document.getElementById('event-display-title').innerText = "Connecting to Eventora Cloud... ⏳";
-
             try {
                 const data = await fetchJSONP(`${API_URL}?action=get_event_info&eventId=${eventId}`);
-                
                 if (data.success) {
-                    // Update UI with real cloud data
-                    document.title = `Register for ${data.name} | Eventora`;
                     document.getElementById('event-name-badge').innerText = data.name;
                     document.getElementById('event-display-title').innerText = data.name;
                     document.getElementById('success-event-name').innerText = data.name;
-                    
-                    // ROBUST DATE FORMATTING
+
                     const cleanDate = (raw) => {
                         if (!raw) return '';
                         const d = new Date(raw);
                         return isNaN(d) ? raw : d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
                     };
-
                     const cleanTime = (raw) => {
                         if (!raw) return '';
                         if (typeof raw === 'string' && raw.includes('T')) {
@@ -270,7 +255,6 @@
                     eventFee = data.fee || 0;
                     document.getElementById('display-fee').innerText = `₹${eventFee}`;
                     
-                    // Post-reg features
                     if (data.wa) {
                         document.getElementById('wa-section').style.display = 'block';
                         document.getElementById('wa-group-btn').href = data.wa;
@@ -278,102 +262,58 @@
                     if (data.upi && data.fee > 0) {
                         document.getElementById('upi-section').style.display = 'block';
                         document.getElementById('pay-amount').innerText = `₹${data.fee}`;
-                        const upiLink = `upi://pay?pa=${data.upi}&pn=Eventora&am=${data.fee}&cu=INR`;
-                        document.getElementById('upi-pay-btn').href = upiLink;
+                        document.getElementById('upi-pay-btn').href = `upi://pay?pa=${data.upi}&pn=Eventora&am=${data.fee}&cu=INR`;
                     }
-                } else {
-                    lastCloudError = data.message || "This event is no longer active or the link is incorrect.";
-                    renderError();
                 }
-            } catch (err) {
-                console.error("Cloud Fetch failed:", err);
-                lastCloudError = `<b>Technical Detail:</b> ${err.message || 'Unknown'}<br>
-                    • This usually happens if the Google Script is not set to 'Anyone' or the API_URL is incorrect.<br>
-                    • Current API_URL: ${API_URL.substring(0, 30)}...`;
-                renderError();
-            }
+            } catch (err) { console.error(err); }
         }
 
-        function renderError() {
-            const errorReason = lastCloudError ? `<div style="background: rgba(248, 113, 113, 0.1); padding: 1rem; border-radius: 0.75rem; color: #f87171; font-size: 0.9rem; margin-top: 1.5rem; text-align: left; border: 1px solid rgba(248, 113, 113, 0.2);">
-                <span style="font-weight: 700; display: block; margin-bottom: 0.25rem;">🔍 Technical Reason:</span>
-                ${lastCloudError}
-            </div>` : "";
-            
-            document.getElementById('registration-form-content').innerHTML = `
-                <div style="text-align: center; padding: 2rem;">
-                    <div style="background: rgba(251, 191, 36, 0.1); width: 64px; height: 64px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fbbf24; margin: 0 auto 1.5rem;">
-                        <i data-lucide="alert-circle" size="32"></i>
-                    </div>
-                    <h2 style="color: #fff;">Unable to Load Event</h2>
-                    <p style="color: var(--text-muted); margin-top: 0.5rem;">This event link might be outdated or incorrect.</p>
-                    ${errorReason}
-                    <div style="margin-top: 2rem; padding: 1.25rem; background: rgba(255,255,255,0.05); border-radius: 1rem; text-align: left; font-size: 0.85rem; border: 1px solid var(--glass-border);">
-                        <p style="font-weight: 700; color: var(--primary); margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
-                            <i data-lucide="sparkles" size="16"></i> Organizer Tip:
-                        </p>
-                        <p style="line-height: 1.5;">If you are an organizer, go to your <b>Dashboard</b>, open your event, and copy a <b>NEW registration link</b>. Old links starting with 'ev_' are no longer supported.</p>
-                    </div>
-                    <br>
-                    <a href="index.html" class="btn btn-outline" style="width: 100%;">Return to Home</a>
-                </div>
-            `;
-            lucide.createIcons();
+        function calculateAge(dobStr) {
+            if (!dobStr) return;
+            const dob = new Date(dobStr);
+            const today = new Date();
+            let age = today.getFullYear() - dob.getFullYear();
+            const m = today.getMonth() - dob.getMonth();
+            if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) { age--; }
+            document.getElementById('att-age').value = age >= 0 ? age : 0;
         }
-
-        let lastCloudError = null;
 
         async function handleRegistration(e) {
             e.preventDefault();
             const btn = document.getElementById('submit-btn');
-            const originalText = btn.innerText;
-            const paymentMode = document.getElementById('att-payment').value;
-            
             btn.disabled = true;
-            btn.innerText = "Securing your spot... ⏳";
+            btn.innerText = "Processing... ⏳";
 
-            const queryParams = new URLSearchParams({
+            const payload = {
                 action: 'register_attendee',
                 eventId: eventId,
                 name: document.getElementById('att-name').value,
                 phone: document.getElementById('att-phone').value,
                 email: document.getElementById('att-email').value || "",
                 password: document.getElementById('att-pw').value,
-                paymentMode: paymentMode,
+                paymentMode: document.getElementById('att-payment').value,
                 address: document.getElementById('att-address').value,
+                dob: document.getElementById('att-dob').value,
+                age: document.getElementById('att-age').value,
+                gender: document.getElementById('att-gender').value,
                 fee: eventFee
-            });
+            };
 
             try {
-                const data = await fetchJSONP(`${API_URL}?${queryParams.toString()}`);
-                
+                const data = await fetchJSONP(`${API_URL}?${new URLSearchParams(payload).toString()}`);
                 if (data.success) {
-                    // Populate results screen
                     document.getElementById('res-uid').innerText = data.studentId;
                     document.getElementById('res-pw').innerText = data.password;
-                    
-                    // Show payment only if online was selected
-                    if (paymentMode === "Online") {
-                        document.getElementById('upi-section').style.display = 'block';
-                    } else {
-                        document.getElementById('upi-section').style.display = 'none';
-                    }
-
                     document.getElementById('registration-form-content').style.display = 'none';
                     document.getElementById('success-msg').style.display = 'block';
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                     lucide.createIcons();
                 } else {
-                    alert("❌ Registration Error: " + data.message);
+                    alert("Error: " + data.message);
                     btn.disabled = false;
-                    btn.innerText = originalText;
+                    btn.innerText = "Complete Registration";
                 }
-            } catch (err) {
-                console.error("Registration fail:", err);
-                alert("⚠️ Connection error. Please try again.");
-                btn.disabled = false;
-                btn.innerText = originalText;
-            }
+            } catch (err) { alert("Timeout or Connection Error"); btn.disabled = false; }
         }
     </script>
 </body>
