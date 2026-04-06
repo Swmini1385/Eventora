@@ -154,97 +154,81 @@ function updateStats(events) {
 
 let editModeId = null;
 
-function editEvent(id) {
+async function editEvent(id) {
     const user = JSON.parse(localStorage.getItem('eventora_user'));
-    const events = JSON.parse(localStorage.getItem('eventora_events_' + user.identifier) || '[]');
-    const event = events.find(e => e.id === id);
-
-    if (event) {
-        editModeId = id;
-        document.getElementById('event-name').value = event.name;
-        document.getElementById('event-date').value = event.date;
-        document.getElementById('event-end-date').value = event.endDate || '';
-        document.getElementById('event-fee').value = event.fee;
-        document.getElementById('event-venue').value = event.venue || '';
-        document.getElementById('event-wa-link').value = event.waLink || '';
-        document.getElementById('event-upi-id').value = event.upiId || '';
-        document.getElementById('event-desc').value = event.description || '';
-        
-        document.querySelector('#createModal h2').innerText = "Edit Event";
-        document.getElementById('save-event-btn').innerText = "Update Event";
-        showCreateModal();
+    
+    const saveBtn = document.getElementById('save-event-btn');
+    saveBtn.innerText = "Loading... ⏳";
+    
+    try {
+        // Fetch fresh metadata from Row 1
+        const data = await fetchJSONP(`${API_URL}?action=get_event_info&eventId=${id}`);
+        if (data.success) {
+            editModeId = id;
+            document.getElementById('event-name').value = data.name || '';
+            document.getElementById('event-date').value = data.startDate || '';
+            document.getElementById('event-end-date').value = data.endDate || '';
+            document.getElementById('event-fee').value = data.fee || '100';
+            document.getElementById('event-venue').value = data.venue || '';
+            document.getElementById('event-wa-link').value = data.wa || '';
+            document.getElementById('event-upi-id').value = data.upi || '';
+            
+            document.querySelector('#createModal h2').innerText = "Edit Event Details";
+            document.getElementById('save-event-btn').innerText = "Update Event";
+            showCreateModal();
+        }
+    } catch (e) {
+        alert("Could not load event details from the cloud.");
+    } finally {
+        saveBtn.innerText = "Update Event";
     }
 }
 
 const API_URL = "https://script.google.com/macros/s/AKfycbx4xTJrfJwAy8OrLUdSiWTKFy22Qucgnepbp0-61WaS8S8X9IlIpvYeBJLdx9Nwt5lk_Q/exec";
 
-// Event creation logic
+// Event creation/edit logic
 async function handleCreateEvent(e) {
     e.preventDefault();
     const saveBtn = document.getElementById('save-event-btn');
+    const originalText = saveBtn.innerText;
+    
     saveBtn.disabled = true;
-    saveBtn.innerText = "Creating... ⏳";
+    saveBtn.innerText = "Syncing with Cloud... ⏳";
 
     const user = JSON.parse(localStorage.getItem('eventora_user'));
     
-    const formData = new URLSearchParams();
-    formData.append('action', 'create_event');
-    formData.append('name', document.getElementById('event-name').value);
-    formData.append('identifier', user.identifier);
-    formData.append('folderId', user.folderId || ''); 
-
-    try {
-        // Send data to GAS
-        await fetch(API_URL, {
-            method: 'POST',
-            mode: 'no-cors',
-            body: formData
-        });
-
-    const newEvent = {
-        id: 'ev_' + Date.now(),
+    // Collect all data
+    const eventData = {
+        action: 'create_event',
+        folderId: user.folderId || '',
+        identifier: user.identifier,
+        eventId: editModeId || '', // Pass existing ID if editing
         name: document.getElementById('event-name').value,
-        date: document.getElementById('event-date').value,
+        startDate: document.getElementById('event-date').value,
         endDate: document.getElementById('event-end-date').value,
         fee: document.getElementById('event-fee').value,
         venue: document.getElementById('event-venue').value,
-        waLink: document.getElementById('event-wa-link').value,
-        upiId: document.getElementById('event-upi-id').value,
-        description: document.getElementById('event-desc').value,
-        createdAt: new Date().toISOString()
+        wa: document.getElementById('event-wa-link').value,
+        upi: document.getElementById('event-upi-id').value
     };
 
-    const events = JSON.parse(localStorage.getItem('eventora_events_' + user.identifier) || '[]');
-    
-    if (editModeId) {
-        // Update existing
-        const index = events.findIndex(e => e.id === editModeId);
-        if (index !== -1) {
-            events[index] = { ...events[index], ...newEvent, id: editModeId };
-            localStorage.setItem('eventora_events_' + user.identifier, JSON.stringify(events));
-            alert("✅ Event updated successfully!");
-        }
-    } else {
-        // Create new
-        events.push(newEvent);
-        localStorage.setItem('eventora_events_' + user.identifier, JSON.stringify(events));
-        alert("🎉 Event created successfully!");
-    }
-    
-    setTimeout(() => {
-        closeCreateModal();
-        loadDashboardData();
+    try {
+        const queryParams = new URLSearchParams(eventData);
+        const data = await fetchJSONP(`${API_URL}?${queryParams.toString()}`);
         
-        saveBtn.disabled = false;
-        saveBtn.innerText = "Create Event";
-        e.target.reset();
-        editModeId = null;
-        document.querySelector('#createModal h2').innerText = "New Event";
-    }, 1000);
-
+        if (data.success) {
+            alert("✅ " + (data.message || "Event saved successfully!"));
+            closeCreateModal();
+            loadDashboardData(); // Refresh UI from cloud
+            e.target.reset();
+            editModeId = null;
+        } else {
+            alert("❌ Error: " + data.message);
+        }
     } catch (err) {
-        console.error(err);
-        alert("Failed to connect to the backend. Please check your API URL.");
+        console.error("Cloud sync error:", err);
+        alert("⚠️ Cloud sync failed. Check your internet or API settings.");
+    } finally {
         saveBtn.disabled = false;
         saveBtn.innerText = "Create Event";
     }

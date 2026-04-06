@@ -219,17 +219,33 @@
                     document.title = `Register for ${data.name} | Eventora`;
                     document.getElementById('event-name-badge').innerText = data.name;
                     document.getElementById('event-display-title').innerText = data.name;
+                    document.getElementById('success-event-name').innerText = data.name;
                     
-                    // Restore from last edit requirements: Date, Venue
-                    // We'll use defaults if backend didn't send them yet
-                    document.getElementById('event-display-desc').innerHTML = `📍 Venue: ${data.venue || 'TBA'}`;
+                    // Display Venue and Dates from Row 1 Cloud Metadata
+                    let dateStr = data.startDate || "TBA";
+                    if (data.endDate) dateStr += ` - ${data.endDate}`;
+                    
+                    let descHtml = `📅 Date: ${dateStr}<br>📍 Venue: ${data.venue || 'TBA'}`;
+                    document.getElementById('event-display-desc').innerHTML = descHtml;
                     
                     document.getElementById('display-fee').innerText = `₹${data.fee || '100'}`;
-                    document.getElementById('success-event-name').innerText = data.name;
+                    
+                    // Populate Post-Registration Actions (UPI/WhatsApp) from Cloud
+                    if (data.wa) {
+                        document.getElementById('wa-section').style.display = 'block';
+                        document.getElementById('wa-group-btn').href = data.wa;
+                    }
+                    if (data.upi && data.fee > 0) {
+                        document.getElementById('upi-section').style.display = 'block';
+                        document.getElementById('pay-amount').innerText = `₹${data.fee}`;
+                        const upiLink = `upi://pay?pa=${data.upi}&pn=Eventora&am=${data.fee}&cu=INR`;
+                        document.getElementById('upi-pay-btn').href = upiLink;
+                    }
+
                     return;
                 }
             } catch (err) {
-                console.warn("Cloud Fetch failed, checking local fallback...", err);
+                console.warn("Cloud Fetch failed, ignoring...", err);
             }
 
             // Fallback for local testing (localStorage)
@@ -278,34 +294,38 @@
         async function handleRegistration(e) {
             e.preventDefault();
             const btn = document.getElementById('submit-btn');
+            const originalText = btn.innerText;
             btn.disabled = true;
             btn.innerText = "Securing your spot... ⏳";
 
-            const formData = new URLSearchParams();
-            formData.append('action', 'register_attendee');
-            formData.append('eventId', eventId); // Spreadsheet ID
-            formData.append('name', document.getElementById('att-name').value);
-            formData.append('phone', document.getElementById('att-phone').value);
-            formData.append('email', document.getElementById('att-email').value);
-            formData.append('address', document.getElementById('att-address').value);
+            // Use JSONP for registration to ensure data actually reaches the sheet
+            const queryParams = new URLSearchParams({
+                action: 'register_attendee',
+                eventId: eventId,
+                name: document.getElementById('att-name').value,
+                phone: document.getElementById('att-phone').value,
+                email: document.getElementById('att-email').value,
+                address: document.getElementById('att-address').value
+            });
 
             try {
-                await fetch(API_URL, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    body: formData
-                });
-
-                setTimeout(() => {
+                const data = await fetchJSONP(`${API_URL}?${queryParams.toString()}`);
+                
+                if (data.success) {
                     document.getElementById('registration-form-content').style.display = 'none';
                     document.getElementById('success-msg').style.display = 'block';
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
                     lucide.createIcons();
-                }, 1200);
+                } else {
+                    alert("❌ Registration Error: " + data.message);
+                    btn.disabled = false;
+                    btn.innerText = originalText;
+                }
             } catch (err) {
-                console.error(err);
-                alert("Registration failed. Please check your connection.");
+                console.error("Registration fail:", err);
+                alert("⚠️ Connection error. Please try again or contact the organizer.");
                 btn.disabled = false;
-                btn.innerText = "Complete Registration";
+                btn.innerText = originalText;
             }
         }
     </script>

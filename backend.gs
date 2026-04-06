@@ -162,73 +162,106 @@ function handleGetProfile(p) {
 }
 
 /**
- * 3. CREATE EVENT (Isolated)
+ * 3. CREATE OR UPDATE EVENT (Isolated)
+ * Now supports Edit/Update via eventId and stores metadata in Row 1.
  */
 function handleCreateEvent(p) {
   let userFolderId = p.folderId;
-  const identifier = p.identifier;
   const eventName = p.name;
+  const eventId = p.eventId; // Support for Edit/Update
   
-  // Fallback: If folderId is missing, lookup via identifier in Master Sheet
-  if (!userFolderId && identifier) {
-    let ss;
-    try {
-      ss = SpreadsheetApp.getActiveSpreadsheet();
-      if (!ss) throw "err";
-    } catch (e) {
-      const files = DriveApp.getFilesByName("Eventora_Master_Data");
-      if (files.hasNext()) ss = SpreadsheetApp.open(files.next());
-    }
-    
-    if (ss) {
-      const sheet = ss.getSheetByName(MASTER_SHEET_NAME);
-      const data = sheet.getDataRange().getValues();
-      for (let i = 1; i < data.length; i++) {
-        if (data[i][0] === identifier) {
-          userFolderId = data[i][3];
+  // Fallback: Lookup folderId if missing (same as before)
+  if (!userFolderId && p.identifier) {
+    const files = DriveApp.getFilesByName("Eventora_Master_Data");
+    if (files.hasNext()) {
+      const ssMaster = SpreadsheetApp.open(files.next());
+      const sheetMaster = ssMaster.getSheetByName(MASTER_SHEET_NAME);
+      const dataMaster = sheetMaster.getDataRange().getValues();
+      for (let i = 1; i < dataMaster.length; i++) {
+        if (dataMaster[i][0] === p.identifier) {
+          userFolderId = dataMaster[i][3];
           break;
         }
       }
     }
   }
 
-  if (!userFolderId) return response({ success: false, message: "User folder not found. Please relogin." });
+  if (!userFolderId) return response({ success: false, message: "User folder not found. Please relogin." }, p.callback);
 
-  const userFolder = DriveApp.getFolderById(userFolderId);
-  const newSS = SpreadsheetApp.create("EV_" + eventName);
-  const file = DriveApp.getFileById(newSS.getId());
+  let ss;
+  let file;
   
-  file.moveTo(userFolder);
+  if (eventId && eventId !== "undefined") {
+    // UPDATE EXISTING EVENT
+    try {
+      file = DriveApp.getFileById(eventId);
+      file.setName("EV_" + eventName);
+      ss = SpreadsheetApp.open(file);
+    } catch (e) {
+      // Fallback: Create new if ID not found
+      ss = SpreadsheetApp.create("EV_" + eventName);
+      file = DriveApp.getFileById(ss.getId());
+      DriveApp.getFolderById(userFolderId).addFile(file);
+      DriveApp.getRootFolder().removeFile(file);
+    }
+  } else {
+    // CREATE NEW EVENT
+    ss = SpreadsheetApp.create("EV_" + eventName);
+    file = DriveApp.getFileById(ss.getId());
+    DriveApp.getFolderById(userFolderId).addFile(file);
+    DriveApp.getRootFolder().removeFile(file);
+  }
+
+  const sheet = ss.getSheets()[0];
+  if (sheet.getName() !== "Attendees") sheet.setName("Attendees");
+
+  // STORE METADATA IN ROW 1 (TAG, Start, End, Venue, UPI, WA, Fee)
+  const meta = [
+    "METADATA", 
+    p.startDate || "", 
+    p.endDate || "", 
+    p.venue || "", 
+    p.upi || "", 
+    p.wa || "", 
+    p.fee || "100"
+  ];
   
-  const sheet = newSS.getSheets()[0];
-  sheet.setName("Attendees");
-  sheet.appendRow(["Timestamp", "Name", "Phone", "Email", "Address", "Status"]);
+  // Ensure Row 1 is reserved for metadata
+  sheet.insertRowBefore(1); // Ensure we have space if it's a new sheet
+  sheet.getRange(1, 1, 1, 7).setValues([meta]);
   
+  // Set Headers in row 2 (if missing)
+  if (sheet.getLastRow() < 2) {
+    sheet.appendRow(["Timestamp", "Name", "Phone", "Email", "Address", "Status"]);
+  }
+
   return response({ 
     success: true, 
-    eventId: newSS.getId(),
-    message: "Event created and isolated in your folder!" 
-  });
+    eventId: ss.getId(), 
+    name: eventName,
+    message: eventId ? "Event Updated Successfully" : "Event Created Successfully"
+  }, p.callback);
 }
 
 /**
- * 4. ATTENDEE REGISTRATION
+ * 4. ATTENDEE REGISTRATION (Supports JSONP)
  */
 function handleAttendeeRegistration(p) {
-  const eventId = p.eventId; // The Spreadsheet ID
+  const eventId = p.eventId;
   const ss = SpreadsheetApp.openById(eventId);
   const sheet = ss.getSheets()[0];
   
+  // Always append to the end. Since Row 1 and 2 are busy, it will naturally append to Row 3+
   sheet.appendRow([
     new Date(),
     p.name,
     p.phone,
     p.email,
-    p.address,
+    p.address || "",
     "Confirmed"
   ]);
   
-  return response({ success: true, message: "Registration successful!" });
+  return response({ success: true, message: "Registration successful!" }, p.callback);
 }
 
 /**
@@ -260,7 +293,7 @@ function handleGetAttendees(p) {
 }
 
 /**
- * 6. GET EVENT INFO FOR REGISTRATION FORM
+ * 6. GET EVENT INFO (Retrieves Row 1 Metadata)
  */
 function handleGetEventInfo(p) {
   try {
@@ -268,13 +301,27 @@ function handleGetEventInfo(p) {
     if (!eventId || eventId.startsWith("ev_")) throw "Invalid Cloud ID. Please use a newly created event link.";
     
     const ss = SpreadsheetApp.openById(eventId);
+    const sheet = ss.getSheets()[0];
     const name = ss.getName().replace("EV_", "");
+    
+    // Read Metadata from Row 1
+    const metaRow = sheet.getRange(1, 1, 1, 7).getValues()[0];
+    let meta = {};
+    if (metaRow[0] === "METADATA") {
+      meta = {
+        startDate: metaRow[1],
+        endDate: metaRow[2],
+        venue: metaRow[3],
+        upi: metaRow[4],
+        wa: metaRow[5],
+        fee: metaRow[6]
+      };
+    }
     
     return response({ 
       success: true, 
       name: name,
-      fee: "100", 
-      description: "Fill the form to register."
+      ...meta
     }, p.callback);
   } catch (err) {
     return response({ success: false, message: err.toString() }, p.callback);
