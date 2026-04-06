@@ -260,9 +260,12 @@
                     }
 
                     return;
+                } else {
+                    lastCloudError = data.message || "Invalid Link";
                 }
             } catch (err) {
                 console.warn("Cloud Fetch failed, ignoring...", err);
+                lastCloudError = "Connection Error or Script not Deployed.";
             }
 
             // Fallback for local testing (localStorage)
@@ -295,18 +298,26 @@
                     document.getElementById('upi-pay-btn').href = upiLink;
                 }
             } else {
+                const cloudError = lastCloudError ? `<p style="background: rgba(248, 113, 113, 0.1); padding: 0.75rem; border-radius: 0.5rem; font-size: 0.85rem; color: #f87171; margin-top: 1rem;">Reason: ${lastCloudError}</p>` : "";
                 document.getElementById('registration-form-content').innerHTML = `
                     <div style="text-align: center; padding: 2rem;">
                         <i data-lucide="alert-triangle" size="48" style="color: #fbbf24; margin-bottom: 1.5rem;"></i>
-                        <h2>Event Link Error</h2>
-                        <p style="color: var(--text-muted); margin-top: 1rem;">This event link may be incorrect. Please check with the organizer.</p>
+                        <h2 style="color: #fff;">Event Link Error</h2>
+                        <p style="color: var(--text-muted); margin-top: 1rem;">This event link may be incorrect or outdated.</p>
+                        ${cloudError}
+                        <div style="margin-top: 2rem; padding: 1rem; background: rgba(255,255,255,0.05); border-radius: 0.75rem; text-align: left; font-size: 0.85rem;">
+                            <p style="font-weight: 700; color: var(--primary); margin-bottom: 0.5rem;">💡 Organizer Tip:</p>
+                            <p>If you see 'ev_' in your URL, this is an old link. Please go to your dashboard, create a <b>New Event</b>, and use that link.</p>
+                        </div>
                         <br>
-                        <a href="index.html" class="btn btn-outline">Go to Eventora</a>
+                        <a href="index.html" class="btn btn-outline" style="width: 100%;">Go to Eventora Home</a>
                     </div>
                 `;
                 lucide.createIcons();
             }
         }
+
+        let lastCloudError = null;
 
         async function handleRegistration(e) {
             e.preventDefault();
