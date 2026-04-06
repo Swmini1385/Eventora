@@ -277,12 +277,14 @@
 
                 if (data.success) {
                     const formattedDate = cleanDate(data.startDate);
+                    const endDateStr = data.endDate ? ` - ${cleanDate(data.endDate)}` : '';
                     const formattedTime = cleanTime(data.startTime);
-                    const timeStr = formattedTime ? ` • ${formattedTime}` : '';
+                    const endTimeStr = data.endTime ? ` - ${cleanTime(data.endTime)}` : '';
 
                     document.getElementById('event-title').innerText = data.name;
                     document.getElementById('event-meta').innerHTML = `
-                        <i data-lucide="calendar" size="16"></i> ${formattedDate}${timeStr} &nbsp;|&nbsp; 
+                        <i data-lucide="calendar" size="16"></i> ${formattedDate}${endDateStr} &nbsp;•&nbsp; 
+                        <i data-lucide="clock" size="16"></i> ${formattedTime}${endTimeStr} &nbsp;|&nbsp; 
                         <i data-lucide="indian-rupee" size="16"></i> Fee: ₹${data.fee || '0'}
                     `;
                     lucide.createIcons();
@@ -422,12 +424,17 @@
         }
 
         function filterAttendees() {
-            const q = document.getElementById('attendee-search').value.toLowerCase();
-            const filtered = allAttendees.filter(a => 
-                a.name.toLowerCase().includes(q) || 
-                a.id.toLowerCase().includes(q) || 
-                a.phone.includes(q)
-            );
+            const q = document.getElementById('attendee-search').value.trim().toLowerCase();
+            if (!q) {
+                renderAttendees(allAttendees);
+                return;
+            }
+            const filtered = allAttendees.filter(a => {
+                const name = (a.name || "").toLowerCase();
+                const id = (a.id || "").toLowerCase();
+                const phone = String(a.phone || "");
+                return name.includes(q) || id.includes(q) || phone.includes(q);
+            });
             renderAttendees(filtered);
         }
 

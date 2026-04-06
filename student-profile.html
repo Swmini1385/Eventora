@@ -439,31 +439,39 @@
                     </div>
                 </div>
 
-                <!-- Unified Grid for Personal & Contact Info -->
-                <div class="details-list" style="grid-template-columns: 1fr 1fr; gap: 1.5rem;">
-                    <div class="detail-item">
-                        <div class="detail-label">Mobile Number</div>
-                        <div class="detail-value" id="id-phone">--</div>
+                <div style="height: 1.5rem;"></div> <!-- Spacing after photo -->
+
+                <div class="details-list" style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+                    <!-- LEFT COLUMN: CONTACT -->
+                    <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+                        <div class="detail-item">
+                            <div class="detail-label">Mobile Number</div>
+                            <div class="detail-value" id="id-phone">--</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Email Address</div>
+                            <div class="detail-value" id="id-email">--</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Current Address</div>
+                            <div class="detail-value" id="id-address" style="line-height: 1.4;">--</div>
+                        </div>
                     </div>
-                    <div class="detail-item">
-                        <div class="detail-label">Age</div>
-                        <div class="detail-value" id="id-age">--</div>
-                    </div>
-                    <div class="detail-item">
-                        <div class="detail-label">Date of Birth</div>
-                        <div class="detail-value" id="id-dob">--</div>
-                    </div>
-                    <div class="detail-item">
-                        <div class="detail-label">Gender</div>
-                        <div class="detail-value" id="id-gender">--</div>
-                    </div>
-                    <div class="detail-item" style="grid-column: span 2;">
-                        <div class="detail-label">Email Address</div>
-                        <div class="detail-value" id="id-email">--</div>
-                    </div>
-                    <div class="detail-item" style="grid-column: span 2;">
-                        <div class="detail-label">Current Address</div>
-                        <div class="detail-value" id="id-address">--</div>
+
+                    <!-- RIGHT COLUMN: PERSONAL -->
+                    <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+                        <div class="detail-item">
+                            <div class="detail-label">Date of Birth</div>
+                            <div class="detail-value" id="id-dob">--</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Age</div>
+                            <div class="detail-value" id="id-age">--</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Gender</div>
+                            <div class="detail-value" id="id-gender">--</div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -695,11 +703,11 @@
 
             // ID Card Fields
             document.getElementById('id-name-card').innerText = s.name.toUpperCase();
-            document.getElementById('id-phone-card').innerText = s.phone;
+            document.getElementById('id-phone-card').innerText = `${s.phone} | DOB: ${toDisplayDate(s.dob)}`;
             document.getElementById('id-address-card').innerText = s.address || '--';
             document.getElementById('id-badge-val').innerText = `ID: ${s.id}`;
             document.getElementById('id-photo-card').src = photoUrl;
-            document.getElementById('id-card-footer').innerText = `${s.name} • ${s.phone}`;
+            document.getElementById('id-card-footer').innerText = `- Official Participant ID Card -`;
 
             // Edit Form
             document.getElementById('edit-name').value = s.name;
@@ -745,14 +753,14 @@
                     return raw; // Already "10:00 AM" or similar
                 };
 
-                const formattedDate = cleanDate(eventData.startDate);
-                const formattedTime = cleanTime(eventData.startTime);
-                const displayTime = formattedTime ? ` • ${formattedTime}` : '';
+                const endDateStr = eventData.endDate ? ` - ${cleanDate(eventData.endDate)}` : '';
+                const endTimeStr = eventData.endTime ? ` - ${cleanTime(eventData.endTime)}` : '';
 
                 document.getElementById('disp-event-name').innerText = eventData.name;
                 document.getElementById('id-card-event').innerText = eventData.name.toUpperCase();
                 document.getElementById('disp-event-meta').innerHTML = `
-                    <span><i data-lucide="calendar" size="14"></i> ${formattedDate}${displayTime}</span>
+                    <span><i data-lucide="calendar" size="14"></i> ${formattedDate}${endDateStr}</span>
+                    <span><i data-lucide="clock" size="14"></i> ${formattedTime}${endTimeStr}</span>
                     <span><i data-lucide="map-pin" size="14"></i> ${eventData.venue}</span>
                 `;
                 document.getElementById('id-card-view').querySelector('.id-footer-v2').innerText = `- Official Participant`;

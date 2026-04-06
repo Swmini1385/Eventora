@@ -251,11 +251,11 @@
                     };
 
                     let dateStr = cleanDate(data.startDate) || "TBA";
-                    if (data.endDate) dateStr += ` - ${cleanDate(data.endDate)}`;
+                    const endDateStr = data.endDate ? ` - ${cleanDate(data.endDate)}` : '';
                     const timeStr = cleanTime(data.startTime);
-                    if (timeStr) dateStr += ` • ${timeStr}`;
+                    const endTimeStr = data.endTime ? ` - ${cleanTime(data.endTime)}` : '';
                     
-                    document.getElementById('event-display-desc').innerHTML = `📅 Date: ${dateStr}<br>📍 Venue: ${data.venue || 'TBA'}`;
+                    document.getElementById('event-display-desc').innerHTML = `📅 Date: ${dateStr}${endDateStr} &nbsp;•&nbsp; ${timeStr}${endTimeStr}<br>📍 Venue: ${data.venue || 'TBA'}`;
                     eventFee = data.fee || 0;
                     document.getElementById('display-fee').innerText = `₹${eventFee}`;
                     
