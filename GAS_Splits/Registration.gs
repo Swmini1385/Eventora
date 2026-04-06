@@ -24,6 +24,25 @@ function handleAttendeeRegistration(p, cb) {
     const password = p.password || "123456"; 
     const paymentMode = p.paymentMode || "Cash"; 
 
+    // PHOTO LINKING: If photo was uploaded during registration
+    let photoId = p.photoId || "";
+    if (p.regPhotoKey) {
+      try {
+        const folderName = "Eventora_Profile_Photos";
+        const folders = DriveApp.getFoldersByName(folderName);
+        if (folders.hasNext()) {
+          const folder = folders.next();
+          const files = folder.getFilesByName(p.regPhotoKey);
+          if (files.hasNext()) {
+            const file = files.next();
+            photoId = file.getId();
+            // Rename file to StudentID for permanent storage
+            file.setName(studentId + "_profile.jpg");
+          }
+        }
+      } catch (e) { console.error("Photo link error:", e); }
+    }
+
     sheet.appendRow([
       studentId, // 1
       timestamp, // 2
@@ -34,9 +53,9 @@ function handleAttendeeRegistration(p, cb) {
       paymentMode, // 7
       "Confirmed", // 8
       p.address || "", // 9
-      p.photoId || "", // 10
-      p.fee || "", // 11
-      "", // 12: UTR/Ref (Empty on registration)
+      photoId, // 10: PhotoID (Linked)
+      0, // 11: Amount (Always 0 initially as per request)
+      p.utr || "", // 12: UTR/Ref
       String(p.dob || ""), // 13: DOB
       p.age || "", // 14: Age
       p.gender || "" // 15: Gender

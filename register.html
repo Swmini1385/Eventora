@@ -63,6 +63,48 @@
             outline: none; border-color: var(--primary); background: rgba(255, 255, 255, 0.08);
         }
 
+        .photo-upload-area {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+            padding: 1.5rem;
+            background: rgba(255,255,255,0.03);
+            border: 1px dashed var(--glass-border);
+            border-radius: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        #photo-preview {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--primary);
+            display: none;
+        }
+
+        .payment-section {
+            background: rgba(255,255,255,0.03);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            border: 1px solid var(--glass-border);
+        }
+
+        .qr-area {
+            text-align: center;
+            padding: 1.5rem;
+            background: #fff;
+            border-radius: 0.75rem;
+            margin: 1rem 0;
+            display: none;
+        }
+
+        .qr-area img {
+            max-width: 180px;
+        }
+
         #success-msg {
             display: none;
             text-align: center;
@@ -89,6 +131,17 @@
                 <p id="event-display-desc" style="color: var(--text-muted); margin-bottom: 2.5rem;">Please fill in your details to participate.</p>
 
                 <form id="attendee-form" onsubmit="handleRegistration(event)">
+                    <div class="photo-upload-area">
+                        <img id="photo-preview" src="">
+                        <div id="photo-placeholder" style="width: 80px; height: 80px; border-radius: 50%; background: rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center;">
+                            <i data-lucide="camera" size="32" color="var(--text-muted)"></i>
+                        </div>
+                        <input type="file" id="att-photo" accept="image/*" style="display: none;" onchange="previewProfilePhoto(this)">
+                        <button type="button" class="btn btn-outline" style="font-size: 0.8rem; padding: 0.5rem 1rem;" onclick="document.getElementById('att-photo').click()">
+                            <i data-lucide="upload"></i> Upload Profile Photo (Optional)
+                        </button>
+                    </div>
+
                     <div class="form-group">
                         <label>Full Name</label>
                         <input type="text" id="att-name" required placeholder="Enter your full name">
@@ -104,43 +157,47 @@
                             <input type="email" id="att-email" placeholder="rahul@example.com">
                         </div>
                         <div class="form-group">
-                            <label>Choose a Password</label>
-                            <input type="password" id="att-pw" required placeholder="For your account">
+                            <label>Password</label>
+                            <input type="password" id="att-pw" required placeholder="Choose a password">
                         </div>
                         <div class="form-group">
                             <label>Date of Birth</label>
                             <input type="date" id="att-dob" required onchange="calculateAge(this.value)">
                         </div>
-                        <div class="form-group">
-                            <label>Age (Auto)</label>
-                            <input type="number" id="att-age" readonly placeholder="0">
-                        </div>
-                        <div class="form-group">
-                            <label>Sex (Gender)</label>
-                            <select id="att-gender">
-                                <option value="Male" style="color:#000">Male</option>
-                                <option value="Female" style="color:#000">Female</option>
-                                <option value="Other" style="color:#000">Other</option>
-                            </select>
-                        </div>
                     </div>
 
-                    <div class="form-group">
-                        <label>Payment Mode</label>
-                        <select id="att-payment" style="width: 100%; padding: 0.875rem 1rem; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--glass-border); border-radius: 0.75rem; color: #fff;">
-                            <option value="Online" style="color: #000;">Online (UPI)</option>
-                            <option value="Cash" style="color: #000;">Cash / Office</option>
-                        </select>
+                    <div class="payment-section">
+                        <label style="display: block; font-size: 0.875rem; font-weight: 500; margin-bottom: 0.75rem;">Payment Method</label>
+                        <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
+                            <label class="btn btn-outline" style="flex: 1; cursor: pointer; display: flex; justify-content: center;">
+                                <input type="radio" name="pay_mode" value="Online" checked onchange="togglePayment(this.value)" style="display: none;"> Online (UPI)
+                            </label>
+                            <label class="btn btn-outline" style="flex: 1; cursor: pointer; display: flex; justify-content: center;">
+                                <input type="radio" name="pay_mode" value="Cash" onchange="togglePayment(this.value)" style="display: none;"> Cash / Office
+                            </label>
+                        </div>
+
+                        <div id="online-details">
+                            <div class="qr-area" id="qr-container">
+                                <p style="color: #000; font-size: 0.75rem; margin-bottom: 0.5rem; font-weight: 700;">Scan to Pay via UPI</p>
+                                <img id="upi-qr" src="" alt="UPI QR">
+                                <p style="color: #6366f1; font-weight: 800; font-size: 0.9rem; margin-top: 0.5rem;" id="upi-id-display">upi@id</p>
+                            </div>
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label>UTR / Transaction Number (Required)</label>
+                                <input type="text" id="att-utr" placeholder="Enter 12-digit UTR number">
+                            </div>
+                        </div>
                     </div>
 
                     <div class="form-group">
                         <label>City / Address</label>
-                        <textarea id="att-address" rows="2" placeholder="Where are you from?"></textarea>
+                        <textarea id="att-address" rows="1" placeholder="Where are you from?"></textarea>
                     </div>
 
-                    <div class="form-group" style="padding: 1rem; background: rgba(255,255,255,0.05); border-radius: 0.75rem; border: 1px dashed var(--glass-border); margin: 1.5rem 0;">
+                    <div class="form-group" style="padding: 1rem; background: rgba(99,102,241,0.05); border-radius: 0.75rem; border: 1px solid rgba(99,102,241,0.2); margin: 1.5rem 0;">
                         <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <span style="font-weight: 600;">Registration Fee:</span>
+                            <span style="font-weight: 600;">Total Registration Fee:</span>
                             <span style="font-size: 1.25rem; font-weight: 800; color: var(--primary);" id="display-fee">₹0</span>
                         </div>
                     </div>
@@ -202,14 +259,13 @@
         document.addEventListener('DOMContentLoaded', () => {
             loadEventInfo();
             lucide.createIcons();
-        });
-
-        let eventId = '';
+             let eventId = '';
+        let eventData = null;
 
         function fetchJSONP(url, callbackName) {
             return new Promise((resolve, reject) => {
                 const script = document.createElement('script');
-                const name = `jsonp_${Date.now()}_${Math.floor(Math.random()*1000)}`;
+                const name = callbackName || `jsonp_${Date.now()}_${Math.floor(Math.random()*1000)}`;
                 window[name] = (data) => { cleanup(); resolve(data); };
                 script.onerror = () => { cleanup(); reject(new Error('Cloud failed')); };
                 const connector = url.includes('?') ? '&' : '?';
@@ -228,6 +284,7 @@
             try {
                 const data = await fetchJSONP(`${API_URL}?action=get_event_info&eventId=${eventId}`);
                 if (data.success) {
+                    eventData = data;
                     document.getElementById('event-name-badge').innerText = data.name;
                     document.getElementById('event-display-title').innerText = data.name;
                     document.getElementById('success-event-name').innerText = data.name;
@@ -236,10 +293,7 @@
                         if (!raw) return '';
                         const d = new Date(raw);
                         if (isNaN(d)) return raw;
-                        const day = String(d.getDate()).padStart(2, '0');
-                        const month = String(d.getMonth() + 1).padStart(2, '0');
-                        const year = d.getFullYear();
-                        return `${day}-${month}-${year}`;
+                        return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
                     };
                     const cleanTime = (raw) => {
                         if (!raw) return '';
@@ -259,17 +313,53 @@
                     eventFee = data.fee || 0;
                     document.getElementById('display-fee').innerText = `₹${eventFee}`;
                     
+                    // Setup Payment UI
+                    if (data.upi) {
+                        const upiUrl = `upi://pay?pa=${data.upi}&pn=${encodeURIComponent(data.name)}&am=${eventFee}&cu=INR`;
+                        const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(upiUrl)}`;
+                        document.getElementById('upi-qr').src = qrUrl;
+                        document.getElementById('upi-id-display').innerText = data.upi;
+                        document.getElementById('upi-pay-btn').href = upiUrl;
+                        document.getElementById('pay-amount').innerText = `₹${eventFee}`;
+                        document.getElementById('qr-container').style.display = 'block';
+                    } else {
+                        // If no UPI ID provided for event, default to Cash only
+                        togglePayment("Cash");
+                        document.querySelector('input[value="Online"]').parentNode.style.display = 'none';
+                    }
+
                     if (data.wa) {
                         document.getElementById('wa-section').style.display = 'block';
                         document.getElementById('wa-group-btn').href = data.wa;
                     }
-                    if (data.upi && data.fee > 0) {
-                        document.getElementById('upi-section').style.display = 'block';
-                        document.getElementById('pay-amount').innerText = `₹${data.fee}`;
-                        document.getElementById('upi-pay-btn').href = `upi://pay?pa=${data.upi}&pn=Eventora&am=${data.fee}&cu=INR`;
-                    }
                 }
             } catch (err) { console.error(err); }
+        }
+
+        function togglePayment(mode) {
+            const onlineDetails = document.getElementById('online-details');
+            const utrInput = document.getElementById('att-utr');
+            if (mode === 'Online') {
+                onlineDetails.style.display = 'block';
+                utrInput.required = true;
+            } else {
+                onlineDetails.style.display = 'none';
+                utrInput.required = false;
+                utrInput.value = '';
+            }
+            // Update UI buttons styling
+            document.querySelectorAll('input[name="pay_mode"]').forEach(input => {
+                const label = input.parentNode;
+                if (input.value === mode) {
+                    label.style.background = "var(--primary)";
+                    label.style.color = "white";
+                    label.style.borderColor = "var(--primary)";
+                } else {
+                    label.style.background = "transparent";
+                    label.style.color = "var(--text-muted)";
+                    label.style.borderColor = "var(--glass-border)";
+                }
+            });
         }
 
         function calculateAge(dobStr) {
@@ -279,32 +369,98 @@
             let age = today.getFullYear() - dob.getFullYear();
             const m = today.getMonth() - dob.getMonth();
             if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) { age--; }
-            document.getElementById('att-age').value = age >= 0 ? age : 0;
+            // Age is hidden now but we can keep the value in payload calculation
+            return age >= 0 ? age : 0;
+        }
+
+        function previewProfilePhoto(input) {
+            const preview = document.getElementById('photo-preview');
+            const placeholder = document.getElementById('photo-placeholder');
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    preview.src = e.target.result;
+                    preview.style.display = 'block';
+                    placeholder.style.display = 'none';
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        function resizePhoto(file, maxSide = 1000, quality = 0.9) {
+            return new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const img = new Image();
+                    img.onload = () => {
+                        let width = img.width;
+                        let height = img.height;
+                        if (width > height) {
+                            if (width > maxSide) { height *= maxSide / width; width = maxSide; }
+                        } else {
+                            if (height > maxSide) { width *= maxSide / height; height = maxSide; }
+                        }
+                        const canvas = document.createElement('canvas');
+                        canvas.width = width;
+                        canvas.height = height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, width, height);
+                        resolve(canvas.toDataURL('image/jpeg', quality));
+                    };
+                    img.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            });
         }
 
         async function handleRegistration(e) {
             e.preventDefault();
             const btn = document.getElementById('submit-btn');
+            const paymentMode = document.querySelector('input[name="pay_mode"]:checked').value;
+            const photoInput = document.getElementById('att-photo');
+            const phone = document.getElementById('att-phone').value;
+            
             btn.disabled = true;
             btn.innerText = "Processing... ⏳";
 
-            const payload = {
-                action: 'register_attendee',
-                eventId: eventId,
-                name: document.getElementById('att-name').value,
-                phone: document.getElementById('att-phone').value,
-                email: document.getElementById('att-email').value || "",
-                password: document.getElementById('att-pw').value,
-                paymentMode: document.getElementById('att-payment').value,
-                address: document.getElementById('att-address').value,
-                dob: document.getElementById('att-dob').value,
-                age: document.getElementById('att-age').value,
-                gender: document.getElementById('att-gender').value,
-                fee: eventFee
-            };
-
             try {
+                // 1. Upload Photo if selected (Link via Phone instead of ID since ID isn't known yet)
+                if (photoInput.files && photoInput.files[0]) {
+                    btn.innerText = "Uploading Photo... 📸";
+                    const base64 = await resizePhoto(photoInput.files[0], 1000, 0.9);
+                    await fetch(API_URL, {
+                        method: "POST",
+                        mode: "no-cors",
+                        body: JSON.stringify({
+                            action: "upload_student_photo",
+                            fileData: base64,
+                            fileName: `reg_${phone}.jpg`
+                        })
+                    });
+                    // Small delay to ensure GAS processing
+                    await new Promise(r => setTimeout(r, 1500));
+                }
+
+                // 2. Submit Main Registration via JSONP (Reliable for getting response data like ID/PW)
+                const payload = {
+                    action: 'register_attendee',
+                    eventId: eventId,
+                    name: document.getElementById('att-name').value,
+                    phone: phone,
+                    email: document.getElementById('att-email').value || "",
+                    password: document.getElementById('att-pw').value,
+                    paymentMode: paymentMode,
+                    utr: document.getElementById('att-utr').value || "",
+                    address: document.getElementById('att-address').value,
+                    dob: document.getElementById('att-dob').value,
+                    age: calculateAge(document.getElementById('att-dob').value),
+                    gender: "Not Specified",
+                    fee: eventFee,
+                    regPhotoKey: `reg_${phone}.jpg` // Pass info to backend to link photo
+                };
+
                 const data = await fetchJSONP(`${API_URL}?${new URLSearchParams(payload).toString()}`);
+
                 if (data.success) {
                     document.getElementById('res-uid').innerText = data.studentId;
                     document.getElementById('res-pw').innerText = data.password;
@@ -317,7 +473,12 @@
                     btn.disabled = false;
                     btn.innerText = "Complete Registration";
                 }
-            } catch (err) { alert("Timeout or Connection Error"); btn.disabled = false; }
+            } catch (err) { 
+                console.error(err);
+                alert("Connection Error or Timeout. Please check your data and try again."); 
+                btn.disabled = false; 
+                btn.innerText = "Complete Registration";
+            }
         }
     </script>
 </body>
