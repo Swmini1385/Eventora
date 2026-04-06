@@ -33,7 +33,9 @@ function handleAttendeeRegistration(p, cb) {
       password,
       paymentMode,
       "Confirmed",
-      p.address || ""
+      p.address || "",
+      p.photoId || "",
+      p.fee || ""
     ]);
     
     // SYNC TO MASTER (for global login without Event ID)
@@ -70,26 +72,40 @@ function handleGetAttendees(p, cb) {
     const sheet = ss.getSheets()[0];
     const data = sheet.getDataRange().getValues();
     
+    // Remove metadata and header
     data.shift();
     data.shift(); 
     
-    const attendees = data.map(row => {
-      return {
-        id: row[0],
-        timestamp: row[1],
-        name: row[2],
-        phone: row[3],
-        email: row[4],
-        password: row[5],
-        paymentMode: row[6],
-        status: row[7]
-      };
-    });
-    
-    return response({ 
-      success: true, 
-      attendees: attendees 
-    }, cb);
+    const res = {
+        success: true,
+        attendees: data.map(row => ({
+            id: row[0],
+            name: row[2],
+            phone: row[3],
+            email: row[4],
+            paymentMode: row[6],
+            status: row[7],
+            address: row[8] || "",
+            photoId: row[9] || "",
+            amount: row[10] || "",
+            markedToday: false
+        }))
+    };
+
+    // Check Attendance Sheet for today
+    const sheetAtt = ss.getSheetByName("Attendance");
+    if (sheetAtt) {
+        const attData = sheetAtt.getDataRange().getValues();
+        const todayStr = new Date().toLocaleDateString();
+        const markedIds = new Set(
+            attData.filter(r => String(r[1]) === todayStr).map(r => r[0])
+        );
+        res.attendees.forEach(a => {
+            if (markedIds.has(a.id)) a.markedToday = true;
+        });
+    }
+
+    return response(res, cb);
   } catch (e) {
     return response({ success: false, message: e.toString() }, cb);
   }
@@ -142,6 +158,7 @@ function handleStudentLogin(p, cb) {
                     status: row[7],
                     address: row[8] || "",
                     photoId: row[9] || "",
+                    amount: row[10] || "",
                     eventId: finalEventId
                 }
             }, cb);
@@ -179,6 +196,7 @@ function handleGetStudentProfile(p, cb) {
                     status: data[i][7],
                     address: data[i][8] || "",
                     photoId: data[i][9] || "",
+                    amount: data[i][10] || "",
                     eventId: eventId
                 }
             }, cb);

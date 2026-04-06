@@ -182,6 +182,7 @@
 
     <script>
         const API_URL = "https://script.google.com/macros/s/AKfycbyaMg4MdPTN_GYkfmpfti3M5JTAchwLm-F8UCMQVyjS9Gn7PjyBOiBs7dK4onASyaQPdQ/exec";
+        let eventFee = 0;
         document.addEventListener('DOMContentLoaded', () => {
             loadEventInfo();
             lucide.createIcons();
@@ -248,7 +249,8 @@
                     if (data.endDate) dateStr += ` - ${data.endDate}`;
                     
                     document.getElementById('event-display-desc').innerHTML = `📅 Date: ${dateStr}<br>📍 Venue: ${data.venue || 'TBA'}`;
-                    document.getElementById('display-fee').innerText = `₹${data.fee || '100'}`;
+                    eventFee = data.fee || 0;
+                    document.getElementById('display-fee').innerText = `₹${eventFee}`;
                     
                     // Post-reg features
                     if (data.wa) {
@@ -320,7 +322,8 @@
                 email: document.getElementById('att-email').value || "",
                 password: document.getElementById('att-pw').value,
                 paymentMode: paymentMode,
-                address: document.getElementById('att-address').value
+                address: document.getElementById('att-address').value,
+                fee: eventFee
             });
 
             try {

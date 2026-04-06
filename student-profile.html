@@ -368,30 +368,57 @@
 
         async function loadAttendance() {
             try {
+                // 1. Fetch Event Info to get Start/End dates
+                const eventData = await fetchJSONP(`${API_URL}?action=get_event_info&eventId=${studentData.eventId}`);
+                if (!eventData.success) throw "Event info failed";
+                
+                // 2. Fetch Student Attendance Logs
                 const data = await fetchJSONP(`${API_URL}?action=get_student_attendance&eventId=${studentData.eventId}&studentId=${studentData.id}`);
+                const markedDates = data.success ? data.attendance.map(dt => new Date(dt).toLocaleDateString()) : [];
+                
+                // 3. Calculate Date Range (Start -> Today or End)
+                const start = new Date(eventData.startDate);
+                const endLimit = new Date(); // Today
+                const eventEnd = eventData.endDate ? new Date(eventData.endDate) : endLimit;
+                const lastShowDate = endLimit < eventEnd ? endLimit : eventEnd;
+                
                 const list = document.getElementById('attendance-list');
-                if (data.success && data.attendance.length > 0) {
-                    list.innerHTML = data.attendance.map(dt => `
+                let html = '';
+                
+                let runner = new Date(start);
+                while (runner <= lastShowDate) {
+                    const dateStr = runner.toLocaleDateString();
+                    const isPresent = markedDates.includes(dateStr);
+                    
+                    html += `
                         <div class="attendance-item">
-                            <span>${new Date(dt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
-                            <span style="color: #4ade80; font-weight: 700;">Present</span>
+                            <span>${runner.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}</span>
+                            <span style="color: ${isPresent ? '#4ade80' : '#f87171'}; font-weight: 700;">
+                                ${isPresent ? 'Present' : 'Absent'}
+                                <i data-lucide="${isPresent ? 'check-circle' : 'x-circle'}" size="14"></i>
+                            </span>
                         </div>
-                    `).join('');
-                } else {
-                    list.innerHTML = `<p style="text-align: center; color: var(--text-muted); padding: 1rem;">No attendance marked yet.</p>`;
+                    `;
+                    runner.setDate(runner.getDate() + 1);
                 }
-            } catch (err) { console.error(err); }
+                
+                list.innerHTML = html || `<p style="text-align: center; color: var(--text-muted); padding: 1rem;">Event hasn't started yet.</p>`;
+                lucide.createIcons();
+
+                // Update Header
+                document.getElementById('id-event-header').innerText = eventData.name;
+                if (eventData.wa) {
+                    document.getElementById('wa-section').style.display = 'block';
+                    document.getElementById('wa-link').href = eventData.wa;
+                }
+            } catch (err) { 
+                console.error(err); 
+                document.getElementById('attendance-list').innerHTML = `<p style="text-align: center; color: #f87171; padding: 1rem;">Error loading records.</p>`;
+            }
         }
 
         async function fetchEventName(eventId) {
-            const data = await fetchJSONP(`${API_URL}?action=get_event_info&eventId=${eventId}`);
-            if (data.success) {
-                document.getElementById('id-event-header').innerText = data.name;
-                if (data.wa) {
-                    document.getElementById('wa-section').style.display = 'block';
-                    document.getElementById('wa-link').href = data.wa;
-                }
-            }
+            // This is now integrated into loadAttendance to avoid double calls
         }
 
         function openEditModal() { document.getElementById('edit-modal').style.display = 'flex'; }
