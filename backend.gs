@@ -225,11 +225,12 @@ function handleCreateEvent(p) {
     p.venue || "", 
     p.upi || "", 
     p.wa || "", 
-    p.fee || "100"
+    p.fee || "100",
+    p.prefix || "A" // 8th element: Prefix
   ];
   
-  // Overwrite Row 1 with Meta
-  sheet.getRange(1, 1, 1, 7).setValues([meta]);
+  // Overwrite Row 1 with Meta (Now 8 columns)
+  sheet.getRange(1, 1, 1, 8).setValues([meta]);
   
   // Add Headers in Row 2 (if missing)
   if (sheet.getLastRow() < 2) {
@@ -272,9 +273,12 @@ function handleAttendeeRegistration(p) {
     const lastRow = sheet.getLastRow();
     const studentCount = lastRow < 2 ? 0 : lastRow - 2;
     
-    // GENERATE SEQUENTIAL ID (A0001, A0002, etc.)
+    // GENERATE SEQUENTIAL ID WITH CUSTOM PREFIX (e.g. B0001)
+    const metaRow = sheet.getRange(1, 1, 1, 8).getValues()[0];
+    const idPrefix = metaRow[0] === "METADATA" ? (metaRow[7] || "A") : "A";
+    
     const sequenceNum = studentCount + 1;
-    const studentId = "A" + ("0000" + sequenceNum).slice(-4);
+    const studentId = idPrefix + ("0000" + sequenceNum).slice(-4);
     
     const timestamp = new Date();
     const password = p.password || "123456"; 
@@ -345,7 +349,7 @@ function handleGetEventInfo(p) {
     const name = ss.getName().replace("EV_", "");
     
     // Read Metadata from Row 1
-    const metaRow = sheet.getRange(1, 1, 1, 7).getValues()[0];
+    const metaRow = sheet.getRange(1, 1, 1, 8).getValues()[0];
     let meta = {};
     if (metaRow[0] === "METADATA") {
       meta = {
@@ -354,7 +358,8 @@ function handleGetEventInfo(p) {
         venue: metaRow[3],
         upi: metaRow[4],
         wa: metaRow[5],
-        fee: metaRow[6]
+        fee: metaRow[6],
+        prefix: metaRow[7]
       };
     }
     

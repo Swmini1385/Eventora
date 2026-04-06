@@ -169,6 +169,7 @@ async function editEvent(id) {
             document.getElementById('event-date').value = data.startDate || '';
             document.getElementById('event-end-date').value = data.endDate || '';
             document.getElementById('event-fee').value = data.fee || '100';
+            document.getElementById('event-prefix').value = data.prefix || 'A';
             document.getElementById('event-venue').value = data.venue || '';
             document.getElementById('event-wa-link').value = data.wa || '';
             document.getElementById('event-upi-id').value = data.upi || '';
@@ -207,6 +208,7 @@ async function handleCreateEvent(e) {
         startDate: document.getElementById('event-date').value,
         endDate: document.getElementById('event-end-date').value,
         fee: document.getElementById('event-fee').value,
+        prefix: document.getElementById('event-prefix').value || 'A',
         venue: document.getElementById('event-venue').value,
         wa: document.getElementById('event-wa-link').value,
         upi: document.getElementById('event-upi-id').value

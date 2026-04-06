@@ -193,9 +193,15 @@
                         <input type="date" id="event-end-date" required>
                     </div>
                 </div>
-                <div class="form-group">
-                    <label>Registration Fee (₹)</label>
-                    <input type="number" id="event-fee" value="100" required>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div class="form-group">
+                        <label>Registration Fee (₹)</label>
+                        <input type="number" id="event-fee" value="100" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Student ID Prefix (A, B, S...)</label>
+                        <input type="text" id="event-prefix" maxlength="4" placeholder="e.g. A" value="A">
+                    </div>
                 </div>
                 <div class="form-group">
                     <label>WhatsApp Group Link (Optional)</label>
