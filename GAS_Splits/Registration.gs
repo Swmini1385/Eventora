@@ -351,7 +351,7 @@ function handleUpdateStudentProfile(p, cb) {
 }
 
 /**
- * 8. UPLOAD PHOTO
+ * 8. UPLOAD PHOTO (Profile)
  */
 function handleUploadStudentPhoto(p, cb) {
   try {
@@ -375,6 +375,70 @@ function handleUploadStudentPhoto(p, cb) {
     file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
     
     return response({ success: true, fileId: file.getId() }, cb);
+  } catch (e) {
+    return response({ success: false, message: e.toString() }, cb);
+  }
+}
+
+/**
+ * 9. UPLOAD ACTIVITY PHOTOS & TAGGING
+ */
+function handleUploadActivityPhotos(p, cb) {
+  try {
+    const eventId = p.eventId;
+    const studentIds = p.studentIds; // Comma-separated
+    const desc = p.desc || "";
+    const fileName = p.fileName || "activity.jpg";
+    const base64Data = p.fileData;
+
+    const ss = SpreadsheetApp.openById(eventId);
+    let sheetPhotos = ss.getSheetByName("ActivityPhotos");
+    if (!sheetPhotos) {
+      sheetPhotos = ss.insertSheet("ActivityPhotos");
+      sheetPhotos.appendRow(["PhotoID", "Timestamp", "TaggedStudents", "Description"]);
+    }
+
+    const folderName = "Eventora_Activity_Photos";
+    let folderIterator = DriveApp.getFoldersByName(folderName);
+    let folder = folderIterator.hasNext() ? folderIterator.next() : DriveApp.createFolder(folderName);
+
+    const contentType = base64Data.substring(5, base64Data.indexOf(';'));
+    const bytes = Utilities.base64Decode(base64Data.substring(base64Data.indexOf(',') + 1));
+    const blob = Utilities.newBlob(bytes, contentType, fileName);
+
+    const file = folder.createFile(blob);
+    file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+
+    sheetPhotos.appendRow([file.getId(), new Date(), studentIds, desc]);
+
+    return response({ success: true, photoId: file.getId() }, cb);
+  } catch (e) {
+    return response({ success: false, message: e.toString() }, cb);
+  }
+}
+
+/**
+ * 10. GET ACTIVITY PHOTOS FOR STUDENT
+ */
+function handleGetActivityPhotos(p, cb) {
+  try {
+    const eventId = p.eventId;
+    const studentId = p.studentId;
+    const ss = SpreadsheetApp.openById(eventId);
+    const sheet = ss.getSheetByName("ActivityPhotos");
+    if (!sheet) return response({ success: true, photos: [] }, cb);
+
+    const data = sheet.getDataRange().getValues();
+    const photos = data.filter(row => {
+      const tagged = String(row[2] || "").split(',');
+      return tagged.includes(studentId);
+    }).map(row => ({
+      id: row[0],
+      timestamp: row[1],
+      desc: row[3]
+    }));
+
+    return response({ success: true, photos: photos }, cb);
   } catch (e) {
     return response({ success: false, message: e.toString() }, cb);
   }

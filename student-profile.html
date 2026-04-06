@@ -373,12 +373,39 @@
             padding: 2rem;
         }
 
-        .close-btn {
-            position: absolute;
-            top: 1rem;
-            right: 1rem;
-            cursor: pointer;
-            color: var(--text-muted);
+        .attendance-section {
+            margin-bottom: 2rem;
+        }
+
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 1.25rem;
+            margin-top: 1.5rem;
+        }
+
+        .gallery-item {
+            border-radius: 1rem;
+            overflow: hidden;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--glass-border);
+            transition: 0.3s;
+        }
+
+        .gallery-item:hover {
+            transform: translateY(-5px);
+            border-color: var(--primary);
+        }
+
+        .gallery-img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+        }
+
+        .gallery-info {
+            padding: 0.75rem;
+            font-size: 0.75rem;
         }
     </style>
 </head>
@@ -554,6 +581,15 @@
             </div>
         </div>
 
+        <!-- ACTIVITY GALLERY -->
+        <div class="glass-card">
+            <div class="card-title"><i data-lucide="image" size="20" color="#a855f7"></i> Event Activity Gallery</div>
+            <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 0.25rem;">Photos where you were tagged during the event.</p>
+            <div id="activity-gallery" class="gallery-grid">
+                <p style="grid-column: 1/-1; text-align: center; padding: 2rem; color: var(--text-muted);">Loading gallery... 📸</p>
+            </div>
+        </div>
+
         <p style="text-align: center; margin-top: 3rem; color: var(--text-muted); font-size: 0.8rem;">
             Powered by <b>Eventora Cloud</b> • Identity System v2.0
         </p>
@@ -668,6 +704,7 @@
                     studentData = data.student;
                     updateUI();
                     loadAttendance();
+                    loadActivityGallery();
                 } else {
                     alert("Session Expired: " + data.message);
                 }
@@ -796,6 +833,30 @@
                 list.innerHTML = html || `<p style="grid-column: 1/-1; text-align: center; color: var(--text-muted);">Event has not started yet.</p>`;
                 lucide.createIcons();
             } catch (err) { console.error(err); }
+        }
+
+        async function loadActivityGallery() {
+            const gallery = document.getElementById('activity-gallery');
+            try {
+                const data = await fetchJSONP(`${API_URL}?action=get_activity_photos&eventId=${studentData.eventId}&studentId=${studentData.id}`);
+                if (data.success && data.photos.length > 0) {
+                    gallery.innerHTML = data.photos.map(p => `
+                        <div class="gallery-item">
+                            <a href="https://lh3.googleusercontent.com/d/${p.id}=s1000" target="_blank">
+                                <img src="https://lh3.googleusercontent.com/d/${p.id}=s300" class="gallery-img">
+                            </a>
+                            <div class="gallery-info">
+                                <div style="font-weight: 700; color: #fff; margin-bottom: 4px;">${p.desc || 'Activity Photo'}</div>
+                                <div style="color: var(--text-muted); font-size: 0.65rem;">${new Date(p.timestamp).toLocaleDateString('en-IN', {day:'numeric', month:'short'})}</div>
+                            </div>
+                        </div>
+                    `).join('');
+                } else {
+                    gallery.innerHTML = `<p style="grid-column: 1/-1; text-align: center; padding: 2rem; color: var(--text-muted);">No activity photos yet. Stay tuned!</p>`;
+                }
+            } catch (err) {
+                gallery.innerHTML = `<p style="grid-column: 1/-1; text-align: center; padding: 2rem; color: var(--text-muted);">Gallery unavailable.</p>`;
+            }
         }
 
         function toggleID() {
