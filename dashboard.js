@@ -198,6 +198,8 @@ async function editEvent(id) {
             document.getElementById('event-name').value = data.name || '';
             document.getElementById('event-date').value = data.startDate || '';
             document.getElementById('event-end-date').value = data.endDate || '';
+            document.getElementById('event-start-time').value = data.startTime || '09:00';
+            document.getElementById('event-end-time').value = data.endTime || '18:00';
             document.getElementById('event-fee').value = data.fee || '100';
             document.getElementById('event-prefix').value = data.prefix || 'A';
             document.getElementById('event-venue').value = data.venue || '';
@@ -237,6 +239,8 @@ async function handleCreateEvent(e) {
         name: document.getElementById('event-name').value,
         startDate: document.getElementById('event-date').value,
         endDate: document.getElementById('event-end-date').value,
+        startTime: document.getElementById('event-start-time').value,
+        endTime: document.getElementById('event-end-time').value,
         fee: document.getElementById('event-fee').value,
         prefix: document.getElementById('event-prefix').value || 'A',
         venue: document.getElementById('event-venue').value,

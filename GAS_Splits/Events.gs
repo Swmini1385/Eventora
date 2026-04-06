@@ -58,10 +58,12 @@ function handleCreateEvent(p, cb) {
     p.upi || "", 
     p.wa || "", 
     p.fee || "100",
-    p.prefix || "A"
+    p.prefix || "A",
+    p.startTime || "",
+    p.endTime || ""
   ];
   
-  sheet.getRange(1, 1, 1, 8).setValues([meta]);
+  sheet.getRange(1, 1, 1, 10).setValues([meta]);
   
   if (sheet.getLastRow() < 2) {
     sheet.appendRow(["ID", "Timestamp", "Name", "Phone", "Email", "Password", "PaymentMode", "Status"]);
@@ -96,7 +98,7 @@ function handleGetEventInfo(p, cb) {
     const sheet = ss.getSheets()[0];
     const name = ss.getName().replace("EV_", "");
     
-    const metaRow = sheet.getRange(1, 1, 1, 8).getValues()[0];
+    const metaRow = sheet.getRange(1, 1, 1, 10).getValues()[0];
     let meta = {};
     if (metaRow[0] === "METADATA") {
       meta = {
@@ -106,7 +108,9 @@ function handleGetEventInfo(p, cb) {
         upi: metaRow[4],
         wa: metaRow[5],
         fee: metaRow[6],
-        prefix: metaRow[7]
+        prefix: metaRow[7],
+        startTime: metaRow[8],
+        endTime: metaRow[9]
       };
     }
     

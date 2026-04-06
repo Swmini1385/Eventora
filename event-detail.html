@@ -214,6 +214,7 @@
                     
                     let dateStr = data.startDate || "TBA";
                     if (data.endDate) dateStr += ` to ${data.endDate}`;
+                    if (data.startTime) dateStr += ` (${data.startTime} to ${data.endTime || '??:??'})`;
                     
                     document.getElementById('event-meta').innerHTML = `
                         <i data-lucide="calendar" size="16"></i> Date: ${dateStr} &nbsp;|&nbsp; 
