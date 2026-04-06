@@ -107,7 +107,7 @@
                 <p id="auth-subtitle" style="color: var(--text-muted); margin-bottom: 1.5rem;">Please sign in to manage your events.</p>
 
                 <!-- Auth Tabs -->
-                <div style="display: flex; gap: 0.5rem; margin-bottom: 2rem; background: rgba(255,255,255,0.05); padding: 0.4rem; border-radius: 0.75rem; border: 1px solid var(--glass-border);">
+                <div id="auth-tabs" style="display: flex; gap: 0.5rem; margin-bottom: 2rem; background: rgba(255,255,255,0.05); padding: 0.4rem; border-radius: 0.75rem; border: 1px solid var(--glass-border);">
                     <button onclick="setMode('student')" id="tab-student" style="flex: 1; padding: 0.6rem; border-radius: 0.5rem; border: none; background: var(--primary); color: white; font-weight: 600; cursor: pointer; transition: 0.3s;">
                         Student
                     </button>
@@ -179,8 +179,20 @@
             // Tab highlight logic
             const tabOrg = document.getElementById('tab-organizer');
             const tabStd = document.getElementById('tab-student');
+            const authTabs = document.getElementById('auth-tabs');
 
-            if (mode === 'student') {
+            if (mode === 'signup') {
+                if (authTabs) authTabs.style.display = 'none';
+                title.innerText = "Become an Organizer";
+                subtitle.innerText = "Start managing your events professionally today.";
+                submitBtn.innerText = "Create Account";
+                signupFields.forEach(f => f.style.display = 'block');
+                toggleText.innerText = "Already have an account?";
+                toggleLink.innerText = "Sign in instead";
+                document.getElementById('identifier').placeholder = "name@email.com";
+                document.querySelector('label[for="identifier"]').innerText = "Email or Mobile Number";
+            } else if (mode === 'student') {
+                if (authTabs) authTabs.style.display = 'flex';
                 tabStd.style.background = 'var(--primary)';
                 tabStd.style.color = 'white';
                 tabOrg.style.background = 'transparent';
@@ -195,26 +207,18 @@
                 document.getElementById('identifier').placeholder = "e.g. SC0001";
                 document.querySelector('label[for="identifier"]').innerText = "Student ID";
             } else {
+                if (authTabs) authTabs.style.display = 'flex';
                 tabOrg.style.background = 'var(--primary)';
                 tabOrg.style.color = 'white';
                 tabStd.style.background = 'transparent';
                 tabStd.style.color = 'var(--text-muted)';
                 
-                if (mode === 'signup') {
-                    title.innerText = "Become an Organizer";
-                    subtitle.innerText = "Start managing your events professionally today.";
-                    submitBtn.innerText = "Create Account";
-                    signupFields.forEach(f => f.style.display = 'block');
-                    toggleText.innerText = "Already have an account?";
-                    toggleLink.innerText = "Sign in instead";
-                } else {
-                    title.innerText = "Welcome Back";
-                    subtitle.innerText = "Please sign in to manage your events.";
-                    submitBtn.innerText = "Sign In";
-                    signupFields.forEach(f => f.style.display = 'none');
-                    toggleText.innerText = "Don't have an account?";
-                    toggleLink.innerText = "Create one";
-                }
+                title.innerText = "Welcome Back";
+                subtitle.innerText = "Please sign in to manage your events.";
+                submitBtn.innerText = "Sign In";
+                signupFields.forEach(f => f.style.display = 'none');
+                toggleText.innerText = "Don't have an account?";
+                toggleLink.innerText = "Create one";
                 document.getElementById('identifier').placeholder = "name@email.com";
                 document.querySelector('label[for="identifier"]').innerText = "Email or Mobile Number";
             }
