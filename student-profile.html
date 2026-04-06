@@ -3,153 +3,136 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Student Profile | Eventora</title>
+    <title>Student Dashboard | Eventora</title>
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <!-- CSS -->
     <link rel="stylesheet" href="style.css">
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
-    <link rel="stylesheet" href="student_profile.css">
     <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --glass: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --text-muted: #94a3b8;
+        }
+
+        body {
+            background-color: #0f172a;
+            color: #f1f5f9;
+            font-family: 'Outfit', sans-serif;
+            margin: 0;
+            line-height: 1.6;
+        }
+
         .profile-container {
-            max-width: 600px;
-            margin: 2rem auto;
-            padding: 0 1rem;
-            position: relative;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem;
         }
 
-        /* DIGITAL ID CARD STYLES */
-        .id-card {
-            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+        /* EVENT HERO HEADER */
+        .event-hero {
+            background: linear-gradient(135deg, var(--primary) 0%, #a855f7 100%);
             border-radius: 1.5rem;
-            border: 2px solid rgba(255,255,255,0.1);
-            overflow: hidden;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            padding: 2.5rem;
             margin-bottom: 2rem;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
             position: relative;
+            overflow: hidden;
         }
 
-        .id-header {
-            background: var(--primary);
-            color: white;
-            padding: 1.25rem;
-            text-align: center;
-            font-weight: 800;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-            font-size: 0.9rem;
-            border-bottom: 4px solid rgba(255,255,255,0.1);
-        }
+        .hero-content { position: relative; z-index: 1; }
+        .hero-title { font-size: 2.25rem; font-weight: 800; margin-bottom: 0.5rem; line-height: 1.2; }
+        .hero-meta { display: flex; gap: 1.5rem; font-size: 0.95rem; opacity: 0.9; flex-wrap: wrap; }
 
-        .id-body {
-            padding: 2rem;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-align: center;
+        /* DASHBOARD GRID */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
             gap: 1.5rem;
+            margin-bottom: 2rem;
         }
 
-        .photo-container {
-            width: 150px;
-            height: 150px;
-            border-radius: 1rem;
-            background: rgba(255,255,255,0.05);
-            border: 2px dashed rgba(255,255,255,0.2);
+        .glass-card {
+            background: var(--glass);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            border-radius: 1.25rem;
+            padding: 1.75rem;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .card-title {
+            font-weight: 700;
+            font-size: 1.1rem;
             display: flex;
             align-items: center;
-            justify-content: center;
-            cursor: pointer;
+            gap: 0.6rem;
+        }
+
+        /* PERSONAL INFO */
+        .info-layout {
+            display: flex;
+            gap: 1.5rem;
+            align-items: flex-start;
+        }
+
+        .photo-box {
+            width: 110px;
+            height: 110px;
+            border-radius: 1rem;
+            border: 2px solid var(--primary);
             overflow: hidden;
             position: relative;
-            transition: 0.3s;
+            cursor: pointer;
+            background: #1e293b;
         }
 
-        .photo-container img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .photo-container:hover {
-            border-color: var(--primary);
-            transform: scale(1.02);
-        }
-
+        .photo-box img { width: 100%; height: 100%; object-fit: cover; }
+        .photo-box:hover .photo-overlay { opacity: 1; }
         .photo-overlay {
-            position: absolute;
-            bottom: 0;
-            width: 100%;
-            background: rgba(0,0,0,0.5);
-            padding: 0.5rem;
-            color: white;
-            font-size: 0.7rem;
-            opacity: 0;
-            transition: 0.3s;
+            position: absolute; bottom: 0; width: 100%; background: rgba(0,0,0,0.7);
+            color: #fff; font-size: 0.65rem; text-align: center; padding: 5px 0; opacity: 0; transition: 0.3s;
         }
 
-        .photo-container:hover .photo-overlay {
-            opacity: 1;
+        .details-list { flex: 1; display: grid; gap: 1rem; }
+        .detail-item { }
+        .detail-label { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700; margin-bottom: 0.2rem; }
+        .detail-value { font-size: 1rem; font-weight: 500; color: #fff; }
+
+        /* PAYMENT INFO */
+        .payment-card { }
+        .payment-box {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid var(--glass-border);
+            padding: 1.25rem;
+            border-radius: 1rem;
+            margin-bottom: 1rem;
         }
 
-        .id-info {
-            width: 100%;
-            text-align: left;
-        }
+        .amount-text { font-size: 1.75rem; font-weight: 800; color: #4ade80; }
+        .status-badge { font-size: 0.75rem; font-weight: 800; padding: 4px 12px; border-radius: 20px; text-transform: uppercase; }
 
-        .id-name {
-            font-size: 1.75rem;
-            font-weight: 800;
-            color: #fff;
-            margin-bottom: 0.25rem;
-            text-align: center;
-            text-transform: uppercase;
-        }
-
-        .id-number {
-            color: var(--primary);
-            font-weight: 700;
-            text-align: center;
-            margin-bottom: 1.5rem;
-            font-family: monospace;
-            font-size: 1.1rem;
-        }
-
-        .id-detail-row {
-            display: flex;
-            margin-bottom: 0.75rem;
+        /* ACTIONS */
+        .action-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
             gap: 1rem;
-            font-size: 0.9rem;
+            margin-bottom: 2rem;
         }
 
-        .id-label {
-            color: var(--text-muted);
-            width: 80px;
-            flex-shrink: 0;
-        }
-
-        .id-value {
-            color: #e2e8f0;
-            font-weight: 500;
-        }
-
-        /* SECTION STYLES */
-        .section-card {
-            padding: 1.5rem;
-            margin-bottom: 1.5rem;
-        }
-
-        .section-title {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            margin-bottom: 1.25rem;
-            font-size: 1.1rem;
-            color: #fff;
-        }
-
-        /* NEW ID CARD (3.5" x 2.25") */
+        /* ID CARD PREVIEW (3.5" x 2.25") */
         #id-card-view {
             width: 3.5in;
             height: 2.25in;
@@ -159,195 +142,194 @@
             overflow: hidden;
             position: relative;
             margin: 0 auto 2rem;
-            display: none; /* Hidden by default, shown by button */
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            display: none; 
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
             font-family: 'Outfit', sans-serif;
             color: #333;
         }
 
-        .id-header-v2 {
-            background: #f59e0b; /* Orange-yellow */
-            color: white;
-            padding: 8px;
-            text-align: center;
-            font-weight: 800;
-            font-size: 0.85rem;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
+        .id-header-v2 { background: #f59e0b; color: white; padding: 8px; text-align: center; font-weight: 800; font-size: 0.85rem; }
+        .id-body-v2 { padding: 12px; display: flex; gap: 15px; height: calc(2.25in - 65px); align-items: flex-start; position: relative; z-index: 1; }
+        .id-watermark { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); opacity: 0.05; width: 120px; z-index: 0; }
+        .id-photo-v2 { width: 80px; height: 95px; border: 2px solid #f59e0b; border-radius: 6px; object-fit: cover; }
+        .id-details-v2 { flex: 1; display: flex; flex-direction: column; gap: 3px; }
+        .id-field { font-size: 0.65rem; color: #f59e0b; font-weight: 700; text-transform: uppercase; }
+        .id-value-v2 { font-size: 0.85rem; font-weight: 700; color: #1e293b; margin-bottom: 3px; }
+        .id-footer-v2 { position: absolute; bottom: 0; width: 100%; background: #1e293b; color: white; padding: 6px; text-align: center; font-size: 0.65rem; }
+        .id-badge { background: white; border: 1px solid #f59e0b; color: #f59e0b; font-size: 0.7rem; font-weight: 800; padding: 2px 8px; border-radius: 4px; display: inline-block; }
 
-        .id-body-v2 {
-            padding: 12px;
-            display: flex;
-            gap: 15px;
-            height: calc(2.25in - 65px);
-            align-items: flex-start;
-            position: relative;
-            z-index: 1;
-        }
+        /* ATTENDANCE SECTION */
+        .attendance-section { margin-top: 2rem; }
 
-        .id-watermark {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            opacity: 0.05;
-            width: 120px;
-            z-index: 0;
-            pointer-events: none;
-        }
-
-        .id-photo-v2 {
-            width: 80px;
-            height: 95px;
-            border: 2px solid #f59e0b;
-            border-radius: 6px;
-            object-fit: cover;
-            background: #eee;
-        }
-
-        .id-details-v2 {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            gap: 3px;
-        }
-
-        .id-field {
-            font-size: 0.65rem;
-            color: #f59e0b;
-            font-weight: 700;
-            text-transform: uppercase;
-        }
-
-        .id-value-v2 {
-            font-size: 0.85rem;
-            font-weight: 700;
-            color: #1e293b;
-            margin-bottom: 3px;
-        }
-
-        .id-footer-v2 {
-            position: absolute;
-            bottom: 0;
-            width: 100%;
-            background: #1e293b;
-            color: white;
-            padding: 6px;
-            text-align: center;
-            font-size: 0.65rem;
-            font-weight: 600;
-        }
-
-        .id-badge {
-            background: white;
-            border: 1px solid #f59e0b;
-            color: #f59e0b;
-            font-size: 0.7rem;
-            font-weight: 800;
-            padding: 2px 8px;
-            border-radius: 4px;
-            margin-top: 5px;
-            display: inline-block;
-        }
-
-        /* PRINT CSS */
         @media print {
             body * { visibility: hidden; }
             #id-card-view, #id-card-view * { visibility: visible; }
-            #id-card-view {
-                position: fixed;
-                left: 0;
-                top: 0;
-                display: block !important;
-                margin: 0;
-                box-shadow: none;
-                border: 1px solid #eee;
-                -webkit-print-color-adjust: exact;
-            }
+            #id-card-view { position: fixed; left: 0; top: 0; display: block !important; margin: 0; box-shadow: none; border: 1px solid #eee; -webkit-print-color-adjust: exact; }
         }
+
+        @media (max-width: 768px) {
+            .dashboard-grid, .action-grid { grid-template-columns: 1fr; }
+            .event-hero { padding: 1.5rem; }
+            .hero-title { font-size: 1.75rem; }
+            .info-layout { flex-direction: column; align-items: center; text-align: center; }
+        }
+
+        /* MODAL */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); backdrop-filter: blur(8px); z-index: 1000; align-items: center; justify-content: center; padding: 1rem; }
+        .modal-content { width: 100%; max-width: 450px; padding: 2rem; }
+        .close-btn { position: absolute; top: 1rem; right: 1rem; cursor: pointer; color: var(--text-muted); }
     </style>
 </head>
 <body>
     <div class="profile-container">
-        <!-- Top Nav -->
+        <!-- TOP NAV -->
         <div style="display: flex; justify-content: space-between; margin-bottom: 1.5rem; align-items: center;">
-            <div style="font-weight: 700; color: var(--primary); display: flex; align-items: center; gap: 0.5rem;">
-                <i data-lucide="sparkles"></i> Student Portal
+            <div style="font-weight: 700; color: var(--primary); display: flex; align-items: center; gap: 0.5rem; font-size: 1.1rem;">
+                <i data-lucide="shield-check"></i> Eventora Student Portal
             </div>
-            <button onclick="logout()" class="btn btn-outline" style="padding: 0.5rem 1rem; font-size: 0.8rem; color: #f87171;">
-                Logout
+            <button onclick="logout()" class="btn btn-outline" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; color: #f87171; border-radius: 8px;">Logout</button>
+        </div>
+
+        <!-- HERO HEADER -->
+        <div class="event-hero">
+            <div class="hero-content">
+                <div class="hero-title" id="disp-event-name">Loading Event...</div>
+                <div class="hero-meta" id="disp-event-meta">
+                    <span><i data-lucide="info" size="14"></i> Dashboard</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- DASHBOARD GRID -->
+        <div class="dashboard-grid">
+            <!-- LEFT: PERSONAL DETAILS -->
+            <div class="glass-card">
+                <div class="card-header">
+                    <div class="card-title text-gradient"><i data-lucide="user" size="20"></i> Personal Profile</div>
+                    <button onclick="openEditModal()" class="btn btn-outline" style="padding: 0.3rem 0.7rem; font-size: 0.75rem; border-radius: 8px;">
+                        <i data-lucide="edit-2" size="12"></i> Edit
+                    </button>
+                </div>
+                
+                <div class="info-layout">
+                    <div class="photo-box" onclick="document.getElementById('photo-input').click()">
+                        <img id="id-photo" src="https://api.dicebear.com/7.x/initials/svg?seed=E">
+                        <div class="photo-overlay">Update Photo</div>
+                    </div>
+                    <input type="file" id="photo-input" style="display: none;" accept="image/*" onchange="uploadPhoto(this)">
+                    
+                    <div class="details-list">
+                        <div class="detail-item">
+                            <div class="detail-label">Full Name</div>
+                            <div class="detail-value" id="id-name">--</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Registration ID</div>
+                            <div class="detail-value" id="id-number" style="color: var(--primary); font-weight: 700;">--</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="height: 1.5rem;"></div>
+
+                <div class="details-list" style="grid-template-columns: 1fr;">
+                    <div class="detail-item">
+                        <div class="detail-label">Mobile Number</div>
+                        <div class="detail-value" id="id-phone">--</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Email Address</div>
+                        <div class="detail-value" id="id-email">--</div>
+                    </div>
+                    <div class="detail-item" style="grid-column: span 1;">
+                        <div class="detail-label">Current Address</div>
+                        <div class="detail-value" id="id-address">--</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RIGHT: PAYMENT DETAILS -->
+            <div class="glass-card">
+                <div class="card-header">
+                    <div class="card-title" style="color: #fbbf24;"><i data-lucide="wallet" size="20"></i> Payment & Finance</div>
+                    <div id="id-status-badge" class="status-badge" style="background: rgba(248,113,113,0.1); color: #f87171;">Pending</div>
+                </div>
+
+                <div class="payment-box">
+                    <div class="detail-label">Registration Amount</div>
+                    <div class="amount-text" id="id-amount">₹0</div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div class="payment-box">
+                        <div class="detail-label">Payment Mode</div>
+                        <div class="detail-value" id="id-payment-mode">--</div>
+                    </div>
+                    <div class="payment-box">
+                        <div class="detail-label">UTR Number</div>
+                        <div class="detail-value" id="id-utr" style="font-family: monospace;">--</div>
+                    </div>
+                </div>
+
+                <div style="margin-top: 1rem; padding: 1rem; background: rgba(99,102,241,0.05); border-radius: 0.75rem; border: 1px solid rgba(99,102,241,0.1); font-size: 0.85rem;">
+                    <p style="margin:0; color: var(--text-muted); line-height: 1.4;">
+                        <i data-lucide="shield" size="14" style="vertical-align: middle;"></i> 
+                        Your payment details are verified by the event accounting team.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- ACTIONS ROW -->
+        <div class="action-grid">
+            <button onclick="toggleID()" class="btn btn-primary" style="padding: 1.25rem; font-weight: 700; gap: 0.75rem;">
+                <i data-lucide="contact-2"></i> Show Identity Card
+            </button>
+            <button onclick="window.print()" class="btn" style="background: #1e293b; color: white; padding: 1.25rem; font-weight: 700; gap: 0.75rem;">
+                <i data-lucide="printer"></i> Print ID Card
             </button>
         </div>
 
-        <!-- NEW CONTROLS -->
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 2rem;">
-            <button onclick="toggleID()" class="btn" style="background: #4ade80; color: white; display: flex; flex-direction: column; align-items: center; padding: 1rem; height: auto;">
-                <i data-lucide="contact-2" size="24" style="margin-bottom: 0.5rem;"></i>
-                <span style="font-weight: 700; font-size: 0.9rem;">🪪 Show ID Card</span>
-            </button>
-            <button onclick="window.print()" class="btn" style="background: #1e293b; color: white; display: flex; flex-direction: column; align-items: center; padding: 1rem; height: auto;">
-                <i data-lucide="printer" size="24" style="margin-bottom: 0.5rem;"></i>
-                <span style="font-weight: 700; font-size: 0.9rem;">🖨️ Print ID</span>
-            </button>
-        </div>
-
-        <!-- REDESIGNED ID CARD -->
+        <!-- ID PREVIEW (HIDDEN BY DEFAULT) -->
         <div id="id-card-view">
-            <div class="id-header-v2" id="id-event-header">CHIMUKLA UTSAV SUMMER CAMP 2026</div>
+            <div class="id-header-v2" id="id-card-event">EVENT NAME</div>
             <div class="id-body-v2">
                 <img src="https://api.dicebear.com/7.x/initials/svg?seed=E" class="id-watermark">
                 <div>
-                    <img id="id-photo" src="https://api.dicebear.com/7.x/initials/svg?seed=E" class="id-photo-v2">
+                    <img id="id-photo-card" src="https://api.dicebear.com/7.x/initials/svg?seed=E" class="id-photo-v2">
                     <br>
-                    <div class="id-badge" id="id-badge-val">ID: C000k</div>
+                    <div class="id-badge" id="id-badge-val">ID: SC0001</div>
                 </div>
                 <div class="id-details-v2">
                     <div class="id-field">NAME</div>
-                    <div class="id-value-v2" id="id-name">Yogesh</div>
-                    
+                    <div class="id-value-v2" id="id-name-card">--</div>
                     <div class="id-field">MOBILE</div>
-                    <div class="id-value-v2" id="id-phone">9850254914</div>
-                    
+                    <div class="id-value-v2" id="id-phone-card">--</div>
                     <div class="id-field">ADDRESS</div>
-                    <div class="id-value-v2" id="id-address">Deola</div>
+                    <div class="id-value-v2" id="id-address-card">--</div>
                 </div>
             </div>
-            <div class="id-footer-v2">Summer Camp 2026 Official ID Card</div>
+            <div class="id-footer-v2">Official Participant ID</div>
         </div>
 
-        <!-- ATTENDANCE LOG -->
-        <div class="glass section-card">
-            <div class="section-title">
-                <i data-lucide="calendar-check" color="var(--primary)"></i> Attendance History
-            </div>
-            <div id="attendance-list">
-                <p style="text-align: center; color: var(--text-muted); padding: 1rem;">No attendance records found yet.</p>
+        <!-- ATTENDANCE SECTION -->
+        <div class="glass-card attendance-section">
+            <div class="card-title" style="margin-bottom: 1.5rem;"><i data-lucide="calendar-check" size="20" color="var(--primary)"></i> Real-time Attendance Record</div>
+            <div id="attendance-list" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem;">
+                <p style="grid-column: 1/-1; text-align: center; color: var(--text-muted);">Fetching records...</p>
             </div>
         </div>
 
-        <!-- PAYMENT & LINKS -->
-        <div class="glass section-card">
-            <div class="section-title">
-                <i data-lucide="credit-card" color="#fbbf24"></i> Payment & Groups
-            </div>
-            <div class="attendance-item">
-                <span style="color: var(--text-muted);">Mode</span>
-                <span style="font-weight: 600;" id="id-payment-mode">--</span>
-            </div>
-            <div id="wa-section" style="margin-top: 1rem; display: none;">
-                <a href="#" id="wa-link" target="_blank" class="btn" style="background: #25D366; color: white; width: 100%; font-weight: 700; border-radius: 0.75rem;">
-                    Join WhatsApp Group <i data-lucide="message-circle" size="18"></i>
-                </a>
-            </div>
-        </div>
+        <p style="text-align: center; margin-top: 3rem; color: var(--text-muted); font-size: 0.8rem;">
+            Powered by <b>Eventora Cloud</b> • Identity System v2.0
+        </p>
     </div>
 
     <!-- EDIT MODAL -->
     <div id="edit-modal" class="modal">
-        <div class="glass modal-content">
+        <div class="glass-card modal-content" style="position: relative;">
             <div class="close-btn" onclick="closeEditModal()"><i data-lucide="x"></i></div>
-            <h2 style="margin-bottom: 1.5rem;">Edit Personal Details</h2>
+            <h2 style="margin-bottom: 1.5rem;">Update Information</h2>
             <form id="edit-form" onsubmit="handleUpdate(event)">
                 <div class="form-group">
                     <label>Full Name</label>
@@ -358,14 +340,14 @@
                     <input type="tel" id="edit-phone" required>
                 </div>
                 <div class="form-group">
-                    <label>Email (Optional)</label>
+                    <label>Email Address</label>
                     <input type="email" id="edit-email">
                 </div>
                 <div class="form-group">
-                    <label>Address</label>
+                    <label>Home Address</label>
                     <textarea id="edit-address" rows="2" required></textarea>
                 </div>
-                <button type="submit" class="btn btn-primary" style="width: 100%; padding: 1rem; margin-top: 1rem;" id="update-btn">
+                <button type="submit" class="btn btn-primary" style="width: 100%; padding: 1rem; margin-top: 1rem; font-weight: 700;" id="update-btn">
                     Save Changes
                 </button>
             </form>
@@ -387,19 +369,13 @@
                 const script = document.createElement('script');
                 const name = callbackName || `jsonp_${Date.now()}_${Math.floor(Math.random()*1000)}`;
                 window[name] = (data) => { cleanup(); resolve(data); };
-                script.onerror = () => { cleanup(); reject(new Error('Request failed')); };
+                script.onerror = () => { cleanup(); reject(new Error('Cloud Request Failed')); };
                 const connector = url.includes('?') ? '&' : '?';
                 script.src = `${url}${connector}callback=${name}`;
                 document.body.appendChild(script);
                 function cleanup() { delete window[name]; if (script.parentNode) document.body.removeChild(script); }
-                setTimeout(() => { if (window[name]) { cleanup(); reject(new Error('Cloud timeout')); } }, 30000);
+                setTimeout(() => { if (window[name]) { cleanup(); reject(new Error('Cloud Response Timeout')); } }, 30000);
             });
-        }
-
-        function toggleID() {
-            const card = document.getElementById('id-card-view');
-            card.style.display = (card.style.display === 'none' || card.style.display === '') ? 'block' : 'none';
-            if (card.style.display === 'block') card.scrollIntoView({ behavior: 'smooth' });
         }
 
         async function loadProfile() {
@@ -408,9 +384,7 @@
             const studentId = urlParams.get('studentId');
 
             if (!eventId || !studentId) {
-                alert("Invalid session. Redirecting to login.");
-                logout();
-                return;
+                logout(); return;
             }
 
             try {
@@ -420,27 +394,43 @@
                     updateUI();
                     loadAttendance();
                 } else {
-                    alert("Profile error: " + data.message);
+                    alert("Session Expired: " + data.message);
                 }
-            } catch (err) {
-                console.error(err);
-            }
+            } catch (err) { console.error(err); }
         }
 
         function updateUI() {
             const s = studentData;
-            document.getElementById('id-name').innerText = s.name;
-            document.getElementById('id-badge-val').innerText = `ID: ${s.id}`;
-            document.getElementById('id-phone').innerText = s.phone;
-            document.getElementById('id-address').innerText = s.address || '--';
+            const photoUrl = s.photoId ? `https://lh3.googleusercontent.com/d/${s.photoId}=s300` : `https://api.dicebear.com/7.x/initials/svg?seed=${s.name}`;
             
-            if (s.photoId) {
-                document.getElementById('id-photo').src = `https://lh3.googleusercontent.com/d/${s.photoId}=s300`;
-            } else {
-                document.getElementById('id-photo').src = `https://api.dicebear.com/7.x/initials/svg?seed=${s.name}`;
-            }
+            // Primary UI
+            document.getElementById('id-name').innerText = s.name;
+            document.getElementById('id-number').innerText = `ID: ${s.id}`;
+            document.getElementById('id-phone').innerText = s.phone;
+            document.getElementById('id-email').innerText = s.email || 'Not Provided';
+            document.getElementById('id-address').innerText = s.address || '--';
+            document.getElementById('id-photo').src = photoUrl;
+            
+            // Payment UI
+            document.getElementById('id-amount').innerText = s.amount ? `₹${s.amount}` : '₹0';
+            document.getElementById('id-payment-mode').innerText = s.paymentMode || 'Cash';
+            document.getElementById('id-utr').innerText = s.utr || 'Pending verification';
+            
+            const badge = document.getElementById('id-status-badge');
+            const isConfirmed = s.status === 'Confirmed';
+            badge.innerText = s.status || 'Pending';
+            badge.style.background = isConfirmed ? 'rgba(34,197,94,0.1)' : 'rgba(248,113,113,0.1)';
+            badge.style.color = isConfirmed ? '#22c55e' : '#f87171';
+            badge.style.border = isConfirmed ? '1px solid rgba(34,197,94,0.2)' : '1px solid rgba(248,113,113,0.2)';
 
-            // Prep Modal
+            // ID Card Fields
+            document.getElementById('id-name-card').innerText = s.name;
+            document.getElementById('id-phone-card').innerText = s.phone;
+            document.getElementById('id-address-card').innerText = s.address || '--';
+            document.getElementById('id-badge-val').innerText = `ID: ${s.id}`;
+            document.getElementById('id-photo-card').src = photoUrl;
+
+            // Edit Form
             document.getElementById('edit-name').value = s.name;
             document.getElementById('edit-phone').value = s.phone;
             document.getElementById('edit-email').value = s.email || '';
@@ -449,66 +439,63 @@
 
         async function loadAttendance() {
             try {
-                // 1. Fetch Event Info to get Start/End dates
                 const eventData = await fetchJSONP(`${API_URL}?action=get_event_info&eventId=${studentData.eventId}`);
-                if (!eventData.success) throw "Event info failed";
+                if (!eventData.success) return;
                 
-                // 2. Fetch Student Attendance Logs
-                const data = await fetchJSONP(`${API_URL}?action=get_student_attendance&eventId=${studentData.eventId}&studentId=${studentData.id}`);
-                const markedDates = data.success ? data.attendance.map(dt => new Date(dt).toLocaleDateString()) : [];
+                // Update Event Header
+                document.getElementById('disp-event-name').innerText = eventData.name;
+                document.getElementById('id-card-event').innerText = eventData.name.toUpperCase();
+                document.getElementById('disp-event-meta').innerHTML = `
+                    <span><i data-lucide="calendar" size="14"></i> ${eventData.startDate}</span>
+                    <span><i data-lucide="map-pin" size="14"></i> ${eventData.venue}</span>
+                `;
+                document.getElementById('id-card-view').querySelector('.id-footer-v2').innerText = `${eventData.name} - Official Participant`;
+                lucide.createIcons();
+
+                const attData = await fetchJSONP(`${API_URL}?action=get_student_attendance&eventId=${studentData.eventId}&studentId=${studentData.id}`);
+                const markedDates = attData.success ? attData.attendance.map(dt => new Date(dt).toLocaleDateString()) : [];
                 
-                // 3. Calculate Date Range (Start -> Today or End)
                 const start = new Date(eventData.startDate);
-                const endLimit = new Date(); // Today
-                const eventEnd = eventData.endDate ? new Date(eventData.endDate) : endLimit;
-                const lastShowDate = endLimit < eventEnd ? endLimit : eventEnd;
+                const today = new Date();
+                const end = eventData.endDate ? new Date(eventData.endDate) : today;
+                const lastDate = today < end ? today : end;
                 
                 const list = document.getElementById('attendance-list');
                 let html = '';
                 
                 let runner = new Date(start);
-                while (runner <= lastShowDate) {
+                while (runner <= lastDate) {
                     const dateStr = runner.toLocaleDateString();
                     const isPresent = markedDates.includes(dateStr);
                     
                     html += `
-                        <div class="attendance-item" style="display: flex; justify-content: space-between; padding: 0.75rem 0; border-bottom: 1px solid var(--glass-border);">
-                            <span>${runner.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}</span>
-                            <span style="color: ${isPresent ? '#4ade80' : '#f87171'}; font-weight: 700;">
+                        <div style="background: rgba(255,255,255,0.03); padding: 0.75rem 1rem; border-radius: 0.75rem; border: 1px solid var(--glass-border); display: flex; justify-content: space-between; align-items: center;">
+                            <span style="font-size: 0.85rem; color: var(--text-muted);">${runner.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}</span>
+                            <span style="font-weight: 700; color: ${isPresent ? '#4ade80' : '#f87171'}; font-size: 0.9rem;">
                                 ${isPresent ? 'Present' : 'Absent'}
-                                <i data-lucide="${isPresent ? 'check-circle' : 'x-circle'}" size="14"></i>
+                                <i data-lucide="${isPresent ? 'check-circle' : 'x-circle'}" size="14" style="vertical-align: middle; margin-left: 4px;"></i>
                             </span>
                         </div>
                     `;
                     runner.setDate(runner.getDate() + 1);
                 }
-                
-                list.innerHTML = html || `<p style="text-align: center; color: var(--text-muted); padding: 1rem;">Event hasn't started yet.</p>`;
+                list.innerHTML = html || `<p style="grid-column: 1/-1; text-align: center; color: var(--text-muted);">Event has not started yet.</p>`;
                 lucide.createIcons();
-
-                // Update Header & Card
-                const eventNameCap = eventData.name ? eventData.name.toUpperCase() : "EVENTORA EVENT";
-                document.getElementById('id-event-header').innerText = eventNameCap;
-                document.getElementById('id-card-view').querySelector('.id-footer-v2').innerText = `${eventData.name} Official ID Card`;
-                
-                if (eventData.wa) {
-                    document.getElementById('wa-section').style.display = 'block';
-                    document.getElementById('wa-link').href = eventData.wa;
-                }
-            } catch (err) { 
-                console.error(err); 
-                document.getElementById('attendance-list').innerHTML = `<p style="text-align: center; color: #f87171; padding: 1rem;">Error loading records.</p>`;
-            }
+            } catch (err) { console.error(err); }
         }
 
-        function openEditModal() { document.getElementById('edit-modal').style.display = 'flex'; }
-        function closeEditModal() { document.getElementById('edit-modal').style.display = 'none'; }
+        function toggleID() {
+            const card = document.getElementById('id-card-view');
+            const isHidden = card.style.display === 'none' || card.style.display === '';
+            card.style.display = isHidden ? 'block' : 'none';
+            if (isHidden) card.scrollIntoView({ behavior: 'smooth' });
+        }
 
         async function handleUpdate(e) {
             e.preventDefault();
             const btn = document.getElementById('update-btn');
             btn.disabled = true;
-            btn.innerText = "Saving... ⏳";
+            btn.innerText = "Syncing with Cloud... ⏳";
 
             const payload = {
                 action: 'update_student_profile',
@@ -523,44 +510,35 @@
             try {
                 const data = await fetchJSONP(`${API_URL}?${new URLSearchParams(payload).toString()}`);
                 if (data.success) {
-                    alert("✅ Profile Updated!");
                     location.reload();
                 } else {
                     alert("❌ Update failed: " + data.message);
                 }
-            } catch (err) { alert("Connection Error"); }
+            } catch (err) { alert("Cloud Connection Error"); }
             btn.disabled = false;
         }
 
         async function uploadPhoto(input) {
             if (!input.files || !input.files[0]) return;
-            
             const file = input.files[0];
             const reader = new FileReader();
-            
             document.getElementById('id-photo').style.opacity = "0.3";
-            
             reader.onload = async (e) => {
                 const base64 = e.target.result;
                 try {
                     const data = await fetchJSONP(`${API_URL}?action=upload_student_photo&fileData=${encodeURIComponent(base64)}&fileName=${studentData.id}.jpg`);
                     if (data.success) {
-                        // Now update profile with this photoId
                         const upd = await fetchJSONP(`${API_URL}?action=update_student_profile&eventId=${studentData.eventId}&studentId=${studentData.id}&photoId=${data.fileId}`);
-                        if (upd.success) {
-                            alert("✅ Photo Updated!");
-                            location.reload();
-                        }
+                        if (upd.success) location.reload();
                     }
-                } catch (err) { alert("Upload failed."); }
+                } catch (err) { alert("Photo upload failed."); }
             };
             reader.readAsDataURL(file);
         }
 
-        function logout() {
-            localStorage.removeItem('eventora_student');
-            window.location.href = 'auth.html?mode=student';
-        }
+        function openEditModal() { document.getElementById('edit-modal').style.display = 'flex'; }
+        function closeEditModal() { document.getElementById('edit-modal').style.display = 'none'; }
+        function logout() { localStorage.removeItem('eventora_student'); window.location.href = 'auth.html?mode=student'; }
     </script>
 </body>
 </html>

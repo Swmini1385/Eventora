@@ -195,12 +195,13 @@ function handleGetStudentProfile(p, cb) {
                     id: data[i][0],
                     name: data[i][2],
                     phone: data[i][3],
-                    email: data[i][4],
+                    email: data[i][4] || "",
                     paymentMode: data[i][6],
                     status: data[i][7],
                     address: data[i][8] || "",
                     photoId: data[i][9] || "",
                     amount: data[i][10] || "",
+                    utr: data[i][11] || "",
                     eventId: eventId
                 }
             }, cb);
