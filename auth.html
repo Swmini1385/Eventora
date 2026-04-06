@@ -260,17 +260,13 @@
             try {
                 let url;
                 if (currentMode === 'student') {
-                    // Extract Event ID from URL if provided, or prompt for it
                     const urlParams = new URLSearchParams(window.location.search);
                     const eventId = urlParams.get('eventId');
                     
-                    if (!eventId) {
-                        const manualId = prompt("Please enter the Event ID (found in your registration link):");
-                        if (!manualId) throw new Error("Event ID is required for student login.");
-                        url = `${API_URL}?action=student_login&studentId=${identifier}&password=${password}&eventId=${manualId}`;
-                    } else {
-                        url = `${API_URL}?action=student_login&studentId=${identifier}&password=${password}&eventId=${eventId}`;
-                    }
+                    // The backend now supports global login without eventId, 
+                    // so we only send it if it's already in the URL.
+                    url = `${API_URL}?action=student_login&studentId=${identifier}&password=${password}`;
+                    if (eventId) url += `&eventId=${eventId}`;
                 } else {
                     url = `${API_URL}?action=signup&identifier=${identifier}&password=${password}&name=${name}`;
                     if (currentMode === 'login') {

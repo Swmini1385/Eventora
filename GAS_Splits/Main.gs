@@ -4,6 +4,16 @@
  */
 
 const MASTER_SHEET_NAME = "Master_Users";
+const MASTER_STUDENTS_SHEET = "Master_Attendees";
+
+/**
+ * HELPER: OPEN MASTER SPREADSHEET
+ */
+function getMasterSS() {
+  const files = DriveApp.getFilesByName("Eventora_Master_Data");
+  if (files.hasNext()) return SpreadsheetApp.open(files.next());
+  return null;
+}
 
 /**
  * REUSABLE RESPONSE HELPER (Supports JSONP)

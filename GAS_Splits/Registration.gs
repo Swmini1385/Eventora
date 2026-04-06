@@ -35,6 +35,21 @@ function handleAttendeeRegistration(p, cb) {
       "Confirmed"
     ]);
     
+    // SYNC TO MASTER (for global login without Event ID)
+    try {
+      const ssMaster = getMasterSS();
+      if (ssMaster) {
+        let sheetMaster = ssMaster.getSheetByName(MASTER_STUDENTS_SHEET);
+        if (!sheetMaster) {
+          sheetMaster = ssMaster.insertSheet(MASTER_STUDENTS_SHEET);
+          sheetMaster.appendRow(["StudentID", "Password", "EventID", "Name"]);
+        }
+        sheetMaster.appendRow([studentId, password, eventId, p.name]);
+      }
+    } catch (err) {
+      console.error("Master Sync Failed:", err);
+    }
+    
     return response({ 
       success: true, 
       studentId: studentId,
@@ -88,9 +103,26 @@ function handleStudentLogin(p, cb) {
     const studentId = p.studentId;
     const password = p.password;
     
-    if (!eventId || !studentId || !password) throw "Missing login credentials or Event ID";
+    let finalEventId = eventId;
     
-    const ss = SpreadsheetApp.openById(eventId);
+    // GLOBAL SEARCH: If no Event ID provided, look it up in Master
+    if (!finalEventId) {
+      const ssMaster = getMasterSS();
+      const sheetMaster = ssMaster.getSheetByName(MASTER_STUDENTS_SHEET);
+      if (sheetMaster) {
+        const masterData = sheetMaster.getDataRange().getValues();
+        for (let j = 1; j < masterData.length; j++) {
+          if (masterData[j][0] === studentId && String(masterData[j][1]) === String(password)) {
+            finalEventId = masterData[j][2];
+            break;
+          }
+        }
+      }
+    }
+
+    if (!finalEventId) throw "Invalid Student ID or Password (or Event not found)";
+    
+    const ss = SpreadsheetApp.openById(finalEventId);
     const sheet = ss.getSheets()[0];
     const data = sheet.getDataRange().getValues();
     
@@ -107,7 +139,7 @@ function handleStudentLogin(p, cb) {
                     email: row[4],
                     paymentMode: row[6],
                     status: row[7],
-                    eventId: eventId
+                    eventId: finalEventId
                 }
             }, cb);
         }
