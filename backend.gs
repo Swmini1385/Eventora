@@ -122,6 +122,7 @@ function handleLogin(p) {
   const data = sheet.getDataRange().getValues();
   const userRow = data.find(row => row[0] == p.identifier && row[2] == p.password);
 
+  if (userRow) {
     return response({ 
       success: true, 
       user: { name: userRow[1], identifier: userRow[0], folderId: userRow[3] } 
