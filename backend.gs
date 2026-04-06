@@ -27,9 +27,9 @@ function handleRequest(e) {
     if (action === "signup") return handleSignup(p);
     if (action === "login") return handleLogin(p);
     if (action === "create_event") return handleCreateEvent(p);
-    if (action === "register_attendee") return handleAttendeeRegistration(p);
     if (action === "get_attendees") return handleGetAttendees(p);
     if (action === "get_event_info") return handleGetEventInfo(p);
+    if (action === "get_profile") return handleGetProfile(p);
     if (action === "list_events") return handleListEvents(p);
     
     return response({ success: false, message: "Invalid action" }, p.callback);
@@ -130,6 +130,35 @@ function handleLogin(p) {
   } else {
     return response({ success: false, message: "Invalid credentials" });
   }
+}
+
+/**
+ * NEW: GET PROFILE (For Session Resume)
+ */
+function handleGetProfile(p) {
+  const identifier = p.identifier;
+  let ss;
+  try {
+    ss = SpreadsheetApp.getActiveSpreadsheet();
+    if (!ss) throw "err";
+  } catch (e) {
+    const files = DriveApp.getFilesByName("Eventora_Master_Data");
+    if (files.hasNext()) ss = SpreadsheetApp.open(files.next());
+  }
+  
+  if (ss) {
+    const sheet = ss.getSheetByName(MASTER_SHEET_NAME);
+    const data = sheet.getDataRange().getValues();
+    for (let i = 1; i < data.length; i++) {
+      if (data[i][0] === identifier) {
+        return response({ 
+          success: true, 
+          user: { name: data[i][1], identifier: data[i][0], folderId: data[i][3] } 
+        }, p.callback);
+      }
+    }
+  }
+  return response({ success: false, message: "Profile not found" }, p.callback);
 }
 
 /**

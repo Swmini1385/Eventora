@@ -80,13 +80,18 @@ async function loadDashboardData() {
 
     try {
         // Step 1: Ensure we have the folderId. Using JSONP for compatibility
+        // Step 1: Ensure we have the folderId from the cloud (Session Resume)
         if (!user.folderId) {
-            const data = await fetchJSONP(`${API_URL}?action=login&identifier=${user.identifier}`);
-            if (data.success && data.user.folderId) {
-                user.folderId = data.user.folderId;
-                user.name = data.user.name;
-                localStorage.setItem('eventora_user', JSON.stringify(user));
-                document.getElementById('welcome-msg').innerText = `Hello, ${user.name}!`;
+            try {
+                const data = await fetchJSONP(`${API_URL}?action=get_profile&identifier=${user.identifier}`);
+                if (data.success && data.user.folderId) {
+                    user.folderId = data.user.folderId;
+                    user.name = data.user.name;
+                    localStorage.setItem('eventora_user', JSON.stringify(user));
+                    document.getElementById('welcome-msg').innerText = `Hello, ${user.name}!`;
+                }
+            } catch (e) {
+                console.warn("Profile sync failed:", e);
             }
         }
 
