@@ -340,9 +340,8 @@
                         document.getElementById('form-upi-pay-btn').href = upiUrl; // In-form button
                         document.getElementById('upi-pay-btn').href = upiUrl; // Success page button
                         document.getElementById('pay-amount').innerText = `₹${eventFee}`;
-                        // By default, hide it until Online is clicked
-                        document.getElementById('qr-container').style.display = 'none'; 
-                        togglePayment("Cash"); // Initialize with Cash hidden
+                        
+                        togglePayment("Cash"); // Initialize with Cash selected and Online hidden
                     } else {
                         // If no UPI ID provided for event, default to Cash only
                         togglePayment("Cash");
@@ -359,9 +358,12 @@
 
         function togglePayment(mode) {
             const onlineDetails = document.getElementById('online-details');
+            const qrContainer = document.getElementById('qr-container');
             const utrInput = document.getElementById('att-utr');
+            
             if (mode === 'Online') {
                 onlineDetails.style.display = 'block';
+                qrContainer.style.display = 'block'; // Ensure QR is visible
                 utrInput.required = true;
             } else {
                 onlineDetails.style.display = 'none';
