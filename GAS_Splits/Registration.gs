@@ -32,7 +32,8 @@ function handleAttendeeRegistration(p, cb) {
       p.email || "",
       password,
       paymentMode,
-      "Confirmed"
+      "Confirmed",
+      p.address || ""
     ]);
     
     // SYNC TO MASTER (for global login without Event ID)
@@ -42,9 +43,9 @@ function handleAttendeeRegistration(p, cb) {
         let sheetMaster = ssMaster.getSheetByName(MASTER_STUDENTS_SHEET);
         if (!sheetMaster) {
           sheetMaster = ssMaster.insertSheet(MASTER_STUDENTS_SHEET);
-          sheetMaster.appendRow(["StudentID", "Password", "EventID", "Name"]);
+          sheetMaster.appendRow(["StudentID", "Password", "EventID", "Name", "Address"]);
         }
-        sheetMaster.appendRow([studentId, password, eventId, p.name]);
+        sheetMaster.appendRow([studentId, password, eventId, p.name, p.address || ""]);
       }
     } catch (err) {
       console.error("Master Sync Failed:", err);
@@ -139,6 +140,8 @@ function handleStudentLogin(p, cb) {
                     email: row[4],
                     paymentMode: row[6],
                     status: row[7],
+                    address: row[8] || "",
+                    photoId: row[9] || "",
                     eventId: finalEventId
                 }
             }, cb);
@@ -174,12 +177,127 @@ function handleGetStudentProfile(p, cb) {
                     email: data[i][4],
                     paymentMode: data[i][6],
                     status: data[i][7],
+                    address: data[i][8] || "",
+                    photoId: data[i][9] || "",
                     eventId: eventId
                 }
             }, cb);
         }
     }
     return response({ success: false, message: "Student not found" }, cb);
+  } catch (e) {
+    return response({ success: false, message: e.toString() }, cb);
+  }
+}
+
+/**
+ * 5. MARK ATTENDANCE (Admin)
+ */
+function handleMarkAttendance(p, cb) {
+  try {
+    const eventId = p.eventId;
+    const studentId = p.studentId;
+    const dateStr = p.date || new Date().toLocaleDateString();
+    
+    const ss = SpreadsheetApp.openById(eventId);
+    let sheetAtt = ss.getSheetByName("Attendance");
+    if (!sheetAtt) {
+      sheetAtt = ss.insertSheet("Attendance");
+      sheetAtt.appendRow(["StudentID", "Date", "Status"]);
+    }
+    
+    // Check if duplicate for today
+    const data = sheetAtt.getDataRange().getValues();
+    for (let i = 1; i < data.length; i++) {
+        // Simple string comparison for dates
+        if (data[i][0] === studentId && String(data[i][1]) === String(dateStr)) {
+            return response({ success: true, message: "Already marked" }, cb);
+        }
+    }
+    
+    sheetAtt.appendRow([studentId, dateStr, "Present"]);
+    return response({ success: true, message: "Attendance marked" }, cb);
+  } catch (e) {
+    return response({ success: false, message: e.toString() }, cb);
+  }
+}
+
+/**
+ * 6. GET STUDENT ATTENDANCE (Student/Admin)
+ */
+function handleGetStudentAttendance(p, cb) {
+  try {
+    const eventId = p.eventId;
+    const studentId = p.studentId;
+    
+    const ss = SpreadsheetApp.openById(eventId);
+    const sheetAtt = ss.getSheetByName("Attendance");
+    if (!sheetAtt) return response({ success: true, attendance: [] }, cb);
+    
+    const data = sheetAtt.getDataRange().getValues();
+    const attendance = data.filter(row => row[0] === studentId).map(row => row[1]);
+    
+    return response({ success: true, attendance: attendance }, cb);
+  } catch (e) {
+    return response({ success: false, message: e.toString() }, cb);
+  }
+}
+
+/**
+ * 7. UPDATE STUDENT PROFILE
+ */
+function handleUpdateStudentProfile(p, cb) {
+  try {
+    const eventId = p.eventId;
+    const studentId = p.studentId;
+    
+    const ss = SpreadsheetApp.openById(eventId);
+    const sheet = ss.getSheets()[0];
+    const data = sheet.getDataRange().getValues();
+    
+    for (let i = 2; i < data.length; i++) {
+        if (data[i][0] === studentId) {
+            const rowIdx = i + 1;
+            if (p.name) sheet.getRange(rowIdx, 3).setValue(p.name);
+            if (p.phone) sheet.getRange(rowIdx, 4).setValue(p.phone);
+            if (p.email) sheet.getRange(rowIdx, 5).setValue(p.email);
+            if (p.address) sheet.getRange(rowIdx, 9).setValue(p.address);
+            if (p.photoId) sheet.getRange(rowIdx, 10).setValue(p.photoId);
+            
+            return response({ success: true, message: "Profile updated" }, cb);
+        }
+    }
+    throw "Student not found";
+  } catch (e) {
+    return response({ success: false, message: e.toString() }, cb);
+  }
+}
+
+/**
+ * 8. UPLOAD PHOTO
+ */
+function handleUploadStudentPhoto(p, cb) {
+  try {
+    const fileName = p.fileName || "photo.jpg";
+    const base64Data = p.fileData; // Expecting data:image/jpeg;base64,...
+    
+    const folderName = "Eventora_Profile_Photos";
+    let folderIterator = DriveApp.getFoldersByName(folderName);
+    let folder;
+    if (!folderIterator.hasNext()) {
+      folder = DriveApp.createFolder(folderName);
+    } else {
+      folder = folderIterator.next();
+    }
+    
+    const contentType = base64Data.substring(5, base64Data.indexOf(';'));
+    const bytes = Utilities.base64Decode(base64Data.substring(base64Data.indexOf(',') + 1));
+    const blob = Utilities.newBlob(bytes, contentType, fileName);
+    
+    const file = folder.createFile(blob);
+    file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+    
+    return response({ success: true, fileId: file.getId() }, cb);
   } catch (e) {
     return response({ success: false, message: e.toString() }, cb);
   }

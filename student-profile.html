@@ -10,149 +10,294 @@
     <link rel="stylesheet" href="style.css">
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="student_profile.css">
     <style>
         .profile-container {
-            max-width: 800px;
-            margin: 4rem auto;
-            padding: 0 1.5rem;
+            max-width: 600px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+            position: relative;
         }
 
-        .profile-header {
+        /* DIGITAL ID CARD STYLES */
+        .id-card {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            border-radius: 1.5rem;
+            border: 2px solid rgba(255,255,255,0.1);
+            overflow: hidden;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            margin-bottom: 2rem;
+            position: relative;
+        }
+
+        .id-header {
+            background: var(--primary);
+            color: white;
+            padding: 1.25rem;
             text-align: center;
-            margin-bottom: 3rem;
+            font-weight: 800;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+            border-bottom: 4px solid rgba(255,255,255,0.1);
         }
 
-        .avatar-circle {
-            width: 100px;
-            height: 100px;
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            border-radius: 50%;
+        .id-body {
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            gap: 1.5rem;
+        }
+
+        .photo-container {
+            width: 150px;
+            height: 150px;
+            border-radius: 1rem;
+            background: rgba(255,255,255,0.05);
+            border: 2px dashed rgba(255,255,255,0.2);
             display: flex;
             align-items: center;
             justify-content: center;
+            cursor: pointer;
+            overflow: hidden;
+            position: relative;
+            transition: 0.3s;
+        }
+
+        .photo-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .photo-container:hover {
+            border-color: var(--primary);
+            transform: scale(1.02);
+        }
+
+        .photo-overlay {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            background: rgba(0,0,0,0.5);
+            padding: 0.5rem;
             color: white;
-            font-size: 2.5rem;
+            font-size: 0.7rem;
+            opacity: 0;
+            transition: 0.3s;
+        }
+
+        .photo-container:hover .photo-overlay {
+            opacity: 1;
+        }
+
+        .id-info {
+            width: 100%;
+            text-align: left;
+        }
+
+        .id-name {
+            font-size: 1.75rem;
             font-weight: 800;
-            margin: 0 auto 1.5rem;
-            box-shadow: 0 10px 25px rgba(99, 102, 241, 0.3);
+            color: #fff;
+            margin-bottom: 0.25rem;
+            text-align: center;
+            text-transform: uppercase;
         }
 
-        .profile-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 2rem;
+        .id-number {
+            color: var(--primary);
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 1.5rem;
+            font-family: monospace;
+            font-size: 1.1rem;
         }
 
-        .info-card {
-            padding: 2rem;
-        }
-
-        .info-item {
+        .id-detail-row {
             display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 1rem 0;
-            border-bottom: 1px solid var(--glass-border);
-        }
-
-        .info-item:last-child {
-            border-bottom: none;
-        }
-
-        .label {
-            color: var(--text-muted);
+            margin-bottom: 0.75rem;
+            gap: 1rem;
             font-size: 0.9rem;
         }
 
-        .value {
-            font-weight: 600;
-            color: var(--text-main);
+        .id-label {
+            color: var(--text-muted);
+            width: 80px;
+            flex-shrink: 0;
         }
 
-        .status-badge {
-            padding: 0.4rem 1rem;
-            border-radius: 1rem;
-            font-size: 0.8rem;
-            font-weight: 700;
+        .id-value {
+            color: #e2e8f0;
+            font-weight: 500;
         }
 
-        .status-confirmed { background: rgba(34, 197, 94, 0.1); color: #4ade80; }
-        .status-pending { background: rgba(251, 191, 36, 0.1); color: #fbbf24; }
+        /* SECTION STYLES */
+        .section-card {
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
 
-        .back-nav {
-            margin-bottom: 2rem;
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1.25rem;
+            font-size: 1.1rem;
+            color: #fff;
+        }
+
+        .attendance-item {
             display: flex;
             justify-content: space-between;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .attendance-item:last-child {
+            border-bottom: none;
+        }
+
+        /* MODAL STYLES */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(8px);
+            z-index: 1000;
             align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+        }
+
+        .modal-content {
+            width: 100%;
+            max-width: 450px;
+            padding: 2rem;
+            position: relative;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            cursor: pointer;
+            color: var(--text-muted);
         }
     </style>
 </head>
 <body>
     <div class="profile-container">
-        <div class="back-nav">
-            <a href="#" onclick="goBack()" class="btn btn-outline" style="padding: 0.6rem 1rem; font-size: 0.9rem;">
-                <i data-lucide="arrow-left"></i> <span id="back-text">Back</span>
-            </a>
-            <button onclick="logout()" class="btn btn-outline" style="color: #f87171; border-color: rgba(248, 113, 113, 0.2);">
+        <!-- Top Nav -->
+        <div style="display: flex; justify-content: space-between; margin-bottom: 1.5rem; align-items: center;">
+            <div style="font-weight: 700; color: var(--primary); display: flex; align-items: center; gap: 0.5rem;">
+                <i data-lucide="sparkles"></i> Student Portal
+            </div>
+            <button onclick="logout()" class="btn btn-outline" style="padding: 0.5rem 1rem; font-size: 0.8rem; color: #f87171;">
                 Logout
             </button>
         </div>
 
-        <div class="profile-header">
-            <div class="avatar-circle" id="profile-initials">?</div>
-            <h1 id="profile-name">Student Name</h1>
-            <p style="color: var(--text-muted);" id="profile-id">ID: SC0000</p>
-        </div>
-
-        <div class="profile-grid">
-            <!-- Personal Info -->
-            <div class="glass info-card">
-                <h3 style="margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.75rem;">
-                    <i data-lucide="user"></i> Personal Details
-                </h3>
-                <div class="info-item">
-                    <span class="label">Mobile</span>
-                    <span class="value" id="disp-phone">--</span>
+        <!-- DIGITAL ID CARD -->
+        <div class="id-card" id="id-card-view">
+            <div class="id-header" id="id-event-header">EVENT NAME</div>
+            <div class="id-body">
+                <div class="photo-container" onclick="document.getElementById('photo-input').click()">
+                    <img id="id-photo" src="https://api.dicebear.com/7.x/initials/svg?seed=E" alt="Photo">
+                    <div class="photo-overlay">Change Photo</div>
                 </div>
-                <div class="info-item">
-                    <span class="label">Email</span>
-                    <span class="value" id="disp-email">--</span>
-                </div>
-                <div class="info-item">
-                    <span class="label">Payment</span>
-                    <span class="value" id="disp-payment">--</span>
+                <input type="file" id="photo-input" style="display: none;" accept="image/*" onchange="uploadPhoto(this)">
+                
+                <div class="id-info">
+                    <div class="id-name" id="id-name">STUDENT NAME</div>
+                    <div class="id-number" id="id-number">ID: SC0000</div>
+                    
+                    <div class="id-detail-row">
+                        <span class="id-label">Mobile</span>
+                        <span class="id-value" id="id-phone">--</span>
+                    </div>
+                    <div class="id-detail-row">
+                        <span class="id-label">Address</span>
+                        <span class="id-value" id="id-address">--</span>
+                    </div>
+                    <div class="id-detail-row">
+                        <span class="id-label">Status</span>
+                        <span class="id-value" style="color: #4ade80;" id="id-status">Confirmed</span>
+                    </div>
                 </div>
             </div>
+            <!-- Edit Button Floating -->
+            <button onclick="openEditModal()" style="position: absolute; bottom: 1.5rem; right: 1.5rem; width: 40px; height: 40px; border-radius: 50%; background: var(--primary); border: none; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 5px 15px rgba(0,0,0,0.3);">
+                <i data-lucide="edit-3" size="18"></i>
+            </button>
+        </div>
 
-            <!-- Event Info -->
-            <div class="glass info-card">
-                <h3 style="margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.75rem;">
-                    <i data-lucide="calendar"></i> Event Information
-                </h3>
-                <div class="info-item">
-                    <span class="label">Event Name</span>
-                    <span class="value" id="disp-event">--</span>
-                </div>
-                <div class="info-item">
-                    <span class="label">Status</span>
-                    <span class="status-badge status-confirmed" id="disp-status">Confirmed</span>
-                </div>
-                <div id="wa-section" style="margin-top: 1.5rem; display: none;">
-                    <a href="#" id="wa-link" target="_blank" class="btn" style="background: #25D366; color: white; width: 100%; font-weight: 700;">
-                        Join WhatsApp Group
-                    </a>
-                </div>
+        <!-- ATTENDANCE LOG -->
+        <div class="glass section-card">
+            <div class="section-title">
+                <i data-lucide="calendar-check" color="var(--primary)"></i> Attendance History
+            </div>
+            <div id="attendance-list">
+                <p style="text-align: center; color: var(--text-muted); padding: 1rem;">No attendance records found yet.</p>
             </div>
         </div>
 
-        <div class="glass" style="margin-top: 2rem; padding: 2rem; text-align: center;">
-            <p style="color: var(--text-muted); font-size: 0.9rem;">If any information is incorrect, please contact your event organizer.</p>
+        <!-- PAYMENT & LINKS -->
+        <div class="glass section-card">
+            <div class="section-title">
+                <i data-lucide="credit-card" color="#fbbf24"></i> Payment & Groups
+            </div>
+            <div class="attendance-item">
+                <span style="color: var(--text-muted);">Mode</span>
+                <span style="font-weight: 600;" id="id-payment-mode">--</span>
+            </div>
+            <div id="wa-section" style="margin-top: 1rem; display: none;">
+                <a href="#" id="wa-link" target="_blank" class="btn" style="background: #25D366; color: white; width: 100%; font-weight: 700; border-radius: 0.75rem;">
+                    Join WhatsApp Group <i data-lucide="message-circle" size="18"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- EDIT MODAL -->
+    <div id="edit-modal" class="modal">
+        <div class="glass modal-content">
+            <div class="close-btn" onclick="closeEditModal()"><i data-lucide="x"></i></div>
+            <h2 style="margin-bottom: 1.5rem;">Edit Personal Details</h2>
+            <form id="edit-form" onsubmit="handleUpdate(event)">
+                <div class="form-group">
+                    <label>Full Name</label>
+                    <input type="text" id="edit-name" required>
+                </div>
+                <div class="form-group">
+                    <label>Mobile Number</label>
+                    <input type="tel" id="edit-phone" required>
+                </div>
+                <div class="form-group">
+                    <label>Email (Optional)</label>
+                    <input type="email" id="edit-email">
+                </div>
+                <div class="form-group">
+                    <label>Address</label>
+                    <textarea id="edit-address" rows="2" required></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%; padding: 1rem; margin-top: 1rem;" id="update-btn">
+                    Save Changes
+                </button>
+            </form>
         </div>
     </div>
 
     <script>
         const API_URL = "https://script.google.com/macros/s/AKfycbwiY-bbQror7JVf9t6oMNeVP_voKVlCHURIIVqSlIs4eGq74Y01uTPcy9ud9BQyhn3Jeg/exec";
-        
+        let studentData = null;
+
         document.addEventListener('DOMContentLoaded', () => {
             loadProfile();
             lucide.createIcons();
@@ -164,15 +309,12 @@
                 const script = document.createElement('script');
                 const name = callbackName || `jsonp_${Date.now()}_${Math.floor(Math.random()*1000)}`;
                 window[name] = (data) => { cleanup(); resolve(data); };
-                script.onerror = () => { cleanup(); reject(new Error('JSONP request failed')); };
+                script.onerror = () => { cleanup(); reject(new Error('Request failed')); };
                 const connector = url.includes('?') ? '&' : '?';
                 script.src = `${url}${connector}callback=${name}`;
                 document.body.appendChild(script);
-                function cleanup() {
-                    delete window[name];
-                    if (script.parentNode) document.body.removeChild(script);
-                }
-                setTimeout(() => { if (window[name]) { cleanup(); reject(new Error('Cloud timeout (30s)')); } }, 30000);
+                function cleanup() { delete window[name]; if (script.parentNode) document.body.removeChild(script); }
+                setTimeout(() => { if (window[name]) { cleanup(); reject(new Error('Cloud timeout')); } }, 30000);
             });
         }
 
@@ -180,67 +322,138 @@
             const urlParams = new URLSearchParams(window.location.search);
             const eventId = urlParams.get('eventId');
             const studentId = urlParams.get('studentId');
-            const isAdmin = urlParams.get('admin') === 'true';
-
-            if (isAdmin) {
-                document.getElementById('back-text').innerText = "Back to Attendees";
-            } else {
-                document.getElementById('back-text').innerText = "Logout";
-            }
 
             if (!eventId || !studentId) {
-                alert("Invalid profile link.");
+                alert("Invalid session. Redirecting to login.");
+                logout();
                 return;
             }
 
             try {
                 const data = await fetchJSONP(`${API_URL}?action=get_student_profile&eventId=${eventId}&studentId=${studentId}`);
                 if (data.success) {
-                    const s = data.student;
-                    document.getElementById('profile-name').innerText = s.name;
-                    document.getElementById('profile-id').innerText = `ID: ${s.id}`;
-                    document.getElementById('profile-initials').innerText = s.name.charAt(0).toUpperCase();
-                    
-                    document.getElementById('disp-phone').innerText = s.phone;
-                    document.getElementById('disp-email').innerText = s.email || '--';
-                    document.getElementById('disp-payment').innerText = s.paymentMode;
-                    document.getElementById('disp-status').innerText = s.status;
-                    
-                    // Fetch event name
-                    const eventData = await fetchJSONP(`${API_URL}?action=get_event_info&eventId=${eventId}`);
-                    if (eventData.success) {
-                        document.getElementById('disp-event').innerText = eventData.name;
-                        if (eventData.wa) {
-                            document.getElementById('wa-section').style.display = 'block';
-                            document.getElementById('wa-link').href = eventData.wa;
-                        }
-                    }
+                    studentData = data.student;
+                    updateUI();
+                    loadAttendance();
+                    fetchEventName(eventId);
                 } else {
-                    alert("Profile not found: " + data.message);
+                    alert("Profile error: " + data.message);
                 }
             } catch (err) {
                 console.error(err);
-                alert("Error loading profile details.");
             }
         }
 
-        function goBack() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const isAdmin = urlParams.get('admin') === 'true';
-            const eventId = urlParams.get('eventId');
+        function updateUI() {
+            const s = studentData;
+            document.getElementById('id-name').innerText = s.name;
+            document.getElementById('id-number').innerText = `ID: ${s.id}`;
+            document.getElementById('id-phone').innerText = s.phone;
+            document.getElementById('id-address').innerText = s.address || '--';
+            document.getElementById('id-status').innerText = s.status || 'Confirmed';
+            document.getElementById('id-payment-mode').innerText = s.paymentMode || 'Cash';
             
-            if (isAdmin) {
-                window.location.href = `event-detail.html?id=${eventId}`;
+            if (s.photoId) {
+                document.getElementById('id-photo').src = `https://lh3.googleusercontent.com/d/${s.photoId}=s300`;
             } else {
-                logout();
+                document.getElementById('id-photo').src = `https://api.dicebear.com/7.x/initials/svg?seed=${s.name}`;
             }
+
+            // Prep Modal
+            document.getElementById('edit-name').value = s.name;
+            document.getElementById('edit-phone').value = s.phone;
+            document.getElementById('edit-email').value = s.email || '';
+            document.getElementById('edit-address').value = s.address || '';
+        }
+
+        async function loadAttendance() {
+            try {
+                const data = await fetchJSONP(`${API_URL}?action=get_student_attendance&eventId=${studentData.eventId}&studentId=${studentData.id}`);
+                const list = document.getElementById('attendance-list');
+                if (data.success && data.attendance.length > 0) {
+                    list.innerHTML = data.attendance.map(dt => `
+                        <div class="attendance-item">
+                            <span>${new Date(dt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+                            <span style="color: #4ade80; font-weight: 700;">Present</span>
+                        </div>
+                    `).join('');
+                } else {
+                    list.innerHTML = `<p style="text-align: center; color: var(--text-muted); padding: 1rem;">No attendance marked yet.</p>`;
+                }
+            } catch (err) { console.error(err); }
+        }
+
+        async function fetchEventName(eventId) {
+            const data = await fetchJSONP(`${API_URL}?action=get_event_info&eventId=${eventId}`);
+            if (data.success) {
+                document.getElementById('id-event-header').innerText = data.name;
+                if (data.wa) {
+                    document.getElementById('wa-section').style.display = 'block';
+                    document.getElementById('wa-link').href = data.wa;
+                }
+            }
+        }
+
+        function openEditModal() { document.getElementById('edit-modal').style.display = 'flex'; }
+        function closeEditModal() { document.getElementById('edit-modal').style.display = 'none'; }
+
+        async function handleUpdate(e) {
+            e.preventDefault();
+            const btn = document.getElementById('update-btn');
+            btn.disabled = true;
+            btn.innerText = "Saving... ⏳";
+
+            const payload = {
+                action: 'update_student_profile',
+                eventId: studentData.eventId,
+                studentId: studentData.id,
+                name: document.getElementById('edit-name').value,
+                phone: document.getElementById('edit-phone').value,
+                email: document.getElementById('edit-email').value,
+                address: document.getElementById('edit-address').value
+            };
+
+            try {
+                const data = await fetchJSONP(`${API_URL}?${new URLSearchParams(payload).toString()}`);
+                if (data.success) {
+                    alert("✅ Profile Updated!");
+                    location.reload();
+                } else {
+                    alert("❌ Update failed: " + data.message);
+                }
+            } catch (err) { alert("Connection Error"); }
+            btn.disabled = false;
+        }
+
+        async function uploadPhoto(input) {
+            if (!input.files || !input.files[0]) return;
+            
+            const file = input.files[0];
+            const reader = new FileReader();
+            
+            document.getElementById('id-photo').style.opacity = "0.3";
+            
+            reader.onload = async (e) => {
+                const base64 = e.target.result;
+                try {
+                    const data = await fetchJSONP(`${API_URL}?action=upload_student_photo&fileData=${encodeURIComponent(base64)}&fileName=${studentData.id}.jpg`);
+                    if (data.success) {
+                        // Now update profile with this photoId
+                        const upd = await fetchJSONP(`${API_URL}?action=update_student_profile&eventId=${studentData.eventId}&studentId=${studentData.id}&photoId=${data.fileId}`);
+                        if (upd.success) {
+                            alert("✅ Photo Updated!");
+                            location.reload();
+                        }
+                    }
+                } catch (err) { alert("Upload failed."); }
+            };
+            reader.readAsDataURL(file);
         }
 
         function logout() {
             localStorage.removeItem('eventora_student');
             window.location.href = 'auth.html?mode=student';
         }
-
     </script>
 </body>
 </html>

@@ -55,6 +55,10 @@ function handleRequest(e) {
     if (action === "list_events") return handleListEvents(p, cb);
     if (action === "student_login") return handleStudentLogin(p, cb);
     if (action === "get_student_profile") return handleGetStudentProfile(p, cb);
+    if (action === "mark_attendance") return handleMarkAttendance(p, cb);
+    if (action === "get_student_attendance") return handleGetStudentAttendance(p, cb);
+    if (action === "update_student_profile") return handleUpdateStudentProfile(p, cb);
+    if (action === "upload_student_photo") return handleUploadStudentPhoto(p, cb);
     
     return response({ success: false, message: "Invalid action: " + action }, cb);
   } catch (err) {
