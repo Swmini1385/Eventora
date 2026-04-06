@@ -195,6 +195,15 @@
                                 <img id="upi-qr" src="" alt="UPI QR">
                                 <p style="color: #6366f1; font-weight: 800; font-size: 0.9rem; margin-top: 0.5rem;" id="upi-id-display">upi@id</p>
                             </div>
+                            
+                            <!-- Mobile Pay Button -->
+                            <div id="mobile-pay-area" style="margin-bottom: 1.5rem;">
+                                <a id="form-upi-pay-btn" href="#" class="btn" style="background: #6366f1; color: white; width: 100%; padding: 0.8rem; font-weight: 700; gap: 0.5rem; display: flex; justify-content: center; align-items: center;">
+                                    <i data-lucide="smartphone"></i> PAY NOW (Open UPI App)
+                                </a>
+                                <p style="font-size: 0.7rem; color: var(--text-muted); text-align: center; margin-top: 0.4rem;">After payment, please enter the UTR/Transaction ID below.</p>
+                            </div>
+
                             <div class="form-group" style="margin-bottom: 0;">
                                 <label>UTR / Transaction Number (Required)</label>
                                 <input type="text" id="att-utr" placeholder="Enter 12-digit UTR number">
@@ -333,7 +342,8 @@
                         const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(upiUrl)}`;
                         document.getElementById('upi-qr').src = qrUrl;
                         document.getElementById('upi-id-display').innerText = data.upi;
-                        document.getElementById('upi-pay-btn').href = upiUrl;
+                        document.getElementById('form-upi-pay-btn').href = upiUrl; // In-form button
+                        document.getElementById('upi-pay-btn').href = upiUrl; // Success page button
                         document.getElementById('pay-amount').innerText = `₹${eventFee}`;
                         document.getElementById('qr-container').style.display = 'block';
                     } else {
