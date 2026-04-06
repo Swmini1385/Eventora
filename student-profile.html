@@ -149,46 +149,122 @@
             color: #fff;
         }
 
-        .attendance-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 0.75rem 0;
-            border-bottom: 1px solid var(--glass-border);
-        }
-
-        .attendance-item:last-child {
-            border-bottom: none;
-        }
-
-        /* MODAL STYLES */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.8);
-            backdrop-filter: blur(8px);
-            z-index: 1000;
-            align-items: center;
-            justify-content: center;
-            padding: 1.5rem;
-        }
-
-        .modal-content {
-            width: 100%;
-            max-width: 450px;
-            padding: 2rem;
+        /* NEW ID CARD (3.5" x 2.25") */
+        #id-card-view {
+            width: 3.5in;
+            height: 2.25in;
+            background: #fff9f0;
+            border-radius: 12px;
+            border: 2px solid #ddd;
+            overflow: hidden;
             position: relative;
+            margin: 0 auto 2rem;
+            display: none; /* Hidden by default, shown by button */
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            font-family: 'Outfit', sans-serif;
+            color: #333;
         }
 
-        .close-btn {
+        .id-header-v2 {
+            background: #f59e0b; /* Orange-yellow */
+            color: white;
+            padding: 8px;
+            text-align: center;
+            font-weight: 800;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .id-body-v2 {
+            padding: 12px;
+            display: flex;
+            gap: 15px;
+            height: calc(2.25in - 65px);
+            align-items: flex-start;
+            position: relative;
+            z-index: 1;
+        }
+
+        .id-watermark {
             position: absolute;
-            top: 1rem;
-            right: 1rem;
-            cursor: pointer;
-            color: var(--text-muted);
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            opacity: 0.05;
+            width: 120px;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .id-photo-v2 {
+            width: 80px;
+            height: 95px;
+            border: 2px solid #f59e0b;
+            border-radius: 6px;
+            object-fit: cover;
+            background: #eee;
+        }
+
+        .id-details-v2 {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+
+        .id-field {
+            font-size: 0.65rem;
+            color: #f59e0b;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .id-value-v2 {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 3px;
+        }
+
+        .id-footer-v2 {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            background: #1e293b;
+            color: white;
+            padding: 6px;
+            text-align: center;
+            font-size: 0.65rem;
+            font-weight: 600;
+        }
+
+        .id-badge {
+            background: white;
+            border: 1px solid #f59e0b;
+            color: #f59e0b;
+            font-size: 0.7rem;
+            font-weight: 800;
+            padding: 2px 8px;
+            border-radius: 4px;
+            margin-top: 5px;
+            display: inline-block;
+        }
+
+        /* PRINT CSS */
+        @media print {
+            body * { visibility: hidden; }
+            #id-card-view, #id-card-view * { visibility: visible; }
+            #id-card-view {
+                position: fixed;
+                left: 0;
+                top: 0;
+                display: block !important;
+                margin: 0;
+                box-shadow: none;
+                border: 1px solid #eee;
+                -webkit-print-color-adjust: exact;
+            }
         }
     </style>
 </head>
@@ -204,38 +280,40 @@
             </button>
         </div>
 
-        <!-- DIGITAL ID CARD -->
-        <div class="id-card" id="id-card-view">
-            <div class="id-header" id="id-event-header">EVENT NAME</div>
-            <div class="id-body">
-                <div class="photo-container" onclick="document.getElementById('photo-input').click()">
-                    <img id="id-photo" src="https://api.dicebear.com/7.x/initials/svg?seed=E" alt="Photo">
-                    <div class="photo-overlay">Change Photo</div>
+        <!-- NEW CONTROLS -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 2rem;">
+            <button onclick="toggleID()" class="btn" style="background: #4ade80; color: white; display: flex; flex-direction: column; align-items: center; padding: 1rem; height: auto;">
+                <i data-lucide="contact-2" size="24" style="margin-bottom: 0.5rem;"></i>
+                <span style="font-weight: 700; font-size: 0.9rem;">🪪 Show ID Card</span>
+            </button>
+            <button onclick="window.print()" class="btn" style="background: #1e293b; color: white; display: flex; flex-direction: column; align-items: center; padding: 1rem; height: auto;">
+                <i data-lucide="printer" size="24" style="margin-bottom: 0.5rem;"></i>
+                <span style="font-weight: 700; font-size: 0.9rem;">🖨️ Print ID</span>
+            </button>
+        </div>
+
+        <!-- REDESIGNED ID CARD -->
+        <div id="id-card-view">
+            <div class="id-header-v2" id="id-event-header">CHIMUKLA UTSAV SUMMER CAMP 2026</div>
+            <div class="id-body-v2">
+                <img src="https://api.dicebear.com/7.x/initials/svg?seed=E" class="id-watermark">
+                <div>
+                    <img id="id-photo" src="https://api.dicebear.com/7.x/initials/svg?seed=E" class="id-photo-v2">
+                    <br>
+                    <div class="id-badge" id="id-badge-val">ID: C000k</div>
                 </div>
-                <input type="file" id="photo-input" style="display: none;" accept="image/*" onchange="uploadPhoto(this)">
-                
-                <div class="id-info">
-                    <div class="id-name" id="id-name">STUDENT NAME</div>
-                    <div class="id-number" id="id-number">ID: SC0000</div>
+                <div class="id-details-v2">
+                    <div class="id-field">NAME</div>
+                    <div class="id-value-v2" id="id-name">Yogesh</div>
                     
-                    <div class="id-detail-row">
-                        <span class="id-label">Mobile</span>
-                        <span class="id-value" id="id-phone">--</span>
-                    </div>
-                    <div class="id-detail-row">
-                        <span class="id-label">Address</span>
-                        <span class="id-value" id="id-address">--</span>
-                    </div>
-                    <div class="id-detail-row">
-                        <span class="id-label">Status</span>
-                        <span class="id-value" style="color: #4ade80;" id="id-status">Confirmed</span>
-                    </div>
+                    <div class="id-field">MOBILE</div>
+                    <div class="id-value-v2" id="id-phone">9850254914</div>
+                    
+                    <div class="id-field">ADDRESS</div>
+                    <div class="id-value-v2" id="id-address">Deola</div>
                 </div>
             </div>
-            <!-- Edit Button Floating -->
-            <button onclick="openEditModal()" style="position: absolute; bottom: 1.5rem; right: 1.5rem; width: 40px; height: 40px; border-radius: 50%; background: var(--primary); border: none; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 5px 15px rgba(0,0,0,0.3);">
-                <i data-lucide="edit-3" size="18"></i>
-            </button>
+            <div class="id-footer-v2">Summer Camp 2026 Official ID Card</div>
         </div>
 
         <!-- ATTENDANCE LOG -->
@@ -318,6 +396,12 @@
             });
         }
 
+        function toggleID() {
+            const card = document.getElementById('id-card-view');
+            card.style.display = (card.style.display === 'none' || card.style.display === '') ? 'block' : 'none';
+            if (card.style.display === 'block') card.scrollIntoView({ behavior: 'smooth' });
+        }
+
         async function loadProfile() {
             const urlParams = new URLSearchParams(window.location.search);
             const eventId = urlParams.get('eventId');
@@ -335,7 +419,6 @@
                     studentData = data.student;
                     updateUI();
                     loadAttendance();
-                    fetchEventName(eventId);
                 } else {
                     alert("Profile error: " + data.message);
                 }
@@ -347,14 +430,9 @@
         function updateUI() {
             const s = studentData;
             document.getElementById('id-name').innerText = s.name;
-            document.getElementById('id-number').innerText = `ID: ${s.id}`;
+            document.getElementById('id-badge-val').innerText = `ID: ${s.id}`;
             document.getElementById('id-phone').innerText = s.phone;
             document.getElementById('id-address').innerText = s.address || '--';
-            const statusEl = document.getElementById('id-status');
-            const isConfirmed = s.status === 'Confirmed';
-            statusEl.innerText = s.status || 'Pending';
-            statusEl.style.color = isConfirmed ? '#4ade80' : '#f87171';
-            document.getElementById('id-payment-mode').innerText = s.paymentMode || 'Cash';
             
             if (s.photoId) {
                 document.getElementById('id-photo').src = `https://lh3.googleusercontent.com/d/${s.photoId}=s300`;
@@ -394,7 +472,7 @@
                     const isPresent = markedDates.includes(dateStr);
                     
                     html += `
-                        <div class="attendance-item">
+                        <div class="attendance-item" style="display: flex; justify-content: space-between; padding: 0.75rem 0; border-bottom: 1px solid var(--glass-border);">
                             <span>${runner.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}</span>
                             <span style="color: ${isPresent ? '#4ade80' : '#f87171'}; font-weight: 700;">
                                 ${isPresent ? 'Present' : 'Absent'}
@@ -408,8 +486,11 @@
                 list.innerHTML = html || `<p style="text-align: center; color: var(--text-muted); padding: 1rem;">Event hasn't started yet.</p>`;
                 lucide.createIcons();
 
-                // Update Header
-                document.getElementById('id-event-header').innerText = eventData.name;
+                // Update Header & Card
+                const eventNameCap = eventData.name ? eventData.name.toUpperCase() : "EVENTORA EVENT";
+                document.getElementById('id-event-header').innerText = eventNameCap;
+                document.getElementById('id-card-view').querySelector('.id-footer-v2').innerText = `${eventData.name} Official ID Card`;
+                
                 if (eventData.wa) {
                     document.getElementById('wa-section').style.display = 'block';
                     document.getElementById('wa-link').href = eventData.wa;
@@ -418,10 +499,6 @@
                 console.error(err); 
                 document.getElementById('attendance-list').innerHTML = `<p style="text-align: center; color: #f87171; padding: 1rem;">Error loading records.</p>`;
             }
-        }
-
-        async function fetchEventName(eventId) {
-            // This is now integrated into loadAttendance to avoid double calls
         }
 
         function openEditModal() { document.getElementById('edit-modal').style.display = 'flex'; }
