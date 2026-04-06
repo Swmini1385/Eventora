@@ -162,7 +162,19 @@
                         </div>
                         <div class="form-group">
                             <label>Date of Birth</label>
-                            <input type="date" id="att-dob" required onchange="calculateAge(this.value)">
+                            <input type="date" id="att-dob" required onchange="calculateAgeDisplay(this.value)">
+                        </div>
+                        <div class="form-group">
+                            <label>Age (Auto)</label>
+                            <input type="number" id="att-age" readonly placeholder="0">
+                        </div>
+                        <div class="form-group">
+                            <label>Gender</label>
+                            <select id="att-gender">
+                                <option value="Male" style="color:#000">Male</option>
+                                <option value="Female" style="color:#000">Female</option>
+                                <option value="Other" style="color:#000">Other</option>
+                            </select>
                         </div>
                     </div>
 
@@ -364,15 +376,16 @@
             });
         }
 
-        function calculateAge(dobStr) {
+        function calculateAgeDisplay(dobStr) {
             if (!dobStr) return;
             const dob = new Date(dobStr);
             const today = new Date();
             let age = today.getFullYear() - dob.getFullYear();
             const m = today.getMonth() - dob.getMonth();
             if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) { age--; }
-            // Age is hidden now but we can keep the value in payload calculation
-            return age >= 0 ? age : 0;
+            const finalAge = age >= 0 ? age : 0;
+            document.getElementById('att-age').value = finalAge;
+            return finalAge;
         }
 
         function previewProfilePhoto(input) {
@@ -455,8 +468,8 @@
                     utr: document.getElementById('att-utr').value || "",
                     address: document.getElementById('att-address').value,
                     dob: document.getElementById('att-dob').value,
-                    age: calculateAge(document.getElementById('att-dob').value),
-                    gender: "Not Specified",
+                    age: document.getElementById('att-age').value || 0,
+                    gender: document.getElementById('att-gender').value,
                     fee: eventFee,
                     regPhotoKey: `reg_${phone}.jpg` // Pass info to backend to link photo
                 };
