@@ -66,7 +66,7 @@ function handleCreateEvent(p, cb) {
   sheet.getRange(1, 1, 1, 10).setValues([meta]);
   
   if (sheet.getLastRow() < 2) {
-    sheet.appendRow(["ID", "Timestamp", "Name", "Phone", "Email", "Password", "PaymentMode", "Status"]);
+    sheet.appendRow(["ID", "Timestamp", "Name", "Phone", "Email", "Password", "PaymentMode", "Status", "Address", "PhotoID", "Fee", "UTR", "DOB", "Age", "Gender"]);
   }
 
   return response({ 

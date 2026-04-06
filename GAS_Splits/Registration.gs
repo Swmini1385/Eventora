@@ -25,20 +25,21 @@ function handleAttendeeRegistration(p, cb) {
     const paymentMode = p.paymentMode || "Cash"; 
 
     sheet.appendRow([
-      studentId,
-      timestamp,
-      p.name,
-      p.phone,
-      p.email || "",
-      password,
-      paymentMode,
-      "Confirmed",
-      p.address || "",
-      p.photoId || "",
-      p.fee || "",
-      String(p.dob || ""),
-      p.age || "",
-      p.gender || ""
+      studentId, // 1
+      timestamp, // 2
+      p.name, // 3
+      p.phone, // 4
+      p.email || "", // 5
+      password, // 6
+      paymentMode, // 7
+      "Confirmed", // 8
+      p.address || "", // 9
+      p.photoId || "", // 10
+      p.fee || "", // 11
+      "", // 12: UTR/Ref (Empty on registration)
+      String(p.dob || ""), // 13: DOB
+      p.age || "", // 14: Age
+      p.gender || "" // 15: Gender
     ]);
     
     // SYNC TO MASTER (for global login without Event ID)
@@ -169,6 +170,7 @@ function handleStudentLogin(p, cb) {
                     address: row[8] || "",
                     photoId: row[9] || "",
                     amount: row[10] || "",
+                    utr: row[11] || "", // Added UTR
                     dob: row[12] || "",
                     age: row[13] || "",
                     gender: row[14] || "",
@@ -282,10 +284,10 @@ function handleUpdatePaymentInfo(p, cb) {
         if (data[i][0] === studentId) {
             // Update columns: 
             // 7 (Mode), 8 (Status), 11 (Amount), 12 (UTR)
-            sheet.getRange(i + 1, 7).setValue(mode);
-            sheet.getRange(i + 1, 8).setValue(status);
-            sheet.getRange(i + 1, 11).setValue(amount);
-            sheet.getRange(i + 1, 12).setValue(utr);
+            sheet.getRange(i + 1, 7).setValue(mode); // Col 7
+            sheet.getRange(i + 1, 8).setValue(status); // Col 8
+            sheet.getRange(i + 1, 11).setValue(amount); // Col 11
+            sheet.getRange(i + 1, 12).setValue(utr); // Col 12
             
             return response({ success: true, status: status }, cb);
         }
@@ -335,11 +337,11 @@ function handleUpdateStudentProfile(p, cb) {
             if (p.name) sheet.getRange(rowIdx, 3).setValue(p.name);
             if (p.phone) sheet.getRange(rowIdx, 4).setValue(p.phone);
             if (p.email) sheet.getRange(rowIdx, 5).setValue(p.email);
-            if (p.address) sheet.getRange(rowIdx, 9).setValue(p.address);
-            if (p.photoId) sheet.getRange(rowIdx, 10).setValue(p.photoId);
-            if (p.dob) sheet.getRange(rowIdx, 13).setValue(String(p.dob));
-            if (p.age) sheet.getRange(rowIdx, 14).setValue(p.age);
-            if (p.gender) sheet.getRange(rowIdx, 15).setValue(p.gender);
+            if (p.address) sheet.getRange(rowIdx, 9).setValue(p.address); // Col 9
+            if (p.photoId) sheet.getRange(rowIdx, 10).setValue(p.photoId); // Col 10
+            if (p.dob) sheet.getRange(rowIdx, 13).setValue(String(p.dob)); // Col 13
+            if (p.age) sheet.getRange(rowIdx, 14).setValue(p.age); // Col 14
+            if (p.gender) sheet.getRange(rowIdx, 15).setValue(p.gender); // Col 15
             
             return response({ success: true, message: "Profile updated" }, cb);
         }
