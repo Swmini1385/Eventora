@@ -292,11 +292,13 @@ function handleListEvents(p) {
   const events = [];
   while (files.hasNext()) {
     const file = files.next();
-    if (file.getName().startsWith("EV_")) {
+    // Support both "EV_" prefix and common event sheet names
+    const fileName = file.getName();
+    if (fileName.startsWith("EV_") || fileName.includes("Event")) {
       events.push({
         id: file.getId(),
-        name: file.getName().replace("EV_", ""),
-        date: "See Details", 
+        name: fileName.replace("EV_", ""),
+        date: "Cloud Event", 
         fee: "100"
       });
     }
@@ -305,5 +307,5 @@ function handleListEvents(p) {
   return response({ 
     success: true, 
     events: events 
-  });
+  }, p.callback);
 }
