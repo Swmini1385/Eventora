@@ -19,30 +19,49 @@
 
         .header-section {
             margin-bottom: 2rem;
+            padding: 2.5rem;
+            border-radius: 2rem;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(168, 85, 247, 0.1) 100%);
+            border: 1px solid var(--glass-border);
             display: flex;
             justify-content: space-between;
-            align-items: flex-end;
-            padding-bottom: 1.5rem;
-            border-bottom: 1px solid var(--glass-border);
+            align-items: center;
+            position: relative;
+            overflow: hidden;
         }
 
-        .stat-card {
-            padding: 1.5rem;
-            text-align: center;
+        .header-section::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(99,102,241,0.05) 0%, transparent 70%);
+            z-index: 0;
+        }
+
+        .header-content { position: relative; z-index: 1; }
+        .header-stats { position: relative; z-index: 1; display: flex; gap: 2rem; }
+
+        .stat-item {
+            text-align: right;
         }
 
         .stat-value {
-            font-size: 2rem;
+            font-size: 1.75rem;
             font-weight: 800;
-            color: var(--primary);
-            margin-bottom: 0.5rem;
+            color: #fff;
+            margin-bottom: 0.25rem;
+            text-shadow: 0 4px 10px rgba(0,0,0,0.2);
         }
 
         .stat-label {
             color: var(--text-muted);
-            font-size: 0.9rem;
+            font-size: 0.8rem;
             text-transform: uppercase;
             letter-spacing: 1px;
+            font-weight: 600;
         }
 
         .controls {
@@ -143,43 +162,43 @@
 </head>
 <body>
     <div class="container">
-        <!-- Header -->
-        <div class="header-section">
-            <div>
-                <a href="dashboard.html" style="text-decoration: none; color: var(--text-muted); font-size: 0.9rem; margin-bottom: 0.5rem; display: block;">
-                    <i data-lucide="arrow-left" size="14"></i> Back to Dashboard
+        <!-- New Aesthetic Hero Header -->
+        <div class="header-section glass">
+            <div class="header-content">
+                <a href="dashboard.html" style="text-decoration: none; color: var(--primary); font-size: 0.85rem; font-weight: 600; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                    <i data-lucide="chevron-left" size="16"></i> Dashboard
                 </a>
-                <h1 id="event-title" style="margin:0">Loading Event...</h1>
-                <p id="event-meta" style="color: var(--text-muted); margin-top: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+                <h1 id="event-title" style="margin:0; font-size: 2.25rem; letter-spacing: -1px;">Loading Event...</h1>
+                <div id="event-meta" style="color: var(--text-muted); margin-top: 1rem; display: flex; align-items: center; gap: 1.25rem; font-size: 0.9rem;">
                     Fetching details...
-                </p>
+                </div>
             </div>
-            <div style="display: flex; gap: 1rem;">
-                <button class="btn btn-outline" onclick="copyLink()"><i data-lucide="share-2"></i> Share Link</button>
-                <input type="text" id="reg-link" value="" readonly style="display: none;">
+            <div class="header-stats">
+                <div class="stat-item">
+                    <div class="stat-value" id="attendee-count">0</div>
+                    <div class="stat-label">Participants</div>
+                </div>
+                <div style="width: 1px; background: var(--glass-border); height: 40px; align-self: center;"></div>
+                <div class="stat-item">
+                    <div class="stat-value" id="total-collected">₹0</div>
+                    <div class="stat-label">Total Amount</div>
+                </div>
             </div>
-        </div>
-
-        <!-- Quick Stats -->
-        <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); margin-bottom: 2rem;">
-            <div class="glass stat-card">
-                <div class="stat-value" id="attendee-count">0</div>
-                <div class="stat-label">Participants</div>
-            </div>
-            <div class="glass stat-card">
-                <div class="stat-value" id="total-collected">₹0</div>
-                <div class="stat-label">Total Amount</div>
-            </div>
+            <!-- Share Floating -->
+            <button class="btn btn-outline" onclick="copyLink()" style="position: absolute; top: 1.5rem; right: 1.5rem; padding: 0.5rem 0.75rem; font-size: 0.8rem; border-radius: 12px; background: rgba(255,255,255,0.05);">
+                <i data-lucide="share-2" size="14"></i> Share
+            </button>
+            <input type="text" id="reg-link" value="" readonly style="display: none;">
         </div>
 
         <!-- Controls -->
-        <div class="controls">
-            <div class="search-box glass">
+        <div class="controls" style="margin-top: 1rem;">
+            <div class="search-box glass" style="background: rgba(255,255,255,0.02); border-radius: 1.25rem;">
                 <i data-lucide="search"></i>
-                <input type="text" id="attendee-search" placeholder="Search by name, ID or phone..." oninput="filterAttendees()">
+                <input type="text" id="attendee-search" placeholder="Search by name, ID or phone..." oninput="filterAttendees()" style="background: none; border: none;">
             </div>
-            <button class="btn btn-outline" onclick="exportData()"><i data-lucide="download"></i> Export Excel</button>
-            <a href="#" id="test-link" target="_blank" class="btn btn-primary" style="text-decoration: none;"><i data-lucide="external-link"></i> Open Form</a>
+            <button class="btn btn-outline" onclick="exportData()" style="border-radius: 1.25rem;"><i data-lucide="download"></i> Export</button>
+            <a href="#" id="test-link" target="_blank" class="btn btn-primary" style="text-decoration: none; border-radius: 1.25rem;"><i data-lucide="external-link"></i> Open Form</a>
         </div>
 
         <!-- Attendees Table -->
