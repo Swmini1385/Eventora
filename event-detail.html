@@ -189,31 +189,56 @@
 
         let currentEventId = '';
 
-        function loadEventDetails() {
+        async function loadEventDetails() {
             const params = new URLSearchParams(window.location.search);
             currentEventId = params.get('id');
             const user = JSON.parse(localStorage.getItem('eventora_user'));
             if (!user) return;
 
+            // Show initial cached data if available
             const events = JSON.parse(localStorage.getItem('eventora_events_' + user.identifier) || '[]');
-            const event = events.find(e => e.id === currentEventId);
+            const cachedEvent = events.find(e => e.id === currentEventId);
 
-            if (event) {
-                document.title = `${event.name} | Eventora`;
-                document.getElementById('event-title').innerText = event.name;
-                document.getElementById('event-meta').innerText = `Date: ${event.date} | ${event.description || 'Event Details'}`;
-                
-                // Better local path detection
-                let currentPath = window.location.pathname;
-                let directoryPath = currentPath.substring(0, currentPath.lastIndexOf('/'));
-                let protocol = window.location.protocol;
-                let host = window.location.host;
-                
-                const fullBaseUrl = protocol + "//" + (host ? host : "") + directoryPath + "/";
-                const regUrl = fullBaseUrl + 'register.html?id=' + currentEventId;
-                document.getElementById('reg-link').value = regUrl;
-                document.getElementById('test-link').href = regUrl;
+            if (cachedEvent) {
+                document.title = `${cachedEvent.name} | Eventora`;
+                document.getElementById('event-title').innerText = cachedEvent.name;
+                document.getElementById('event-meta').innerText = "Loading fresh details... ⏳";
             }
+
+            // Fetch REAL metadata from the cloud (Row 1)
+            try {
+                const data = await fetchJSONP(`${API_URL}?action=get_event_info&eventId=${currentEventId}`);
+                if (data.success) {
+                    document.title = `${data.name} | Eventora`;
+                    document.getElementById('event-title').innerText = data.name;
+                    
+                    let dateStr = data.startDate || "TBA";
+                    if (data.endDate) dateStr += ` to ${data.endDate}`;
+                    
+                    document.getElementById('event-meta').innerHTML = `
+                        <i data-lucide="calendar" size="16"></i> Date: ${dateStr} &nbsp;|&nbsp; 
+                        <i data-lucide="map-pin" size="16"></i> Venue: ${data.venue || 'TBA'} &nbsp;|&nbsp;
+                        <i data-lucide="indian-rupee" size="16"></i> Fee: ₹${data.fee || '100'}
+                    `;
+                    lucide.createIcons();
+                    
+                    // Update Local Storage with fresh name/date if needed
+                    const updatedEvents = events.map(e => e.id === currentEventId ? { ...e, name: data.name, date: dateStr, fee: data.fee } : e);
+                    localStorage.setItem('eventora_events_' + user.identifier, JSON.stringify(updatedEvents));
+                }
+            } catch (err) {
+                console.error("Metadata fetch failed:", err);
+            }
+
+            // Generate Registration Link
+            let currentPath = window.location.pathname;
+            let directoryPath = currentPath.substring(0, currentPath.lastIndexOf('/'));
+            let protocol = window.location.protocol;
+            let host = window.location.host;
+            const fullBaseUrl = protocol + "//" + (host ? host : "") + directoryPath + "/";
+            const regUrl = fullBaseUrl + 'register.html?id=' + currentEventId;
+            document.getElementById('reg-link').value = regUrl;
+            document.getElementById('test-link').href = regUrl;
         }
 
         async function loadAttendees() {
