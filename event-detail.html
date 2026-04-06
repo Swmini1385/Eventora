@@ -18,47 +18,44 @@
         }
 
         .header-section {
-            margin-bottom: 2rem;
-            padding: 2.5rem;
-            border-radius: 2rem;
+            margin-bottom: 1rem;
+            padding: 2rem;
+            border-radius: 1.5rem;
             background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(168, 85, 247, 0.1) 100%);
             border: 1px solid var(--glass-border);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
             position: relative;
             overflow: hidden;
         }
 
-        .header-section::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle, rgba(99,102,241,0.05) 0%, transparent 70%);
-            z-index: 0;
+        .header-content { position: relative; z-index: 1; }
+
+        .stats-row {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
         }
 
-        .header-content { position: relative; z-index: 1; }
-        .header-stats { position: relative; z-index: 1; display: flex; gap: 2rem; }
-
-        .stat-item {
-            text-align: right;
+        .stat-card-mini {
+            flex: 1;
+            padding: 1.25rem;
+            border-radius: 1.25rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid var(--glass-border);
         }
 
         .stat-value {
-            font-size: 1.75rem;
+            font-size: 1.5rem;
             font-weight: 800;
             color: #fff;
-            margin-bottom: 0.25rem;
-            text-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            margin-bottom: 0.2rem;
         }
 
         .stat-label {
             color: var(--text-muted);
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             text-transform: uppercase;
             letter-spacing: 1px;
             font-weight: 600;
@@ -162,33 +159,34 @@
 </head>
 <body>
     <div class="container">
-        <!-- New Aesthetic Hero Header -->
+        <!-- Main Event Header Card -->
         <div class="header-section glass">
             <div class="header-content">
                 <a href="dashboard.html" style="text-decoration: none; color: var(--primary); font-size: 0.85rem; font-weight: 600; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
                     <i data-lucide="chevron-left" size="16"></i> Dashboard
                 </a>
-                <h1 id="event-title" style="margin:0; font-size: 2.25rem; letter-spacing: -1px;">Loading Event...</h1>
-                <div id="event-meta" style="color: var(--text-muted); margin-top: 1rem; display: flex; align-items: center; gap: 1.25rem; font-size: 0.9rem;">
+                <h1 id="event-title" style="margin:0; font-size: 2.5rem; letter-spacing: -1.5px; color: #fff;">Loading Event...</h1>
+                <div id="event-meta" style="color: var(--text-muted); margin-top: 1.5rem; display: flex; align-items: center; gap: 1.5rem; font-size: 0.95rem;">
                     Fetching details...
                 </div>
             </div>
-            <div class="header-stats">
-                <div class="stat-item">
-                    <div class="stat-value" id="attendee-count">0</div>
-                    <div class="stat-label">Participants</div>
-                </div>
-                <div style="width: 1px; background: var(--glass-border); height: 40px; align-self: center;"></div>
-                <div class="stat-item">
-                    <div class="stat-value" id="total-collected">₹0</div>
-                    <div class="stat-label">Total Amount</div>
-                </div>
-            </div>
             <!-- Share Floating -->
-            <button class="btn btn-outline" onclick="copyLink()" style="position: absolute; top: 1.5rem; right: 1.5rem; padding: 0.5rem 0.75rem; font-size: 0.8rem; border-radius: 12px; background: rgba(255,255,255,0.05);">
-                <i data-lucide="share-2" size="14"></i> Share
+            <button class="btn btn-outline" onclick="copyLink()" style="position: absolute; top: 2rem; right: 2rem; padding: 0.6rem 1rem; font-size: 0.85rem; border-radius: 12px; background: rgba(255,255,255,0.05);">
+                <i data-lucide="share-2" size="16"></i> Share Link
             </button>
             <input type="text" id="reg-link" value="" readonly style="display: none;">
+        </div>
+
+        <!-- Distinct Stats Row -->
+        <div class="stats-row">
+            <div class="stat-card-mini glass">
+                <div class="stat-value" id="attendee-count">0</div>
+                <div class="stat-label">Participants</div>
+            </div>
+            <div class="stat-card-mini glass">
+                <div class="stat-value" id="total-collected">₹0</div>
+                <div class="stat-label">Total Amount</div>
+            </div>
         </div>
 
         <!-- Controls -->
