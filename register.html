@@ -215,31 +215,32 @@
         async function loadEventInfo() {
             const params = new URLSearchParams(window.location.search);
             eventId = params.get('id');
-            if (!eventId) return;
             
-            // Show loading state
-            document.getElementById('event-display-title').innerText = "Loading Event... ⏳";
+            if (!eventId) {
+                lastCloudError = "Event ID is missing from the URL. Please use the link provided by your organizer.";
+                renderError();
+                return;
+            }
+            
+            document.getElementById('event-display-title').innerText = "Connecting to Eventora Cloud... ⏳";
 
             try {
-                // Using JSONP for maximum compatibility with GAS and file:// protocols
                 const data = await fetchJSONP(`${API_URL}?action=get_event_info&eventId=${eventId}`);
                 
                 if (data.success) {
+                    // Update UI with real cloud data
                     document.title = `Register for ${data.name} | Eventora`;
                     document.getElementById('event-name-badge').innerText = data.name;
                     document.getElementById('event-display-title').innerText = data.name;
                     document.getElementById('success-event-name').innerText = data.name;
                     
-                    // Display Venue and Dates from Row 1 Cloud Metadata
                     let dateStr = data.startDate || "TBA";
                     if (data.endDate) dateStr += ` - ${data.endDate}`;
                     
-                    let descHtml = `📅 Date: ${dateStr}<br>📍 Venue: ${data.venue || 'TBA'}`;
-                    document.getElementById('event-display-desc').innerHTML = descHtml;
-                    
+                    document.getElementById('event-display-desc').innerHTML = `📅 Date: ${dateStr}<br>📍 Venue: ${data.venue || 'TBA'}`;
                     document.getElementById('display-fee').innerText = `₹${data.fee || '100'}`;
                     
-                    // Populate Post-Registration Actions (UPI/WhatsApp) from Cloud
+                    // Post-reg features
                     if (data.wa) {
                         document.getElementById('wa-section').style.display = 'block';
                         document.getElementById('wa-group-btn').href = data.wa;
@@ -250,63 +251,42 @@
                         const upiLink = `upi://pay?pa=${data.upi}&pn=Eventora&am=${data.fee}&cu=INR`;
                         document.getElementById('upi-pay-btn').href = upiLink;
                     }
-
-                    return;
                 } else {
-                    lastCloudError = data.message || "Invalid Link";
+                    lastCloudError = data.message || "This event is no longer active or the link is incorrect.";
+                    renderError();
                 }
             } catch (err) {
-                console.warn("Cloud Fetch failed, ignoring...", err);
-                lastCloudError = "Connection Error or Script not Deployed.";
+                console.error("Cloud Fetch failed:", err);
+                lastCloudError = "Unable to connect to Eventora Cloud. Please ensure the Google Script is correctly deployed and accessible to 'Anyone'.";
+                renderError();
             }
+        }
 
-            // Fallback for local testing (localStorage)
-            const events = JSON.parse(localStorage.getItem('eventora_events') || '[]');
-            const event = events.find(e => e.id === eventId);
-
-            if (event) {
-                document.title = `Register for ${event.name} | Eventora`;
-                document.getElementById('event-name-badge').innerText = event.name;
-                document.getElementById('event-display-title').innerText = event.name;
-                
-                let descStr = `📅 Date: ${dateStr}`;
-                if (event.venue) descStr += `<br>📍 Venue: ${event.venue}`;
-                document.getElementById('event-display-desc').innerHTML = descStr;
-                
-                document.getElementById('display-fee').innerText = `₹${event.fee}`;
-                document.getElementById('success-event-name').innerText = event.name;
-
-                // Handle Post-Registration Actions
-                if (event.waLink) {
-                    document.getElementById('wa-section').style.display = 'block';
-                    document.getElementById('wa-group-btn').href = event.waLink;
-                }
-
-                if (event.upiId && event.fee > 0) {
-                    document.getElementById('upi-section').style.display = 'block';
-                    document.getElementById('pay-amount').innerText = `₹${event.fee}`;
-                    // Generic UPI intent link
-                    const upiLink = `upi://pay?pa=${event.upiId}&pn=Eventora&am=${event.fee}&cu=INR`;
-                    document.getElementById('upi-pay-btn').href = upiLink;
-                }
-            } else {
-                const cloudError = lastCloudError ? `<p style="background: rgba(248, 113, 113, 0.1); padding: 0.75rem; border-radius: 0.5rem; font-size: 0.85rem; color: #f87171; margin-top: 1rem;">Reason: ${lastCloudError}</p>` : "";
-                document.getElementById('registration-form-content').innerHTML = `
-                    <div style="text-align: center; padding: 2rem;">
-                        <i data-lucide="alert-triangle" size="48" style="color: #fbbf24; margin-bottom: 1.5rem;"></i>
-                        <h2 style="color: #fff;">Event Link Error</h2>
-                        <p style="color: var(--text-muted); margin-top: 1rem;">This event link may be incorrect or outdated.</p>
-                        ${cloudError}
-                        <div style="margin-top: 2rem; padding: 1rem; background: rgba(255,255,255,0.05); border-radius: 0.75rem; text-align: left; font-size: 0.85rem;">
-                            <p style="font-weight: 700; color: var(--primary); margin-bottom: 0.5rem;">💡 Organizer Tip:</p>
-                            <p>If you see 'ev_' in your URL, this is an old link. Please go to your dashboard, create a <b>New Event</b>, and use that link.</p>
-                        </div>
-                        <br>
-                        <a href="index.html" class="btn btn-outline" style="width: 100%;">Go to Eventora Home</a>
+        function renderError() {
+            const errorReason = lastCloudError ? `<div style="background: rgba(248, 113, 113, 0.1); padding: 1rem; border-radius: 0.75rem; color: #f87171; font-size: 0.9rem; margin-top: 1.5rem; text-align: left; border: 1px solid rgba(248, 113, 113, 0.2);">
+                <span style="font-weight: 700; display: block; margin-bottom: 0.25rem;">🔍 Technical Reason:</span>
+                ${lastCloudError}
+            </div>` : "";
+            
+            document.getElementById('registration-form-content').innerHTML = `
+                <div style="text-align: center; padding: 2rem;">
+                    <div style="background: rgba(251, 191, 36, 0.1); width: 64px; height: 64px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fbbf24; margin: 0 auto 1.5rem;">
+                        <i data-lucide="alert-circle" size="32"></i>
                     </div>
-                `;
-                lucide.createIcons();
-            }
+                    <h2 style="color: #fff;">Unable to Load Event</h2>
+                    <p style="color: var(--text-muted); margin-top: 0.5rem;">This event link might be outdated or incorrect.</p>
+                    ${errorReason}
+                    <div style="margin-top: 2rem; padding: 1.25rem; background: rgba(255,255,255,0.05); border-radius: 1rem; text-align: left; font-size: 0.85rem; border: 1px solid var(--glass-border);">
+                        <p style="font-weight: 700; color: var(--primary); margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+                            <i data-lucide="sparkles" size="16"></i> Organizer Tip:
+                        </p>
+                        <p style="line-height: 1.5;">If you are an organizer, go to your <b>Dashboard</b>, open your event, and copy a <b>NEW registration link</b>. Old links starting with 'ev_' are no longer supported.</p>
+                    </div>
+                    <br>
+                    <a href="index.html" class="btn btn-outline" style="width: 100%;">Return to Home</a>
+                </div>
+            `;
+            lucide.createIcons();
         }
 
         let lastCloudError = null;
