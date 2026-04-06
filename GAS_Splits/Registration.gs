@@ -443,3 +443,30 @@ function handleGetActivityPhotos(p, cb) {
     return response({ success: false, message: e.toString() }, cb);
   }
 }
+
+/**
+ * 11. DELETE ACTIVITY PHOTO
+ */
+function handleDeleteActivityPhoto(p, cb) {
+  try {
+    const eventId = p.eventId;
+    const photoId = p.photoId; 
+    const ss = SpreadsheetApp.openById(eventId);
+    const sheet = ss.getSheetByName("ActivityPhotos");
+    if (!sheet) return response({ success: false, message: "Sheet not found" }, cb);
+
+    const data = sheet.getDataRange().getValues();
+    for (let i = 1; i < data.length; i++) {
+      if (data[i][0] == photoId) {
+        sheet.deleteRow(i + 1);
+        try {
+          DriveApp.getFileById(photoId).setTrashed(true);
+        } catch (e) { }
+        return response({ success: true }, cb);
+      }
+    }
+    return response({ success: false, message: "Photo not found" }, cb);
+  } catch (e) {
+    return response({ success: false, message: e.toString() }, cb);
+  }
+}

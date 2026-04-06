@@ -71,10 +71,40 @@ function handleRequest(e) {
     if (action === "update_student_profile") return handleUpdateStudentProfile(p, cb);
     if (action === "upload_activity_photos") return handleUploadActivityPhotos(p, cb);
     if (action === "get_activity_photos") return handleGetActivityPhotos(p, cb);
+    if (action === "delete_activity_photo") return handleDeleteActivityPhoto(p, cb);
     if (action === "update_payment_info") return handleUpdatePaymentInfo(p, cb);
     
     return response({ success: false, message: "Invalid action: " + action }, cb);
   } catch (err) {
     return response({ success: false, message: "System Error: " + err.toString() }, cb);
+  }
+}
+
+/**
+ * 11. DELETE ACTIVITY PHOTO
+ */
+function handleDeleteActivityPhoto(p, cb) {
+  try {
+    const eventId = p.eventId;
+    const photoId = p.photoId; // Driven File ID
+    const ss = SpreadsheetApp.openById(eventId);
+    const sheet = ss.getSheetByName("ActivityPhotos");
+    if (!sheet) return response({ success: false, message: "Sheet not found" }, cb);
+
+    const data = sheet.getDataRange().getValues();
+    for (let i = 1; i < data.length; i++) {
+      if (data[i][0] == photoId) {
+        sheet.deleteRow(i + 1);
+        try {
+          DriveApp.getFileById(photoId).setTrashed(true);
+        } catch (e) {
+          // File might already be gone
+        }
+        return response({ success: true }, cb);
+      }
+    }
+    return response({ success: false, message: "Photo record not found" }, cb);
+  } catch (e) {
+    return response({ success: false, message: e.toString() }, cb);
   }
 }

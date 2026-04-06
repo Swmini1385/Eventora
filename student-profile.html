@@ -385,6 +385,7 @@
         }
 
         .gallery-item {
+            position: relative;
             border-radius: 1rem;
             overflow: hidden;
             background: rgba(255, 255, 255, 0.03);
@@ -399,13 +400,68 @@
 
         .gallery-img {
             width: 100%;
-            height: 150px;
+            height: 180px;
             object-fit: cover;
+            cursor: pointer;
         }
 
-        .gallery-info {
-            padding: 0.75rem;
-            font-size: 0.75rem;
+        .gallery-actions {
+            position: absolute;
+            top: 0.75rem;
+            right: 0.75rem;
+            display: flex;
+            gap: 0.5rem;
+            opacity: 0;
+            transition: 0.3s;
+        }
+
+        .gallery-item:hover .gallery-actions {
+            opacity: 1;
+        }
+
+        .action-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(4px);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.1);
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .action-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .delete-btn:hover { background: #ef4444; border-color: #ef4444; }
+        .download-btn:hover { background: var(--primary); border-color: var(--primary); }
+
+        .date-album-row {
+            margin-bottom: 2.5rem;
+        }
+
+        .date-header {
+            font-size: 0.9rem;
+            font-weight: 800;
+            color: var(--primary);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .date-header::after {
+            content: "";
+            flex: 1;
+            height: 1px;
+            background: linear-gradient(90deg, var(--glass-border) 0%, transparent 100%);
         }
     </style>
 </head>
@@ -838,27 +894,70 @@
         }
 
         async function loadActivityGallery() {
-            const gallery = document.getElementById('activity-gallery');
+            const container = document.getElementById('activity-gallery');
+            const isAdmin = !!localStorage.getItem('eventora_user'); // Admin check
+            
             try {
                 const data = await fetchJSONP(`${API_URL}?action=get_activity_photos&eventId=${studentData.eventId}&studentId=${studentData.id}`);
                 if (data.success && data.photos.length > 0) {
-                    gallery.innerHTML = data.photos.map(p => `
-                        <div class="gallery-item">
-                            <a href="https://lh3.googleusercontent.com/d/${p.id}=s1000" target="_blank">
-                                <img src="https://lh3.googleusercontent.com/d/${p.id}=s300" class="gallery-img">
-                            </a>
-                            <div class="gallery-info">
-                                <div style="font-weight: 700; color: #fff; margin-bottom: 4px;">${p.desc || 'Activity Photo'}</div>
-                                <div style="color: var(--text-muted); font-size: 0.65rem;">${new Date(p.timestamp).toLocaleDateString('en-IN', {day:'numeric', month:'short'})}</div>
+                    // Group by Date
+                    const groups = data.photos.reduce((acc, p) => {
+                        const date = new Date(p.timestamp).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+                        if (!acc[date]) acc[date] = [];
+                        acc[date].push(p);
+                        return acc;
+                    }, {});
+
+                    let html = '';
+                    for (const [date, photos] of Object.entries(groups)) {
+                        html += `
+                            <div class="date-album-row" style="grid-column: 1/-1;">
+                                <div class="date-header"><i data-lucide="calendar-days" size="16"></i> ${date}</div>
+                                <div class="gallery-grid">
+                                    ${photos.map(p => `
+                                        <div class="gallery-item" id="photo-${p.id}">
+                                            <img src="https://lh3.googleusercontent.com/d/${p.id}=s400" class="gallery-img" onclick="window.open('https://lh3.googleusercontent.com/d/${p.id}=s1600', '_blank')">
+                                            <div class="gallery-actions">
+                                                <a href="https://lh3.googleusercontent.com/d/${p.id}=s2000" download="${p.desc || 'activity'}.jpg" class="action-btn download-btn" title="Download">
+                                                    <i data-lucide="download" size="16"></i>
+                                                </a>
+                                                ${isAdmin ? `
+                                                    <button onclick="deletePhoto('${p.id}')" class="action-btn delete-btn" title="Delete (Admin Only)">
+                                                        <i data-lucide="trash-2" size="16"></i>
+                                                    </button>
+                                                ` : ''}
+                                            </div>
+                                            <div class="gallery-info" style="padding: 0.75rem; font-size: 0.75rem;">
+                                                <div style="font-weight: 700; color: #fff;">${p.desc || 'Activity Photo'}</div>
+                                            </div>
+                                        </div>
+                                    `).join('')}
+                                </div>
                             </div>
-                        </div>
-                    `).join('');
+                        `;
+                    }
+                    container.innerHTML = html;
+                    lucide.createIcons();
                 } else {
-                    gallery.innerHTML = `<p style="grid-column: 1/-1; text-align: center; padding: 2rem; color: var(--text-muted);">No activity photos yet. Stay tuned!</p>`;
+                    container.innerHTML = `<p style="grid-column: 1/-1; text-align: center; padding: 2rem; color: var(--text-muted);">No activity photos yet. Stay tuned!</p>`;
                 }
             } catch (err) {
-                gallery.innerHTML = `<p style="grid-column: 1/-1; text-align: center; padding: 2rem; color: var(--text-muted);">Gallery unavailable.</p>`;
+                container.innerHTML = `<p style="grid-column: 1/-1; text-align: center; padding: 2rem; color: var(--text-muted);">Gallery unavailable.</p>`;
             }
+        }
+
+        async function deletePhoto(photoId) {
+            if (!confirm("Are you sure you want to delete this photo permanently?")) return;
+            try {
+                const data = await fetchJSONP(`${API_URL}?action=delete_activity_photo&eventId=${studentData.eventId}&photoId=${photoId}`);
+                if (data.success) {
+                    const el = document.getElementById(`photo-${photoId}`);
+                    if (el) el.style.opacity = "0.3";
+                    setTimeout(() => loadActivityGallery(), 1000);
+                } else {
+                    alert("Delete failed: " + data.message);
+                }
+            } catch (err) { alert("Error deleting photo."); }
         }
 
         function toggleID() {
