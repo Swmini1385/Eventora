@@ -235,7 +235,11 @@
                     const cleanDate = (raw) => {
                         if (!raw) return '';
                         const d = new Date(raw);
-                        return isNaN(d) ? raw : d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+                        if (isNaN(d)) return raw;
+                        const day = String(d.getDate()).padStart(2, '0');
+                        const month = String(d.getMonth() + 1).padStart(2, '0');
+                        const year = d.getFullYear();
+                        return `${day}-${month}-${year}`;
                     };
                     const cleanTime = (raw) => {
                         if (!raw) return '';

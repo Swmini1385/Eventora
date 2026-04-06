@@ -410,7 +410,8 @@
             <!-- LEFT: PERSONAL DETAILS -->
             <div class="glass-card">
                 <div class="card-header">
-                    <div class="card-title text-gradient"><i data-lucide="user" size="20"></i> Personal Profile</div>
+                    <div class="card-title text-gradient"><i data-lucide="user" size="20"></i> Personal Information
+                    </div>
                     <button onclick="openEditModal()" class="btn btn-outline"
                         style="padding: 0.3rem 0.7rem; font-size: 0.75rem; border-radius: 8px;">
                         <i data-lucide="edit-2" size="12"></i> Edit
@@ -438,33 +439,29 @@
                     </div>
                 </div>
 
-                <div class="details-list" style="grid-template-columns: 1fr 1fr 1fr;">
+                <!-- Unified Grid for Personal & Contact Info -->
+                <div class="details-list" style="grid-template-columns: 1fr 1fr; gap: 1.5rem;">
                     <div class="detail-item">
-                        <div class="detail-label">DOB</div>
-                        <div class="detail-value" id="id-dob">--</div>
+                        <div class="detail-label">Mobile Number</div>
+                        <div class="detail-value" id="id-phone">--</div>
                     </div>
                     <div class="detail-item">
                         <div class="detail-label">Age</div>
                         <div class="detail-value" id="id-age">--</div>
                     </div>
                     <div class="detail-item">
+                        <div class="detail-label">Date of Birth</div>
+                        <div class="detail-value" id="id-dob">--</div>
+                    </div>
+                    <div class="detail-item">
                         <div class="detail-label">Gender</div>
                         <div class="detail-value" id="id-gender">--</div>
                     </div>
-                </div>
-
-                <div style="height: 1.25rem;"></div>
-
-                <div class="details-list" style="grid-template-columns: 1fr;">
-                    <div class="detail-item">
-                        <div class="detail-label">Mobile Number</div>
-                        <div class="detail-value" id="id-phone">--</div>
-                    </div>
-                    <div class="detail-item">
+                    <div class="detail-item" style="grid-column: span 2;">
                         <div class="detail-label">Email Address</div>
                         <div class="detail-value" id="id-email">--</div>
                     </div>
-                    <div class="detail-item" style="grid-column: span 1;">
+                    <div class="detail-item" style="grid-column: span 2;">
                         <div class="detail-label">Current Address</div>
                         <div class="detail-value" id="id-address">--</div>
                     </div>
@@ -580,7 +577,8 @@
                 </div>
                 <div class="form-group">
                     <label>Gender</label>
-                    <select id="edit-gender" style="width: 100%; padding: 0.8rem; background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); border-radius: 0.75rem; color: #fff;">
+                    <select id="edit-gender"
+                        style="width: 100%; padding: 0.8rem; background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); border-radius: 0.75rem; color: #fff;">
                         <option value="Male" style="color:#000">Male</option>
                         <option value="Female" style="color:#000">Female</option>
                         <option value="Other" style="color:#000">Other</option>
@@ -603,6 +601,27 @@
     </div>
 
     <script>
+        /* Date Helpers */
+        function toDisplayDate(val) {
+            if (!val) return '--';
+            const d = new Date(val);
+            if (isNaN(d)) return val;
+            const day = String(d.getDate()).padStart(2, '0');
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const year = d.getFullYear();
+            return `${day}-${month}-${year}`;
+        }
+
+        function toInputDate(val) {
+            if (!val) return '';
+            const d = new Date(val);
+            if (isNaN(d)) return '';
+            const year = d.getFullYear();
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
         const API_URL = "https://script.google.com/macros/s/AKfycbyaMg4MdPTN_GYkfmpfti3M5JTAchwLm-F8UCMQVyjS9Gn7PjyBOiBs7dK4onASyaQPdQ/exec";
         let studentData = null;
 
@@ -658,7 +677,7 @@
             document.getElementById('id-email').innerText = s.email || 'Not Provided';
             document.getElementById('id-address').innerText = s.address || '--';
             document.getElementById('id-photo').src = photoUrl;
-            document.getElementById('id-dob').innerText = s.dob || '--';
+            document.getElementById('id-dob').innerText = toDisplayDate(s.dob);
             document.getElementById('id-age').innerText = s.age || '--';
             document.getElementById('id-gender').innerText = s.gender || '--';
 
@@ -687,7 +706,7 @@
             document.getElementById('edit-phone').value = s.phone;
             document.getElementById('edit-email').value = s.email || '';
             document.getElementById('edit-address').value = s.address || '';
-            document.getElementById('edit-dob').value = s.dob || '';
+            document.getElementById('edit-dob').value = toInputDate(s.dob);
             document.getElementById('edit-age').value = s.age || '';
             document.getElementById('edit-gender').value = s.gender || 'Male';
         }

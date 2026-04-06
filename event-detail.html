@@ -230,6 +230,17 @@
             lucide.createIcons();
         });
 
+        /* Date Helpers */
+        function toDisplayDate(val) {
+            if (!val) return '--';
+            const d = new Date(val);
+            if (isNaN(d)) return val;
+            const day = String(d.getDate()).padStart(2, '0');
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const year = d.getFullYear();
+            return `${day}-${month}-${year}`;
+        }
+
         function fetchJSONP(url, callbackName) {
             return new Promise((resolve, reject) => {
                 const script = document.createElement('script');
@@ -320,7 +331,7 @@
                         <div style="font-weight: 600;">${att.name}</div>
                         <div style="font-size: 0.75rem; color: var(--text-muted);">${att.phone}</div>
                         <div style="font-size: 0.7rem; color: var(--primary); margin-top: 4px;">
-                            ${att.gender || ''} | Age: ${att.age || ''} | DOB: ${att.dob || ''}
+                            ${att.gender || ''} | Age: ${att.age || ''} | DOB: ${toDisplayDate(att.dob)}
                         </div>
                     </td>
                     <td>

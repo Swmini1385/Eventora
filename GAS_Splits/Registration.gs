@@ -36,7 +36,7 @@ function handleAttendeeRegistration(p, cb) {
       p.address || "",
       p.photoId || "",
       p.fee || "",
-      p.dob || "",
+      String(p.dob || ""),
       p.age || "",
       p.gender || ""
     ]);
@@ -337,7 +337,7 @@ function handleUpdateStudentProfile(p, cb) {
             if (p.email) sheet.getRange(rowIdx, 5).setValue(p.email);
             if (p.address) sheet.getRange(rowIdx, 9).setValue(p.address);
             if (p.photoId) sheet.getRange(rowIdx, 10).setValue(p.photoId);
-            if (p.dob) sheet.getRange(rowIdx, 13).setValue(p.dob);
+            if (p.dob) sheet.getRange(rowIdx, 13).setValue(String(p.dob));
             if (p.age) sheet.getRange(rowIdx, 14).setValue(p.age);
             if (p.gender) sheet.getRange(rowIdx, 15).setValue(p.gender);
             

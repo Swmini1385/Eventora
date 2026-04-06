@@ -62,6 +62,38 @@ function logout() {
     window.location.href = 'index.html';
 }
 
+/* Date & Time Helpers */
+function toDisplayDate(val) {
+    if (!val) return '--';
+    const d = new Date(val);
+    if (isNaN(d)) return val;
+    const day = String(d.getDate()).padStart(2, '0');
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const year = d.getFullYear();
+    return `${day}-${month}-${year}`;
+}
+
+function toInputDate(val) {
+    if (!val) return '';
+    const d = new Date(val);
+    if (isNaN(d)) return '';
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
+
+function toInputTime(val) {
+    if (!val) return '';
+    // If it's already HH:MM
+    if (/^\d{2}:\d{2}$/.test(val)) return val;
+    const d = new Date(val);
+    if (isNaN(d)) return val; // Fallback
+    const hours = String(d.getHours()).padStart(2, '0');
+    const minutes = String(d.getMinutes()).padStart(2, '0');
+    return `${hours}:${minutes}`;
+}
+
 // Modal handling
 function showCreateModal() {
     document.getElementById('createModal').style.display = 'flex';
@@ -133,7 +165,7 @@ function renderEvents(events) {
                 </div>
                 <div>
                     <h4 style="font-size: 1.1rem; font-weight: 700;">${event.name}</h4>
-                    <p style="color: var(--text-muted); font-size: 0.85rem;">Date: ${event.date} | Fee: ₹${event.fee}</p>
+                    <p style="color: var(--text-muted); font-size: 0.85rem;">Date: ${toDisplayDate(event.date)} | Fee: ₹${event.fee}</p>
                 </div>
             </div>
             <div style="display: flex; gap: 0.75rem;">
@@ -196,10 +228,10 @@ async function editEvent(id) {
         if (data.success) {
             editModeId = id;
             document.getElementById('event-name').value = data.name || '';
-            document.getElementById('event-date').value = data.startDate || '';
-            document.getElementById('event-end-date').value = data.endDate || '';
-            document.getElementById('event-start-time').value = data.startTime || '09:00';
-            document.getElementById('event-end-time').value = data.endTime || '18:00';
+            document.getElementById('event-date').value = toInputDate(data.startDate);
+            document.getElementById('event-end-date').value = toInputDate(data.endDate);
+            document.getElementById('event-start-time').value = toInputTime(data.startTime);
+            document.getElementById('event-end-time').value = toInputTime(data.endTime);
             document.getElementById('event-fee').value = data.fee || '100';
             document.getElementById('event-prefix').value = data.prefix || 'A';
             document.getElementById('event-venue').value = data.venue || '';
