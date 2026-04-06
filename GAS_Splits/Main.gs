@@ -11,11 +11,11 @@ const MASTER_SHEET_NAME = "Master_Users";
 function response(obj, callback) {
   const jsonStr = JSON.stringify(obj);
   if (callback) {
-    // If callback is provided, return as JAVASCRIPT (JSONP)
+    // Force JavaScript MIME Type for JSONP
     return ContentService.createTextOutput(callback + "(" + jsonStr + ")")
       .setMimeType(ContentService.MimeType.JAVASCRIPT);
   }
-  // Otherwise return as pure JSON
+  // Fallback to pure JSON
   return ContentService.createTextOutput(jsonStr)
     .setMimeType(ContentService.MimeType.JSON);
 }
