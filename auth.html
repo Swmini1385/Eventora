@@ -186,6 +186,30 @@
             setMode(currentMode === 'login' ? 'signup' : 'login');
         }
 
+        // JSONP Helper for CORS compatibility
+        function fetchJSONP(url, callbackName) {
+            return new Promise((resolve, reject) => {
+                const script = document.createElement('script');
+                const name = callbackName || `jsonp_${Date.now()}_${Math.floor(Math.random()*1000)}`;
+                window[name] = (data) => {
+                    cleanup();
+                    resolve(data);
+                };
+                script.onerror = () => {
+                    cleanup();
+                    reject(new Error('JSONP request failed'));
+                };
+                const connector = url.includes('?') ? '&' : '?';
+                script.src = `${url}${connector}callback=${name}`;
+                document.body.appendChild(script);
+                function cleanup() {
+                    delete window[name];
+                    if (script.parentNode) document.body.removeChild(script);
+                }
+                setTimeout(() => { if (window[name]) { cleanup(); reject(new Error('Timeout')); } }, 15000);
+            });
+        }
+
         async function handleAuth(e) {
             e.preventDefault();
             const identifier = document.getElementById('identifier').value;
@@ -198,39 +222,31 @@
             submitBtn.disabled = true;
             submitBtn.innerText = "Processing... ⏳";
 
-            const formData = new URLSearchParams();
-            formData.append('action', currentMode);
-            formData.append('identifier', identifier);
-            formData.append('password', password);
-            if (currentMode === 'signup') {
-                formData.append('name', name);
-            }
-
             try {
-                // To read the response from GAS, we ideally need CORS. 
-                // Since GAS setup can vary, I will assume the user has authorized it.
-                const response = await fetch(API_URL, {
-                    method: 'POST',
-                    body: formData
-                });
+                // Using JSONP for real-time validation on GitHub Pages
+                const url = `${API_URL}?action=${currentMode}&identifier=${identifier}&password=${password}&name=${name}`;
+                const data = await fetchJSONP(url);
                 
-                // For GAS, we might not get the JSON back directly with POST due to redirects.
-                // We will attempt to handle it, or fallback to user-specific local storage check.
-                
-                setTimeout(() => {
+                if (data.success) {
+                    // Store real user data from cloud
                     localStorage.setItem('eventora_user', JSON.stringify({ 
-                        name: currentMode === 'signup' ? name : 'Organizer',
-                        identifier: identifier,
-                        // folderId: we will fetch this on dashboard load from Master Sheet
+                        name: data.user.name,
+                        identifier: data.user.identifier,
+                        folderId: data.user.folderId
                     }));
                     window.location.href = 'dashboard.html';
-                }, 1500);
-
+                } else {
+                    errorMsg.innerText = "❌ " + (data.message || "Invalid credentials.");
+                    errorMsg.style.display = 'block';
+                    submitBtn.disabled = false;
+                    submitBtn.innerText = (currentMode === 'login' ? 'Sign In' : 'Create Account');
+                }
             } catch (err) {
                 console.error(err);
-                // Fallback to local redirection for testing
-                localStorage.setItem('eventora_user', JSON.stringify({ name: 'Organizer', identifier: identifier }));
-                window.location.href = 'dashboard.html';
+                errorMsg.innerText = "⚠️ Connection error. Please ensure your Google Script is deployed.";
+                errorMsg.style.display = 'block';
+                submitBtn.disabled = false;
+                submitBtn.innerText = (currentMode === 'login' ? 'Sign In' : 'Create Account');
             }
         }
     </script>

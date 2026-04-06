@@ -96,7 +96,7 @@ function handleSignup(p) {
   return response({ 
     success: true, 
     user: { name: p.name, identifier: p.identifier, folderId: userFolder.getId() } 
-  });
+  }, p.callback);
 }
 
 /**
@@ -122,13 +122,12 @@ function handleLogin(p) {
   const data = sheet.getDataRange().getValues();
   const userRow = data.find(row => row[0] == p.identifier && row[2] == p.password);
 
-  if (userRow) {
     return response({ 
       success: true, 
       user: { name: userRow[1], identifier: userRow[0], folderId: userRow[3] } 
-    });
+    }, p.callback);
   } else {
-    return response({ success: false, message: "Invalid credentials" });
+    return response({ success: false, message: "Invalid credentials" }, p.callback);
   }
 }
 
