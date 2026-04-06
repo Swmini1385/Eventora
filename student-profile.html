@@ -659,14 +659,14 @@
                 if (!eventData.success) return;
 
                 // Update Event Header
-                document.getElementById('disp-event-name').innerText = eventData.name;
-                document.getElementById('id-card-event').innerText = eventData.name.toUpperCase();
-                // Format Date for Header
                 const dateOptions = { day: 'numeric', month: 'short', year: 'numeric' };
                 const formattedDate = new Date(eventData.startDate).toLocaleDateString('en-IN', dateOptions);
+                const eventTime = eventData.startTime ? ` • ${eventData.startTime}` : '';
 
+                document.getElementById('disp-event-name').innerText = eventData.name;
+                document.getElementById('id-card-event').innerText = eventData.name.toUpperCase();
                 document.getElementById('disp-event-meta').innerHTML = `
-                    <span><i data-lucide="calendar" size="14"></i> ${formattedDate}</span>
+                    <span><i data-lucide="calendar" size="14"></i> ${formattedDate}${eventTime}</span>
                     <span><i data-lucide="map-pin" size="14"></i> ${eventData.venue}</span>
                 `;
                 document.getElementById('id-card-view').querySelector('.id-footer-v2').innerText = `- Official Participant`;
