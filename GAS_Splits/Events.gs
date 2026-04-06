@@ -43,9 +43,8 @@ function handleCreateEvent(p, cb) {
     }
   } else {
     ss = SpreadsheetApp.create("EV_" + eventName);
-    file = DriveApp.getFileById(ss.getId());
-    DriveApp.getFolderById(userFolderId).addFile(file);
-    DriveApp.getRootFolder().removeFile(file);
+    const file = DriveApp.getFileById(ss.getId());
+    file.moveTo(DriveApp.getFolderById(userFolderId));
   }
 
   const sheet = ss.getSheets()[0];

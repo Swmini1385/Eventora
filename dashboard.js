@@ -6,6 +6,7 @@
 document.addEventListener('DOMContentLoaded', () => {
     checkAuth();
     loadDashboardData();
+    setupPrefixAutoGenerator();
     lucide.createIcons();
 });
 
@@ -152,6 +153,35 @@ function updateStats(events) {
     document.getElementById('total-earnings-stat').innerText = '₹0';
 }
 
+/**
+ * Automatically suggests a prefix based on Event Name
+ */
+function setupPrefixAutoGenerator() {
+    const nameInput = document.getElementById('event-name');
+    const prefixInput = document.getElementById('event-prefix');
+    
+    if (!nameInput || !prefixInput) return;
+
+    nameInput.addEventListener('input', () => {
+        // Only auto-generate if prefix is currently default or empty
+        if (prefixInput.value === 'A' || prefixInput.value === '') {
+            const name = nameInput.value.trim();
+            if (name.length > 0) {
+                // Get first letters of each word (e.g. Summer Camp -> SC)
+                const words = name.split(/\s+/);
+                let suggested = words.map(w => w[0].toUpperCase()).join('').substring(0, 3);
+                
+                // Fallback: Use first two letters if one word
+                if (suggested.length === 1 && name.length > 1) {
+                    suggested = name.substring(0, 2).toUpperCase();
+                }
+                
+                prefixInput.value = suggested;
+            }
+        }
+    });
+}
+
 let editModeId = null;
 
 async function editEvent(id) {
@@ -185,7 +215,7 @@ async function editEvent(id) {
     }
 }
 
-const API_URL = "https://script.google.com/macros/s/AKfycbx4xTJrfJwAy8OrLUdSiWTKFy22Qucgnepbp0-61WaS8S8X9IlIpvYeBJLdx9Nwt5lk_Q/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbwiY-bbQror7JVf9t6oMNeVP_voKVlCHURIIVqSlIs4eGq74Y01uTPcy9ud9BQyhn3Jeg/exec";
 
 // Event creation/edit logic
 async function handleCreateEvent(e) {
