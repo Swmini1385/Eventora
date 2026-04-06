@@ -135,7 +135,7 @@
                         <input type="password" id="password" required placeholder="••••••••">
                     </div>
 
-                    <button type="submit" class="btn btn-primary" style="width: 100%; padding: 1rem;" id="submit-btn">
+                    <button type="submit" class="btn btn-primary" style="width: 100%; padding: 1rem;" id="submit-btn" data-mode="login">
                         Sign In
                     </button>
                     <p style="text-align: center; margin-top: 1.5rem; font-size: 0.8rem; color: var(--text-muted);">By continuing, you agree to our Terms and Privacy Policy.</p>
@@ -182,7 +182,9 @@
             const authTabs = document.getElementById('auth-tabs');
 
             if (mode === 'signup') {
-                if (authTabs) authTabs.style.display = 'none';
+                if (authTabs) {
+                    authTabs.style.setProperty('display', 'none', 'important');
+                }
                 title.innerText = "Become an Organizer";
                 subtitle.innerText = "Start managing your events professionally today.";
                 submitBtn.innerText = "Create Account";
@@ -192,7 +194,9 @@
                 document.getElementById('identifier').placeholder = "name@email.com";
                 document.querySelector('label[for="identifier"]').innerText = "Email or Mobile Number";
             } else if (mode === 'student') {
-                if (authTabs) authTabs.style.display = 'flex';
+                if (authTabs) {
+                    authTabs.style.setProperty('display', 'flex', 'important');
+                }
                 tabStd.style.background = 'var(--primary)';
                 tabStd.style.color = 'white';
                 tabOrg.style.background = 'transparent';
@@ -207,7 +211,9 @@
                 document.getElementById('identifier').placeholder = "e.g. SC0001";
                 document.querySelector('label[for="identifier"]').innerText = "Student ID";
             } else {
-                if (authTabs) authTabs.style.display = 'flex';
+                if (authTabs) {
+                    authTabs.style.setProperty('display', 'flex', 'important');
+                }
                 tabOrg.style.background = 'var(--primary)';
                 tabOrg.style.color = 'white';
                 tabStd.style.background = 'transparent';
