@@ -178,18 +178,25 @@
                         </div>
                     </div>
 
+                    <div class="form-group" style="padding: 1rem; background: rgba(99,102,241,0.05); border-radius: 0.75rem; border: 1px solid rgba(99,102,241,0.2); margin: 1.5rem 0;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span style="font-weight: 600;">Total Registration Fee:</span>
+                            <span style="font-size: 1.25rem; font-weight: 800; color: var(--primary);" id="display-fee">₹0</span>
+                        </div>
+                    </div>
+
                     <div class="payment-section">
-                        <label style="display: block; font-size: 0.875rem; font-weight: 500; margin-bottom: 0.75rem;">Payment Method</label>
+                        <label style="display: block; font-size: 0.875rem; font-weight: 500; margin-bottom: 0.75rem;">Select Payment Method</label>
                         <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
-                            <label class="btn btn-outline" style="flex: 1; cursor: pointer; display: flex; justify-content: center;">
-                                <input type="radio" name="pay_mode" value="Online" checked onchange="togglePayment(this.value)" style="display: none;"> Online (UPI)
+                            <label class="btn btn-outline" id="label-online" style="flex: 1; cursor: pointer; display: flex; justify-content: center;">
+                                <input type="radio" name="pay_mode" value="Online" onchange="togglePayment(this.value)" style="display: none;"> Online (UPI)
                             </label>
-                            <label class="btn btn-outline" style="flex: 1; cursor: pointer; display: flex; justify-content: center;">
-                                <input type="radio" name="pay_mode" value="Cash" onchange="togglePayment(this.value)" style="display: none;"> Cash / Office
+                            <label class="btn btn-outline" id="label-cash" style="flex: 1; cursor: pointer; display: flex; justify-content: center;">
+                                <input type="radio" name="pay_mode" value="Cash" checked onchange="togglePayment(this.value)" style="display: none;"> Cash / Office
                             </label>
                         </div>
 
-                        <div id="online-details">
+                        <div id="online-details" style="display: none;">
                             <div class="qr-area" id="qr-container">
                                 <p style="color: #000; font-size: 0.75rem; margin-bottom: 0.5rem; font-weight: 700;">Scan to Pay via UPI</p>
                                 <img id="upi-qr" src="" alt="UPI QR">
@@ -208,18 +215,6 @@
                                 <label>UTR / Transaction Number (Required)</label>
                                 <input type="text" id="att-utr" placeholder="Enter 12-digit UTR number">
                             </div>
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label>City / Address</label>
-                        <textarea id="att-address" rows="1" placeholder="Where are you from?"></textarea>
-                    </div>
-
-                    <div class="form-group" style="padding: 1rem; background: rgba(99,102,241,0.05); border-radius: 0.75rem; border: 1px solid rgba(99,102,241,0.2); margin: 1.5rem 0;">
-                        <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <span style="font-weight: 600;">Total Registration Fee:</span>
-                            <span style="font-size: 1.25rem; font-weight: 800; color: var(--primary);" id="display-fee">₹0</span>
                         </div>
                     </div>
 
@@ -345,7 +340,9 @@
                         document.getElementById('form-upi-pay-btn').href = upiUrl; // In-form button
                         document.getElementById('upi-pay-btn').href = upiUrl; // Success page button
                         document.getElementById('pay-amount').innerText = `₹${eventFee}`;
-                        document.getElementById('qr-container').style.display = 'block';
+                        // By default, hide it until Online is clicked
+                        document.getElementById('qr-container').style.display = 'none'; 
+                        togglePayment("Cash"); // Initialize with Cash hidden
                     } else {
                         // If no UPI ID provided for event, default to Cash only
                         togglePayment("Cash");
