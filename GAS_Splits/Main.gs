@@ -43,6 +43,8 @@ function handleRequest(e) {
     if (action === "get_event_info") return handleGetEventInfo(p, cb);
     if (action === "get_profile") return handleGetProfile(p, cb);
     if (action === "list_events") return handleListEvents(p, cb);
+    if (action === "student_login") return handleStudentLogin(p, cb);
+    if (action === "get_student_profile") return handleGetStudentProfile(p, cb);
     
     return response({ success: false, message: "Invalid action: " + action }, cb);
   } catch (err) {

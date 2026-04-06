@@ -78,3 +78,77 @@ function handleGetAttendees(p, cb) {
     return response({ success: false, message: e.toString() }, cb);
   }
 }
+
+/**
+ * 3. STUDENT / PARENT LOGIN
+ */
+function handleStudentLogin(p, cb) {
+  try {
+    const eventId = p.eventId;
+    const studentId = p.studentId;
+    const password = p.password;
+    
+    if (!eventId || !studentId || !password) throw "Missing login credentials or Event ID";
+    
+    const ss = SpreadsheetApp.openById(eventId);
+    const sheet = ss.getSheets()[0];
+    const data = sheet.getDataRange().getValues();
+    
+    // Search from row 3 onwards (row indices 2+)
+    for (let i = 2; i < data.length; i++) {
+        const row = data[i];
+        if (row[0] === studentId && String(row[5]) === String(password)) {
+            return response({
+                success: true,
+                student: {
+                    id: row[0],
+                    name: row[2],
+                    phone: row[3],
+                    email: row[4],
+                    paymentMode: row[6],
+                    status: row[7],
+                    eventId: eventId
+                }
+            }, cb);
+        }
+    }
+    
+    return response({ success: false, message: "Invalid Student ID or Password" }, cb);
+  } catch (e) {
+    return response({ success: false, message: e.toString() }, cb);
+  }
+}
+
+/**
+ * 4. GET SINGLE STUDENT PROFILE
+ */
+function handleGetStudentProfile(p, cb) {
+  try {
+    const eventId = p.eventId;
+    const studentId = p.studentId;
+    
+    const ss = SpreadsheetApp.openById(eventId);
+    const sheet = ss.getSheets()[0];
+    const data = sheet.getDataRange().getValues();
+    
+    for (let i = 2; i < data.length; i++) {
+        if (data[i][0] === studentId) {
+            return response({
+                success: true,
+                student: {
+                    id: data[i][0],
+                    name: data[i][2],
+                    phone: data[i][3],
+                    email: data[i][4],
+                    paymentMode: data[i][6],
+                    status: data[i][7],
+                    eventId: eventId
+                }
+            }, cb);
+        }
+    }
+    return response({ success: false, message: "Student not found" }, cb);
+  } catch (e) {
+    return response({ success: false, message: e.toString() }, cb);
+  }
+}

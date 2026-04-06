@@ -135,6 +135,12 @@
                     <span id="toggle-text">Don't have an account?</span> 
                     <a href="#" onclick="toggleAuthMode(event)" id="toggle-link">Create one</a>
                 </div>
+                
+                <div style="margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--glass-border); text-align: center;">
+                    <a href="#" onclick="setMode('student')" id="student-toggle" style="color: var(--text-muted); font-size: 0.85rem; text-decoration: none; font-weight: 500;">
+                        <i data-lucide="user-check" size="14"></i> Parent / Student Login
+                    </a>
+                </div>
             </div>
         </div>
     </div>
@@ -169,7 +175,18 @@
                 signupFields.forEach(f => f.style.display = 'block');
                 toggleText.innerText = "Already have an account?";
                 toggleLink.innerText = "Sign in instead";
+                document.getElementById('identifier').placeholder = "name@email.com";
                 document.getElementById('name').setAttribute('required', 'true');
+            } else if (mode === 'student') {
+                title.innerText = "Student Portal";
+                subtitle.innerText = "Enter your Registration ID and Password.";
+                submitBtn.innerText = "Access Profile";
+                signupFields.forEach(f => f.style.display = 'none');
+                toggleText.innerText = "Are you an organizer?";
+                toggleLink.innerText = "Organizer Login";
+                document.getElementById('identifier').placeholder = "e.g. SC0001";
+                document.querySelector('label[for="identifier"]').innerText = "Student ID";
+                document.getElementById('name').removeAttribute('required');
             } else {
                 title.innerText = "Welcome Back";
                 subtitle.innerText = "Please sign in to manage your events.";
@@ -177,6 +194,8 @@
                 signupFields.forEach(f => f.style.display = 'none');
                 toggleText.innerText = "Don't have an account?";
                 toggleLink.innerText = "Create one";
+                document.getElementById('identifier').placeholder = "name@email.com";
+                document.querySelector('label[for="identifier"]').innerText = "Email or Mobile Number";
                 document.getElementById('name').removeAttribute('required');
             }
         }
@@ -223,27 +242,49 @@
             submitBtn.innerText = "Processing... ⏳";
 
             try {
-                // Using JSONP for real-time validation on GitHub Pages
-                const url = `${API_URL}?action=${currentMode}&identifier=${identifier}&password=${password}&name=${name}`;
+                let url;
+                if (currentMode === 'student') {
+                    // Extract Event ID from URL if provided, or prompt for it
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const eventId = urlParams.get('eventId');
+                    
+                    if (!eventId) {
+                        const manualId = prompt("Please enter the Event ID (found in your registration link):");
+                        if (!manualId) throw new Error("Event ID is required for student login.");
+                        url = `${API_URL}?action=student_login&studentId=${identifier}&password=${password}&eventId=${manualId}`;
+                    } else {
+                        url = `${API_URL}?action=student_login&studentId=${identifier}&password=${password}&eventId=${eventId}`;
+                    }
+                } else {
+                    url = `${API_URL}?action=signup&identifier=${identifier}&password=${password}&name=${name}`;
+                    if (currentMode === 'login') {
+                        url = `${API_URL}?action=login&identifier=${identifier}&password=${password}`;
+                    }
+                }
+
                 const data = await fetchJSONP(url);
                 
                 if (data.success) {
-                    // Store real user data from cloud
-                    localStorage.setItem('eventora_user', JSON.stringify({ 
-                        name: data.user.name,
-                        identifier: data.user.identifier,
-                        folderId: data.user.folderId
-                    }));
-                    window.location.href = 'dashboard.html';
+                    if (currentMode === 'student') {
+                        localStorage.setItem('eventora_student', JSON.stringify(data.student));
+                        window.location.href = `student-profile.html?eventId=${data.student.eventId}&studentId=${data.student.id}`;
+                    } else {
+                        localStorage.setItem('eventora_user', JSON.stringify({ 
+                            name: data.user.name,
+                            identifier: data.user.identifier,
+                            folderId: data.user.folderId
+                        }));
+                        window.location.href = 'dashboard.html';
+                    }
                 } else {
                     errorMsg.innerText = "❌ " + (data.message || "Invalid credentials.");
                     errorMsg.style.display = 'block';
                     submitBtn.disabled = false;
-                    submitBtn.innerText = (currentMode === 'login' ? 'Sign In' : 'Create Account');
+                    submitBtn.innerText = (currentMode === 'login' ? 'Sign In' : currentMode === 'student' ? 'Access Profile' : 'Create Account');
                 }
             } catch (err) {
                 console.error(err);
-                errorMsg.innerText = "⚠️ Connection error. Please ensure your Google Script is deployed.";
+                errorMsg.innerText = "⚠️ " + (err.message || "Connection error. Please try again.");
                 errorMsg.style.display = 'block';
                 submitBtn.disabled = false;
                 submitBtn.innerText = (currentMode === 'login' ? 'Sign In' : 'Create Account');

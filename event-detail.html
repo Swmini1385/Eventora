@@ -273,7 +273,11 @@
             countEl.innerText = list.length;
             container.innerHTML = list.map(att => `
                 <tr>
-                    <td style="font-weight: 700; color: var(--primary);">${att.id || 'N/A'}</td>
+                    <td style="font-weight: 700; color: var(--primary);">
+                        <a href="student-profile.html?eventId=${currentEventId}&studentId=${att.id}&admin=true" style="text-decoration: none; color: inherit; border-bottom: 1px dashed var(--primary);">
+                            ${att.id || 'N/A'}
+                        </a>
+                    </td>
                     <td style="font-weight: 600;">${att.name || 'Anonymous'}</td>
                     <td>${att.phone || '--'}</td>
                     <td>${att.email || '--'}</td>

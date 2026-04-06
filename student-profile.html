@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Profile | Eventora</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- CSS -->
+    <link rel="stylesheet" href="style.css">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        .profile-container {
+            max-width: 800px;
+            margin: 4rem auto;
+            padding: 0 1.5rem;
+        }
+
+        .profile-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .avatar-circle {
+            width: 100px;
+            height: 100px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin: 0 auto 1.5rem;
+            box-shadow: 0 10px 25px rgba(99, 102, 241, 0.3);
+        }
+
+        .profile-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .info-card {
+            padding: 2rem;
+        }
+
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 0;
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .info-item:last-child {
+            border-bottom: none;
+        }
+
+        .label {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        .value {
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        .status-badge {
+            padding: 0.4rem 1rem;
+            border-radius: 1rem;
+            font-size: 0.8rem;
+            font-weight: 700;
+        }
+
+        .status-confirmed { background: rgba(34, 197, 94, 0.1); color: #4ade80; }
+        .status-pending { background: rgba(251, 191, 36, 0.1); color: #fbbf24; }
+
+        .back-nav {
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="profile-container">
+        <div class="back-nav">
+            <a href="#" onclick="goBack()" class="btn btn-outline" style="padding: 0.6rem 1rem; font-size: 0.9rem;">
+                <i data-lucide="arrow-left"></i> <span id="back-text">Back</span>
+            </a>
+            <button onclick="logout()" class="btn btn-outline" style="color: #f87171; border-color: rgba(248, 113, 113, 0.2);">
+                Logout
+            </button>
+        </div>
+
+        <div class="profile-header">
+            <div class="avatar-circle" id="profile-initials">?</div>
+            <h1 id="profile-name">Student Name</h1>
+            <p style="color: var(--text-muted);" id="profile-id">ID: SC0000</p>
+        </div>
+
+        <div class="profile-grid">
+            <!-- Personal Info -->
+            <div class="glass info-card">
+                <h3 style="margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.75rem;">
+                    <i data-lucide="user"></i> Personal Details
+                </h3>
+                <div class="info-item">
+                    <span class="label">Mobile</span>
+                    <span class="value" id="disp-phone">--</span>
+                </div>
+                <div class="info-item">
+                    <span class="label">Email</span>
+                    <span class="value" id="disp-email">--</span>
+                </div>
+                <div class="info-item">
+                    <span class="label">Payment</span>
+                    <span class="value" id="disp-payment">--</span>
+                </div>
+            </div>
+
+            <!-- Event Info -->
+            <div class="glass info-card">
+                <h3 style="margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.75rem;">
+                    <i data-lucide="calendar"></i> Event Information
+                </h3>
+                <div class="info-item">
+                    <span class="label">Event Name</span>
+                    <span class="value" id="disp-event">--</span>
+                </div>
+                <div class="info-item">
+                    <span class="label">Status</span>
+                    <span class="status-badge status-confirmed" id="disp-status">Confirmed</span>
+                </div>
+                <div id="wa-section" style="margin-top: 1.5rem; display: none;">
+                    <a href="#" id="wa-link" target="_blank" class="btn" style="background: #25D366; color: white; width: 100%; font-weight: 700;">
+                        Join WhatsApp Group
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="glass" style="margin-top: 2rem; padding: 2rem; text-align: center;">
+            <p style="color: var(--text-muted); font-size: 0.9rem;">If any information is incorrect, please contact your event organizer.</p>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = "https://script.google.com/macros/s/AKfycbwiY-bbQror7JVf9t6oMNeVP_voKVlCHURIIVqSlIs4eGq74Y01uTPcy9ud9BQyhn3Jeg/exec";
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            loadProfile();
+            lucide.createIcons();
+        });
+
+        // JSONP Helper
+        function fetchJSONP(url, callbackName) {
+            return new Promise((resolve, reject) => {
+                const script = document.createElement('script');
+                const name = callbackName || `jsonp_${Date.now()}_${Math.floor(Math.random()*1000)}`;
+                window[name] = (data) => { cleanup(); resolve(data); };
+                script.onerror = () => { cleanup(); reject(new Error('JSONP request failed')); };
+                const connector = url.includes('?') ? '&' : '?';
+                script.src = `${url}${connector}callback=${name}`;
+                document.body.appendChild(script);
+                function cleanup() {
+                    delete window[name];
+                    if (script.parentNode) document.body.removeChild(script);
+                }
+                setTimeout(() => { if (window[name]) { cleanup(); reject(new Error('Cloud timeout (30s)')); } }, 30000);
+            });
+        }
+
+        async function loadProfile() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const eventId = urlParams.get('eventId');
+            const studentId = urlParams.get('studentId');
+            const isAdmin = urlParams.get('admin') === 'true';
+
+            if (isAdmin) {
+                document.getElementById('back-text').innerText = "Back to Attendees";
+            } else {
+                document.getElementById('back-text').innerText = "Logout";
+            }
+
+            if (!eventId || !studentId) {
+                alert("Invalid profile link.");
+                return;
+            }
+
+            try {
+                const data = await fetchJSONP(`${API_URL}?action=get_student_profile&eventId=${eventId}&studentId=${studentId}`);
+                if (data.success) {
+                    const s = data.student;
+                    document.getElementById('profile-name').innerText = s.name;
+                    document.getElementById('profile-id').innerText = `ID: ${s.id}`;
+                    document.getElementById('profile-initials').innerText = s.name.charAt(0).toUpperCase();
+                    
+                    document.getElementById('disp-phone').innerText = s.phone;
+                    document.getElementById('disp-email').innerText = s.email || '--';
+                    document.getElementById('disp-payment').innerText = s.paymentMode;
+                    document.getElementById('disp-status').innerText = s.status;
+                    
+                    // Fetch event name
+                    const eventData = await fetchJSONP(`${API_URL}?action=get_event_info&eventId=${eventId}`);
+                    if (eventData.success) {
+                        document.getElementById('disp-event').innerText = eventData.name;
+                        if (eventData.wa) {
+                            document.getElementById('wa-section').style.display = 'block';
+                            document.getElementById('wa-link').href = eventData.wa;
+                        }
+                    }
+                } else {
+                    alert("Profile not found: " + data.message);
+                }
+            } catch (err) {
+                console.error(err);
+                alert("Error loading profile details.");
+            }
+        }
+
+        function goBack() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const isAdmin = urlParams.get('admin') === 'true';
+            const eventId = urlParams.get('eventId');
+            
+            if (isAdmin) {
+                window.location.href = `event-detail.html?id=${eventId}`;
+            } else {
+                logout();
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('eventora_student');
+            window.location.href = 'auth.html?mode=student';
+        }
+
+    </script>
+</body>
+</html>
