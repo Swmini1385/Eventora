@@ -39,9 +39,20 @@ function doGet(e) {
 }
 
 function handleRequest(e) {
-  const p = e.parameter || {};
+  let p = e.parameter || {};
+  const cb = p.callback || p.callbackName || p.jsonp;
+
+  // HANDLE POST DATA (JSON BODY)
+  if (e.postData && e.postData.contents) {
+    try {
+      const body = JSON.parse(e.postData.contents);
+      p = { ...p, ...body };
+    } catch (err) {
+      // In case of non-JSON POST, just continue with parameters
+    }
+  }
+
   const action = p.action;
-  const cb = p.callback || p.callbackName || p.jsonp; // More robust callback detection
 
   try {
     if (action === "signup") return handleSignup(p, cb);
