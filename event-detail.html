@@ -249,10 +249,30 @@
             currentEventId = params.get('id');
             try {
                 const data = await fetchJSONP(`${API_URL}?action=get_event_info&eventId=${currentEventId}`);
+                // Robust Date & Time Formatting
+                const cleanDate = (raw) => {
+                    if (!raw) return 'Date TBD';
+                    const d = new Date(raw);
+                    return isNaN(d) ? raw : d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+                };
+
+                const cleanTime = (raw) => {
+                    if (!raw) return '';
+                    if (typeof raw === 'string' && raw.includes('T')) {
+                        const d = new Date(raw);
+                        if (!isNaN(d)) return d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
+                    }
+                    return raw;
+                };
+
                 if (data.success) {
+                    const formattedDate = cleanDate(data.startDate);
+                    const formattedTime = cleanTime(data.startTime);
+                    const timeStr = formattedTime ? ` • ${formattedTime}` : '';
+
                     document.getElementById('event-title').innerText = data.name;
                     document.getElementById('event-meta').innerHTML = `
-                        <i data-lucide="calendar" size="16"></i> ${data.startDate || 'TBA'} &nbsp;|&nbsp; 
+                        <i data-lucide="calendar" size="16"></i> ${formattedDate}${timeStr} &nbsp;|&nbsp; 
                         <i data-lucide="indian-rupee" size="16"></i> Fee: ₹${data.fee || '0'}
                     `;
                     lucide.createIcons();

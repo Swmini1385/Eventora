@@ -245,8 +245,26 @@
                     document.getElementById('event-display-title').innerText = data.name;
                     document.getElementById('success-event-name').innerText = data.name;
                     
-                    let dateStr = data.startDate || "TBA";
-                    if (data.endDate) dateStr += ` - ${data.endDate}`;
+                    // ROBUST DATE FORMATTING
+                    const cleanDate = (raw) => {
+                        if (!raw) return '';
+                        const d = new Date(raw);
+                        return isNaN(d) ? raw : d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+                    };
+
+                    const cleanTime = (raw) => {
+                        if (!raw) return '';
+                        if (typeof raw === 'string' && raw.includes('T')) {
+                            const d = new Date(raw);
+                            if (!isNaN(d)) return d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
+                        }
+                        return raw;
+                    };
+
+                    let dateStr = cleanDate(data.startDate) || "TBA";
+                    if (data.endDate) dateStr += ` - ${cleanDate(data.endDate)}`;
+                    const timeStr = cleanTime(data.startTime);
+                    if (timeStr) dateStr += ` • ${timeStr}`;
                     
                     document.getElementById('event-display-desc').innerHTML = `📅 Date: ${dateStr}<br>📍 Venue: ${data.venue || 'TBA'}`;
                     eventFee = data.fee || 0;
