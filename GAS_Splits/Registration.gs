@@ -88,6 +88,7 @@ function handleGetAttendees(p, cb) {
             address: row[8] || "",
             photoId: row[9] || "",
             amount: row[10] || "",
+            utr: row[11] || "",
             markedToday: false
         }))
     };
@@ -224,17 +225,51 @@ function handleMarkAttendance(p, cb) {
       sheetAtt.appendRow(["StudentID", "Date", "Status"]);
     }
     
-    // Check if duplicate for today
+    // Check if toggle (Unmark if exists)
     const data = sheetAtt.getDataRange().getValues();
     for (let i = 1; i < data.length; i++) {
-        // Simple string comparison for dates
         if (data[i][0] === studentId && String(data[i][1]) === String(dateStr)) {
-            return response({ success: true, message: "Already marked" }, cb);
+            sheetAtt.deleteRow(i + 1);
+            return response({ success: true, message: "Unmarked", result: "unmarked" }, cb);
         }
     }
     
     sheetAtt.appendRow([studentId, dateStr, "Present"]);
-    return response({ success: true, message: "Attendance marked" }, cb);
+    return response({ success: true, message: "Marked", result: "marked" }, cb);
+  } catch (e) {
+    return response({ success: false, message: e.toString() }, cb);
+  }
+}
+
+/**
+ * NEW: UPDATE PAYMENT INFO (Admin)
+ */
+function handleUpdatePaymentInfo(p, cb) {
+  try {
+    const eventId = p.eventId;
+    const studentId = p.studentId;
+    const amount = p.amount || "";
+    const mode = p.paymentMode || "Cash";
+    const utr = p.utr || "";
+    const status = (parseInt(amount) > 0) ? "Confirmed" : "Pending";
+    
+    const ss = SpreadsheetApp.openById(eventId);
+    const sheet = ss.getSheets()[0];
+    const data = sheet.getDataRange().getValues();
+    
+    for (let i = 2; i < data.length; i++) {
+        if (data[i][0] === studentId) {
+            // Update columns: 
+            // 7 (Mode), 8 (Status), 11 (Amount), 12 (UTR)
+            sheet.getRange(i + 1, 7).setValue(mode);
+            sheet.getRange(i + 1, 8).setValue(status);
+            sheet.getRange(i + 1, 11).setValue(amount);
+            sheet.getRange(i + 1, 12).setValue(utr);
+            
+            return response({ success: true, status: status }, cb);
+        }
+    }
+    return response({ success: false, message: "Student not found" }, cb);
   } catch (e) {
     return response({ success: false, message: e.toString() }, cb);
   }

@@ -350,7 +350,10 @@
             document.getElementById('id-number').innerText = `ID: ${s.id}`;
             document.getElementById('id-phone').innerText = s.phone;
             document.getElementById('id-address').innerText = s.address || '--';
-            document.getElementById('id-status').innerText = s.status || 'Confirmed';
+            const statusEl = document.getElementById('id-status');
+            const isConfirmed = s.status === 'Confirmed';
+            statusEl.innerText = s.status || 'Pending';
+            statusEl.style.color = isConfirmed ? '#4ade80' : '#f87171';
             document.getElementById('id-payment-mode').innerText = s.paymentMode || 'Cash';
             
             if (s.photoId) {
