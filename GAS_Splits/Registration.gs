@@ -97,9 +97,12 @@ function handleGetAttendees(p, cb) {
     const sheetAtt = ss.getSheetByName("Attendance");
     if (sheetAtt) {
         const attData = sheetAtt.getDataRange().getValues();
-        const todayStr = new Date().toLocaleDateString();
+        const todayStr = Utilities.formatDate(new Date(), "GMT+5:30", "yyyy-MM-dd");
         const markedIds = new Set(
-            attData.filter(r => String(r[1]) === todayStr).map(r => r[0])
+            attData.filter(r => {
+                const rowDate = r[1] instanceof Date ? Utilities.formatDate(r[1], "GMT+5:30", "yyyy-MM-dd") : String(r[1]);
+                return rowDate === todayStr;
+            }).map(r => r[0])
         );
         res.attendees.forEach(a => {
             if (markedIds.has(a.id)) a.markedToday = true;
@@ -216,7 +219,10 @@ function handleMarkAttendance(p, cb) {
   try {
     const eventId = p.eventId;
     const studentId = p.studentId;
-    const dateStr = p.date || new Date().toLocaleDateString();
+    
+    // Normalize today's date to a string: "yyyy-MM-dd"
+    const now = new Date();
+    const dateStr = p.date || Utilities.formatDate(now, "GMT+5:30", "yyyy-MM-dd");
     
     const ss = SpreadsheetApp.openById(eventId);
     let sheetAtt = ss.getSheetByName("Attendance");
@@ -225,10 +231,12 @@ function handleMarkAttendance(p, cb) {
       sheetAtt.appendRow(["StudentID", "Date", "Status"]);
     }
     
-    // Check if toggle (Unmark if exists)
+    // Check if record exists for this student AND this date
     const data = sheetAtt.getDataRange().getValues();
     for (let i = 1; i < data.length; i++) {
-        if (data[i][0] === studentId && String(data[i][1]) === String(dateStr)) {
+        // Handle both Date objects and strings
+        const rowDate = data[i][1] instanceof Date ? Utilities.formatDate(data[i][1], "GMT+5:30", "yyyy-MM-dd") : String(data[i][1]);
+        if (data[i][0] === studentId && rowDate === dateStr) {
             sheetAtt.deleteRow(i + 1);
             return response({ success: true, message: "Unmarked", result: "unmarked" }, cb);
         }
