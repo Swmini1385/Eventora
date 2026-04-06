@@ -8,13 +8,23 @@ const MASTER_SHEET_NAME = "Master_Users";
 /**
  * Handle POST requests (Auth, Event Creation, Registration)
  */
+/**
+ * REUSABLE RESPONSE HELPER (Supports JSONP)
+ */
+function response(obj, callback) {
+  const jsonStr = JSON.stringify(obj);
+  if (callback) {
+    return ContentService.createTextOutput(callback + "(" + jsonStr + ")")
+      .setMimeType(ContentService.MimeType.JAVASCRIPT);
+  }
+  return ContentService.createTextOutput(jsonStr)
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
 function doPost(e) {
   return handleRequest(e);
 }
 
-/**
- * Handle GET requests (Needed for JSONP / Data Loading)
- */
 function doGet(e) {
   return handleRequest(e);
 }
@@ -38,18 +48,6 @@ function handleRequest(e) {
   } catch (err) {
     return response({ success: false, message: err.toString() }, p.callback);
   }
-}
-
-/**
- * response helper
- */
-function response(obj, callback) {
-  const jsonStr = JSON.stringify(obj);
-  if (callback) {
-    return ContentService.createTextOutput(callback + "(" + jsonStr + ")")
-      .setMimeType(ContentService.MimeType.JAVASCRIPT);
-  }
-  return ContentService.createTextOutput(jsonStr).setMimeType(ContentService.MimeType.JSON);
 }
 
 /**
