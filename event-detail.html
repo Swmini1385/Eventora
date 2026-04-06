@@ -166,6 +166,8 @@
                 display: block !important;
                 position: absolute;
                 left: 0; top: 0; width: 210mm;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
             }
             .print-page {
                 display: grid;
@@ -182,9 +184,11 @@
                 padding: 8px;
                 display: flex;
                 flex-direction: column;
-                background: white;
+                background: white !important;
                 color: black;
                 font-family: 'Outfit', sans-serif;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
             }
         }
     </style>
