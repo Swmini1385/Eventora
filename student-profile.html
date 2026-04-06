@@ -205,71 +205,73 @@
             border: 1.5px solid #d1d5db;
             overflow: hidden;
             margin: 0 auto 2rem;
-            display: none; 
-            box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+            display: none;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
             font-family: 'Inter', 'Outfit', sans-serif;
             /* FLEX STACK FOR ZERO OVERLAP */
             flex-direction: column;
         }
 
-        .id-header-v2 { 
-            background: #0f172a; 
-            color: #fbbf24; /* Gold Accent */
+        .id-header-v2 {
+            background: var(--primary);
+            color: #fff;
+            /* Match Primary Button */
             height: 42px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-weight: 800; 
-            font-size: 0.85rem; 
+            font-weight: 800;
+            font-size: 0.85rem;
             text-transform: uppercase;
             letter-spacing: 1px;
             width: 100%;
-            border-bottom: 2px solid #fbbf24;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.2);
             padding: 0 10px;
             text-align: center;
         }
 
-        .id-body-v2 { 
-            flex: 1; /* Automatically fits the space */
-            padding: 10px 14px; 
-            display: flex; 
-            gap: 15px; 
-            align-items: center; 
+        .id-body-v2 {
+            flex: 1;
+            /* Automatically fits the space */
+            padding: 10px 14px;
+            display: flex;
+            gap: 15px;
+            align-items: center;
             background: #fff;
             min-height: 0;
             position: relative;
         }
 
-        .id-photo-v2 { 
-            width: 80px; 
-            height: 90px; 
-            border: 2px solid #0f172a; 
-            border-radius: 6px; 
-            object-fit: cover; 
+        .id-photo-v2 {
+            width: 80px;
+            height: 90px;
+            border: 2px solid #0f172a;
+            border-radius: 6px;
+            object-fit: cover;
             background: #f8fafc;
         }
 
-        .id-details-v2 { 
-            flex: 1; 
-            display: flex; 
-            flex-direction: column; 
+        .id-details-v2 {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
             justify-content: center;
-            gap: 2px; 
+            gap: 2px;
         }
 
-        .id-field { 
-            font-size: 0.6rem; 
-            color: #64748b; 
-            font-weight: 700; 
+        .id-field {
+            font-size: 0.6rem;
+            color: #64748b;
+            font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 0.5px;
             margin-bottom: -1px;
         }
 
-        .id-value-v2 { 
-            font-size: 0.85rem; 
-            font-weight: 700; 
-            color: #0f172a; 
+        .id-value-v2 {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: #0f172a;
             margin-bottom: 2px;
         }
 
@@ -282,34 +284,49 @@
             text-transform: uppercase;
         }
 
-        .id-footer-v2 { 
-            background: #0f172a; 
-            color: #fff; 
+        .id-footer-v2 {
+            background: var(--primary);
+            color: #fff;
             height: 32px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 0.65rem; 
+            font-size: 0.65rem;
             font-weight: 500;
             width: 100%;
             letter-spacing: 0.5px;
         }
 
-        .id-badge { 
-            background: #0f172a; 
-            color: #fff; 
-            font-size: 0.7rem; 
-            font-weight: 800; 
-            padding: 2px 8px; 
-            border-radius: 4px; 
+        .id-badge {
+            background: #0f172a;
+            color: #fff;
+            font-size: 0.7rem;
+            font-weight: 800;
+            padding: 2px 8px;
+            border-radius: 4px;
             display: inline-block;
             margin-top: 5px;
         }
 
         @media print {
-            body * { visibility: hidden; }
-            #id-card-view, #id-card-view * { visibility: visible; }
-            #id-card-view { position: fixed; left: 0; top: 0; display: flex !important; margin: 0; box-shadow: none; -webkit-print-color-adjust: exact; }
+            body * {
+                visibility: hidden;
+            }
+
+            #id-card-view,
+            #id-card-view * {
+                visibility: visible;
+            }
+
+            #id-card-view {
+                position: fixed;
+                left: 0;
+                top: 0;
+                display: flex !important;
+                margin: 0;
+                box-shadow: none;
+                -webkit-print-color-adjust: exact;
+            }
         }
 
         @media (max-width: 768px) {
@@ -648,7 +665,7 @@
                     <span><i data-lucide="calendar" size="14"></i> ${eventData.startDate}</span>
                     <span><i data-lucide="map-pin" size="14"></i> ${eventData.venue}</span>
                 `;
-                document.getElementById('id-card-view').querySelector('.id-footer-v2').innerText = `${eventData.name} - Official Participant`;
+                document.getElementById('id-card-view').querySelector('.id-footer-v2').innerText = `- Official Participant`;
                 lucide.createIcons();
 
                 const attData = await fetchJSONP(`${API_URL}?action=get_student_attendance&eventId=${studentData.eventId}&studentId=${studentData.id}`);
