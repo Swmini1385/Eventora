@@ -206,7 +206,7 @@
                     delete window[name];
                     if (script.parentNode) document.body.removeChild(script);
                 }
-                setTimeout(() => { if (window[name]) { cleanup(); reject(new Error('Timeout')); } }, 15000);
+                setTimeout(() => { if (window[name]) { cleanup(); reject(new Error('Auth request timed out (30s)')); } }, 30000);
             });
         }
 

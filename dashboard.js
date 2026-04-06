@@ -39,9 +39,9 @@ function fetchJSONP(url, callbackName) {
         setTimeout(() => {
             if (window[name]) {
                 cleanup();
-                reject(new Error('JSONP request timeout'));
+                reject(new Error('Cloud request timed out (30s)'));
             }
-        }, 15000);
+        }, 30000);
     });
 }
 
