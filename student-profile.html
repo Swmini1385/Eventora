@@ -790,6 +790,8 @@
                     return raw; // Already "10:00 AM" or similar
                 };
 
+                const formattedDate = cleanDate(eventData.startDate);
+                const formattedTime = cleanTime(eventData.startTime);
                 const endDateStr = eventData.endDate ? ` - ${cleanDate(eventData.endDate)}` : '';
                 const endTimeStr = eventData.endTime ? ` - ${cleanTime(eventData.endTime)}` : '';
 
