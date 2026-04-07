@@ -30,18 +30,24 @@ function handleAttendeeRegistration(p, cb) {
     
     console.log("Generated ID: " + studentId);
 
-    // PHOTO LINKING (Optional & Fast)
+    // PHOTO LINKING (Reliable Search)
     let photoId = p.photoId || "";
     if (p.regPhotoKey) {
       try {
         const folders = DriveApp.getFoldersByName("Eventora_Profile_Photos");
         if (folders.hasNext()) {
           const folder = folders.next();
-          const files = folder.getFilesByName(p.regPhotoKey);
-          if (files.hasNext()) {
-            const file = files.next();
-            photoId = file.getId();
-            file.setName(studentId + "_profile.jpg");
+          // Retry logic (3 attempts with 1s gap)
+          for (let i = 0; i < 3; i++) {
+            const files = folder.getFilesByName(p.regPhotoKey);
+            if (files.hasNext()) {
+              const file = files.next();
+              photoId = file.getId();
+              file.setName(studentId + "_profile.jpg");
+              console.log("Photo linked successfully on attempt " + (i+1));
+              break;
+            }
+            if (i < 2) Utilities.sleep(1000); 
           }
         }
       } catch (e) { console.warn("Photo link skipped:", e); }

@@ -179,16 +179,89 @@
             .id-card-print {
                 width: 3.5in;
                 height: 2.25in;
-                border: 1px solid #ccc;
-                border-radius: 8px;
-                padding: 8px;
+                background: #ffffff !important;
+                border-radius: 12px;
+                border: 2px solid #000;
+                overflow: hidden;
                 display: flex;
                 flex-direction: column;
-                background: white !important;
-                color: black;
-                font-family: 'Outfit', sans-serif;
+                font-family: 'Inter', 'Outfit', sans-serif;
                 -webkit-print-color-adjust: exact;
                 print-color-adjust: exact;
+                margin-bottom: 5mm; 
+            }
+            .p-header {
+                background: #6366f1 !important;
+                color: #fff !important;
+                height: 45px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-weight: 800;
+                font-size: 0.9rem;
+                text-transform: uppercase;
+                letter-spacing: 1px;
+                width: 100%;
+                border-bottom: 2px solid #000;
+                text-align: center;
+                -webkit-print-color-adjust: exact;
+            }
+            .p-body {
+                flex: 1;
+                padding: 10px 14px;
+                display: flex;
+                gap: 15px;
+                align-items: center;
+                background: #fff !important;
+                position: relative;
+            }
+            .p-photo {
+                width: 80px;
+                height: 90px;
+                border: 2px solid #000;
+                border-radius: 6px;
+                object-fit: cover;
+                background: #f8fafc;
+            }
+            .p-details {
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                gap: 2px;
+                text-align: left;
+            }
+            .p-name {
+                font-size: 1.1rem;
+                font-weight: 900;
+                color: #000 !important;
+                margin: 0 0 4px 0;
+                line-height: 1.1;
+                text-transform: uppercase;
+            }
+            .p-field {
+                font-size: 0.6rem;
+                color: #64748b !important;
+                font-weight: 700;
+                text-transform: uppercase;
+                margin-bottom: -1px;
+            }
+            .p-value {
+                font-size: 0.85rem;
+                font-weight: 700;
+                color: #000 !important;
+            }
+            .p-footer {
+                background: #6366f1 !important;
+                color: #fff !important;
+                height: 35px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 0.7rem;
+                font-weight: 600;
+                width: 100%;
+                -webkit-print-color-adjust: exact;
             }
         }
     </style>
@@ -562,25 +635,26 @@
             printArea.innerHTML = '';
             
             let html = '';
-            for (let i = 0; i < selected.length; i += 8) { // 8 per page (2 columns x 4 rows)
+            for (let i = 0; i < selected.length; i += 8) { 
                 const pageItems = selected.slice(i, i + 8);
                 html += `<div class="print-page">`;
                 pageItems.forEach(s => {
                     html += `
-                    <div class="id-card-print" style="border: 2px solid #000; border-radius: 12px; overflow: hidden; display: flex; flex-direction: column;">
-                        <div style="background: #6366f1; color: white; padding: 6px; text-align: center; font-weight: 800; font-size: 0.75rem; border-bottom: 2px solid #000;">${eventName}</div>
-                        <div style="flex: 1; display: flex; gap: 12px; align-items: center; padding: 10px;">
-                            <img src="${s.photo}" style="width: 70px; height: 80px; object-fit: cover; border: 2px solid #000; border-radius: 6px;">
-                            <div style="flex: 1; display: flex; flex-direction: column; gap: 2px;">
-                                <div style="font-size: 0.55rem; color: #666; font-weight: 700;">NAME</div>
-                                <div style="font-size: 0.95rem; font-weight: 900; line-height: 1;">${s.name.toUpperCase()}</div>
-                                <div style="font-size: 0.55rem; color: #666; font-weight: 700; margin-top: 4px;">ID: ${s.id}</div>
-                                <div style="font-size: 0.65rem; font-weight: 700;">MOB: ${s.phone}</div>
-                                <div style="font-size: 0.55rem; color: #666; font-weight: 700; margin-top: 4px;">ADDRESS</div>
-                                <div style="font-size: 0.65rem; line-height: 1.1;">${s.address || '--'}</div>
+                    <div class="id-card-print">
+                        <div class="p-header">${eventName}</div>
+                        <div class="p-body">
+                            <img src="${s.photo.replace('=s120', '=s400')}" class="p-photo">
+                            <div class="p-details">
+                                <div class="p-name">${s.name}</div>
+                                <div class="p-field">PARTICIPANT ID</div>
+                                <div class="p-value">${s.id}</div>
+                                <div class="p-field">CONTACT / MOB</div>
+                                <div class="p-value">${s.phone}</div>
+                                <div class="p-field">ADDRESS / CITY</div>
+                                <div class="p-value" style="font-size: 0.65rem;">${s.address || '--'}</div>
                             </div>
                         </div>
-                        <div style="background: #6366f1; color: white; padding: 4px; text-align: center; font-size: 0.6rem; font-weight: 600;">- Official Participant ID -</div>
+                        <div class="p-footer">OFFICIAL PARTICIPANT ID - EVENTORA</div>
                     </div>
                     `;
                 });
