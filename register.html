@@ -445,12 +445,14 @@
             const phone = document.getElementById('att-phone').value;
             
             btn.disabled = true;
-            btn.innerText = "Processing... ⏳";
+            btn.innerHTML = '<i data-lucide="loader-2" class="animate-spin"></i> Processing...';
+            lucide.createIcons();
 
             try {
-                // 1. Upload Photo if selected (Link via Phone instead of ID since ID isn't known yet)
+                // 1. Upload Photo if selected
                 if (photoInput.files && photoInput.files[0]) {
-                    btn.innerText = "Uploading Photo... 📸";
+                    btn.innerHTML = '<i data-lucide="loader-2" class="animate-spin"></i> Uploading Photo...';
+                    lucide.createIcons();
                     const base64 = await resizePhoto(photoInput.files[0], 1000, 0.9);
                     await fetch(API_URL, {
                         method: "POST",
@@ -461,11 +463,13 @@
                             fileName: `reg_${phone}.jpg`
                         })
                     });
-                    // Small delay to ensure GAS processing
-                    await new Promise(r => setTimeout(r, 1500));
+                    await new Promise(r => setTimeout(r, 1000));
                 }
 
-                // 2. Submit Main Registration via JSONP (Reliable for getting response data like ID/PW)
+                // 2. Submit Main Registration via POST (Avoids GET length limits)
+                btn.innerHTML = '<i data-lucide="loader-2" class="animate-spin"></i> Finalizing Registration...';
+                lucide.createIcons();
+
                 const payload = {
                     action: 'register_attendee',
                     eventId: eventId,
@@ -480,29 +484,49 @@
                     age: document.getElementById('att-age').value || 0,
                     gender: document.getElementById('att-gender').value,
                     fee: eventFee,
-                    regPhotoKey: `reg_${phone}.jpg` // Pass info to backend to link photo
+                    regPhotoKey: `reg_${phone}.jpg`
                 };
 
-                const data = await fetchJSONP(`${API_URL}?${new URLSearchParams(payload).toString()}`);
+                // GAS POST handles redirects. Using mode: 'cors' (default)
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    body: JSON.stringify(payload)
+                });
+                
+                // If fetch fails here, it's likely a CORS error on the redirect
+                // However, the data usually still reaches the server.
+                // We'll try to parse JSON if possible.
+                const data = await response.json();
 
                 if (data.success) {
-                    document.getElementById('res-uid').innerText = data.studentId;
-                    document.getElementById('res-pw').innerText = data.password;
-                    document.getElementById('registration-form-content').style.display = 'none';
-                    document.getElementById('success-msg').style.display = 'block';
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                    lucide.createIcons();
+                    showSuccess(data);
                 } else {
-                    alert("Error: " + data.message);
-                    btn.disabled = false;
-                    btn.innerText = "Complete Registration";
+                    throw new Error(data.message || "Registration failed on server");
                 }
             } catch (err) { 
-                console.error(err);
-                alert("Connection Error or Timeout. Please check your data and try again."); 
+                console.error("Registration Error:", err);
+                
+                // FALLBACK: If POST fails due to CORS but data might have been saved, 
+                // or if it's a genuine network error.
+                if (err.message === "Failed to fetch") {
+                    alert("⚠️ Network Issue or CORS: Registration might have been submitted but we couldn't get the confirmation. Please check with the organizer or try once more with a shorter address.");
+                } else {
+                    alert("Error: " + err.message);
+                }
+                
                 btn.disabled = false; 
                 btn.innerText = "Complete Registration";
+                lucide.createIcons();
             }
+        }
+
+        function showSuccess(data) {
+            document.getElementById('res-uid').innerText = data.studentId;
+            document.getElementById('res-pw').innerText = data.password;
+            document.getElementById('registration-form-content').style.display = 'none';
+            document.getElementById('success-msg').style.display = 'block';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            lucide.createIcons();
         }
     </script>
 </body>

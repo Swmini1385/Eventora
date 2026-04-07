@@ -6,62 +6,67 @@
  * 1. ATTENDEE REGISTRATION
  */
 function handleAttendeeRegistration(p, cb) {
+  console.log("Starting Registration for: " + (p.name || "Unknown"));
   try {
     const eventId = p.eventId;
+    if (!eventId) throw new Error("Event ID is missing");
+    
     const ss = SpreadsheetApp.openById(eventId);
     const sheet = ss.getSheets()[0];
     
     const lastRow = sheet.getLastRow();
-    const studentCount = lastRow < 2 ? 0 : lastRow - 2;
+    const studentCount = (lastRow < 3) ? 0 : (lastRow - 2); // Metadata (1) + Header (2)
     
-    const metaRow = sheet.getRange(1, 1, 1, 8).getValues()[0];
-    const idPrefix = metaRow[0] === "METADATA" ? (metaRow[7] || "A") : "A";
+    // Quick Metadata Fetch for ID Prefix
+    let idPrefix = "A";
+    try {
+      const meta = sheet.getRange(1, 1, 1, 8).getValues()[0];
+      if (meta[0] === "METADATA") idPrefix = (meta[7] || "A");
+    } catch (e) { console.warn("Meta read failed, using A"); }
     
-    const sequenceNum = studentCount + 1;
-    const studentId = idPrefix + ("0000" + sequenceNum).slice(-4);
-    
-    const timestamp = new Date();
-    const password = p.password || "123456"; 
+    const studentId = idPrefix + ("0000" + (studentCount + 1)).slice(-4);
+    const password = p.password || Math.floor(100000 + Math.random() * 900000).toString();
     const paymentMode = p.paymentMode || "Cash"; 
+    
+    console.log("Generated ID: " + studentId);
 
-    // PHOTO LINKING: If photo was uploaded during registration
+    // PHOTO LINKING (Optional & Fast)
     let photoId = p.photoId || "";
     if (p.regPhotoKey) {
       try {
-        const folderName = "Eventora_Profile_Photos";
-        const folders = DriveApp.getFoldersByName(folderName);
+        const folders = DriveApp.getFoldersByName("Eventora_Profile_Photos");
         if (folders.hasNext()) {
           const folder = folders.next();
           const files = folder.getFilesByName(p.regPhotoKey);
           if (files.hasNext()) {
             const file = files.next();
             photoId = file.getId();
-            // Rename file to StudentID for permanent storage
             file.setName(studentId + "_profile.jpg");
           }
         }
-      } catch (e) { console.error("Photo link error:", e); }
+      } catch (e) { console.warn("Photo link skipped:", e); }
     }
 
+    // APPEND DATA (MAIN ACTION)
     sheet.appendRow([
       studentId, // 1
-      timestamp, // 2
-      p.name, // 3
-      p.phone, // 4
+      new Date(), // 2: Timestamp
+      p.name || "Unnamed", // 3
+      p.phone || "", // 4
       p.email || "", // 5
       password, // 6
       paymentMode, // 7
       "Confirmed", // 8
       p.address || "", // 9
-      photoId, // 10: PhotoID (Linked)
-      0, // 11: Amount (Always 0 initially as per request)
-      p.utr || "", // 12: UTR/Ref
+      photoId, // 10
+      0, // 11: Amount
+      p.utr || "", // 12: UTR
       String(p.dob || ""), // 13: DOB
       p.age || "", // 14: Age
       p.gender || "" // 15: Gender
     ]);
     
-    // SYNC TO MASTER (for global login without Event ID)
+    // ASYNC-LIKE SYNC TO MASTER (If it fails, don't stop registration)
     try {
       const ssMaster = getMasterSS();
       if (ssMaster) {
@@ -70,12 +75,13 @@ function handleAttendeeRegistration(p, cb) {
           sheetMaster = ssMaster.insertSheet(MASTER_STUDENTS_SHEET);
           sheetMaster.appendRow(["StudentID", "Password", "EventID", "Name", "Address"]);
         }
-        sheetMaster.appendRow([studentId, password, eventId, p.name, p.address || ""]);
+        sheetMaster.appendRow([studentId, password, eventId, p.name || "", p.address || ""]);
       }
     } catch (err) {
-      console.error("Master Sync Failed:", err);
+      console.warn("Master Sync Failed (Non-critical):", err);
     }
     
+    console.log("Registration Complete: " + studentId);
     return response({ 
       success: true, 
       studentId: studentId,
@@ -83,8 +89,10 @@ function handleAttendeeRegistration(p, cb) {
       paymentMode: paymentMode,
       message: "Registration successful!" 
     }, cb);
+
   } catch (e) {
-    return response({ success: false, message: "Registration Error: " + e.toString() }, cb);
+    console.error("Critical Registration Error:", e);
+    return response({ success: false, message: "Server Error: " + e.toString() }, cb);
   }
 }
 
