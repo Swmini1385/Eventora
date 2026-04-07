@@ -249,7 +249,7 @@ async function editEvent(id) {
     }
 }
 
-const API_URL = "https://script.google.com/macros/s/AKfycbwo9Dqo3uGSl3RmFY01GLfVseJtcIqxD5FegZpeJGBaKp4OTgR_VCgdIT6IEzYlezasVw/exec";
+const API_URL = 'https://script.google.com/macros/s/AKfycby-tuuL2zz38uXKlm_jjU8lTBrSRNxngFKoM7x8RixHdkO5dMzbHQtkW_ncP2nReZaIaA/exec';
 
 // Event creation/edit logic
 async function handleCreateEvent(e) {
