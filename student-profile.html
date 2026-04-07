@@ -428,10 +428,10 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            background: rgba(0,0,0,0.6);
+            background: rgba(0, 0, 0, 0.6);
             backdrop-filter: blur(4px);
             color: white;
-            border: 1px solid rgba(255,255,255,0.1);
+            border: 1px solid rgba(255, 255, 255, 0.1);
             cursor: pointer;
             transition: 0.2s;
         }
@@ -440,8 +440,15 @@
             transform: scale(1.1);
         }
 
-        .delete-btn:hover { background: #ef4444; border-color: #ef4444; }
-        .download-btn:hover { background: var(--primary); border-color: var(--primary); }
+        .delete-btn:hover {
+            background: #ef4444;
+            border-color: #ef4444;
+        }
+
+        .download-btn:hover {
+            background: var(--primary);
+            border-color: var(--primary);
+        }
 
         .date-album-row {
             margin-bottom: 2.5rem;
@@ -496,10 +503,12 @@
             <div class="glass-card">
                 <div class="card-header">
                     <h3 class="card-title"><i data-lucide="user"></i> Personal Details</h3>
-                    <button class="btn btn-primary" style="font-size: 0.75rem; padding: 5px 12px;" onclick="document.getElementById('profile-upload-input').click()">
+                    <button class="btn btn-primary" style="font-size: 0.75rem; padding: 5px 12px;"
+                        onclick="document.getElementById('profile-upload-input').click()">
                         Update Photo
                     </button>
-                    <input type="file" id="profile-upload-input" accept="image/*" style="display: none;" onchange="updateProfilePhoto(this)">
+                    <input type="file" id="profile-upload-input" accept="image/*" style="display: none;"
+                        onchange="updateProfilePhoto(this)">
                 </div>
                 <div class="info-layout">
                     <div class="photo-box" onclick="document.getElementById('profile-upload-input').click()">
@@ -620,8 +629,10 @@
                     <div class="id-name-v2" id="id-name-card">--</div>
                     <div class="id-field" style="margin-top: 4px;">MOBILE</div>
                     <div class="id-value-v2" id="id-phone-card">--</div>
-                    <div class="id-field">ADDRESS</div>
-                    <div class="id-value-v2" id="id-address-card">--</div>
+                    <div class="id-field" style="margin-top: 4px;">DATE OF BIRTH</div>
+                    <div class="id-value-v2" id="id-dob-card">--</div>
+                    <div class="id-field" style="margin-top: 4px;">ADDRESS / CITY</div>
+                    <div class="id-value-v2" id="id-address-card" style="font-size: 0.65rem;">--</div>
                 </div>
             </div>
             <div class="id-footer-v2" id="id-card-footer">--</div>
@@ -640,9 +651,11 @@
         <!-- ACTIVITY GALLERY -->
         <div class="glass-card">
             <div class="card-title"><i data-lucide="image" size="20" color="#a855f7"></i> Event Activity Gallery</div>
-            <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 0.25rem;">Photos where you were tagged during the event.</p>
+            <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 0.25rem;">Photos where you were tagged
+                during the event.</p>
             <div id="activity-gallery" class="gallery-grid">
-                <p style="grid-column: 1/-1; text-align: center; padding: 2rem; color: var(--text-muted);">Loading gallery... 📸</p>
+                <p style="grid-column: 1/-1; text-align: center; padding: 2rem; color: var(--text-muted);">Loading
+                    gallery... 📸</p>
             </div>
         </div>
 
@@ -796,11 +809,13 @@
 
             // ID Card Fields
             document.getElementById('id-name-card').innerText = s.name.toUpperCase();
-            document.getElementById('id-phone-card').innerText = `${s.phone} | DOB: ${toDisplayDate(s.dob)}`;
+            document.getElementById('id-phone-card').innerText = s.phone;
+            document.getElementById('id-dob-card').innerText = toDisplayDate(s.dob);
             document.getElementById('id-address-card').innerText = s.address || '--';
             document.getElementById('id-badge-val').innerText = `ID: ${s.id}`;
             document.getElementById('id-photo-card').src = photoUrl;
             document.getElementById('id-card-footer').innerText = `- Official Participant ID Card -`;
+            document.getElementById('id-card-event').innerText = s.eventName || 'EVENTORA EVENT';
 
             // Edit Form
             document.getElementById('edit-name').value = s.name;
@@ -851,13 +866,16 @@
                 const endDateStr = eventData.endDate ? ` - ${cleanDate(eventData.endDate)}` : '';
                 const endTimeStr = eventData.endTime ? ` - ${cleanTime(eventData.endTime)}` : '';
 
-                document.getElementById('disp-event-name').innerText = eventData.name;
-                document.getElementById('id-card-event').innerText = eventData.name.toUpperCase();
-                document.getElementById('disp-event-meta').innerHTML = `
-                    <span><i data-lucide="calendar" size="14"></i> ${formattedDate}${endDateStr}</span>
-                    <span><i data-lucide="clock" size="14"></i> ${formattedTime}${endTimeStr}</span>
-                    <span><i data-lucide="map-pin" size="14"></i> ${eventData.venue}</span>
-                `;
+                if (document.getElementById('disp-event-name')) {
+                    document.getElementById('disp-event-name').innerText = eventData.name;
+                }
+                if (document.getElementById('disp-event-meta')) {
+                    document.getElementById('disp-event-meta').innerHTML = `
+                        <span><i data-lucide="calendar" size="14"></i> ${formattedDate}${endDateStr}</span>
+                        <span><i data-lucide="clock" size="14"></i> ${formattedTime}${endTimeStr}</span>
+                        <span><i data-lucide="map-pin" size="14"></i> ${eventData.venue}</span>
+                    `;
+                }
                 document.getElementById('id-card-view').querySelector('.id-footer-v2').innerText = `- Official Participant`;
                 lucide.createIcons();
 
@@ -896,7 +914,7 @@
         async function loadActivityGallery() {
             const container = document.getElementById('activity-gallery');
             const isAdmin = !!localStorage.getItem('eventora_user'); // Admin check
-            
+
             try {
                 const data = await fetchJSONP(`${API_URL}?action=get_activity_photos&eventId=${studentData.eventId}&studentId=${studentData.id}`);
                 if (data.success && data.photos.length > 0) {
@@ -1001,11 +1019,11 @@
             if (!input.files || !input.files[0]) return;
             const file = input.files[0];
             document.getElementById('id-photo').style.opacity = "0.3";
-            
+
             try {
                 // Resize to high quality (1000px for profile)
                 const base64 = await resizePhoto(file, 1000, 0.9);
-                
+
                 // Upload File
                 const uploadRes = await fetch(API_URL, {
                     method: "POST",
@@ -1016,12 +1034,12 @@
                         fileName: `${studentData.id}_profile.jpg`
                     })
                 });
-                
+
                 // Since no-cors hides response, we wait 2 seconds and reload 
                 // (Most reliable for GAS redirects)
                 setTimeout(() => location.reload(), 2000);
-            } catch (err) { 
-                alert("Photo upload failed."); 
+            } catch (err) {
+                alert("Photo upload failed.");
                 document.getElementById('id-photo').style.opacity = "1";
             }
         }
@@ -1061,7 +1079,7 @@
             const overlay = document.querySelector('.photo-box .photo-overlay');
             overlay.innerText = "UPLOADING...";
             overlay.style.opacity = "1";
-            
+
             try {
                 const base64 = await resizePhoto(file, 600, 0.8);
                 const uploadRes = await fetch(API_URL, {
@@ -1073,7 +1091,7 @@
                     })
                 });
                 const uploadData = await uploadRes.json();
-                
+
                 if (uploadData.success) {
                     const updateRes = await fetch(API_URL, {
                         method: 'POST',
@@ -1103,12 +1121,12 @@
                     const img = new Image();
                     img.onload = () => {
                         let width = img.width, height = img.height;
-                        if(width > height) { if(width > maxSide) { height *= maxSide/width; width = maxSide; } }
-                        else { if(height > maxSide) { width *= maxSide/height; height = maxSide; } }
+                        if (width > height) { if (width > maxSide) { height *= maxSide / width; width = maxSide; } }
+                        else { if (height > maxSide) { width *= maxSide / height; height = maxSide; } }
                         const canvas = document.createElement('canvas');
                         canvas.width = width; canvas.height = height;
                         const ctx = canvas.getContext('2d');
-                        ctx.drawImage(img, 0,0, width, height);
+                        ctx.drawImage(img, 0, 0, width, height);
                         resolve(canvas.toDataURL('image/jpeg', quality));
                     };
                     img.src = e.target.result;

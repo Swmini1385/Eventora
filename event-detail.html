@@ -646,10 +646,12 @@
                             <img src="${s.photo.replace('=s120', '=s400')}" class="p-photo">
                             <div class="p-details">
                                 <div class="p-name">${s.name}</div>
-                                <div class="p-field">PARTICIPANT ID</div>
+                                <div class="p-field">ID</div>
                                 <div class="p-value">${s.id}</div>
                                 <div class="p-field">CONTACT / MOB</div>
                                 <div class="p-value">${s.phone}</div>
+                                <div class="p-field">DATE OF BIRTH</div>
+                                <div class="p-value" style="font-size: 0.75rem;">${toDisplayDate(s.dob)}</div>
                                 <div class="p-field">ADDRESS / CITY</div>
                                 <div class="p-value" style="font-size: 0.65rem;">${s.address || '--'}</div>
                             </div>
