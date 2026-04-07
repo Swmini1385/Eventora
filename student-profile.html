@@ -627,12 +627,12 @@
                 <div class="id-details-v2">
                     <div class="id-field">NAME</div>
                     <div class="id-name-v2" id="id-name-card">--</div>
-                    <div class="id-field" style="margin-top: 4px;">MOBILE</div>
-                    <div class="id-value-v2" id="id-phone-card">--</div>
                     <div class="id-field" style="margin-top: 4px;">DATE OF BIRTH</div>
-                    <div class="id-value-v2" id="id-dob-card">--</div>
+                    <div class="id-value-v2" id="id-dob-card" style="font-weight: 800;">--</div>
+                    <div class="id-field" style="margin-top: 4px;">CONTACT NO</div>
+                    <div class="id-value-v2" id="id-phone-card" style="font-weight: 800;">--</div>
                     <div class="id-field" style="margin-top: 4px;">ADDRESS / CITY</div>
-                    <div class="id-value-v2" id="id-address-card" style="font-size: 0.65rem;">--</div>
+                    <div class="id-value-v2" id="id-address-card" style="font-size: 0.65rem; line-height: 1.1;">--</div>
                 </div>
             </div>
             <div class="id-footer-v2" id="id-card-footer">--</div>
@@ -772,12 +772,18 @@
                 if (data.success) {
                     studentData = data.student;
                     updateUI();
-                    loadAttendance();
-                    loadActivityGallery();
+                    
+                    // Run these independently so one failing doesn't break the profile
+                    loadAttendance().catch(e => console.error("Attendance fail:", e));
+                    loadActivityGallery().catch(e => console.error("Gallery fail:", e));
                 } else {
-                    alert("Session Expired: " + data.message);
+                    alert("Profile loading failed. Please log in again.");
+                    logout();
                 }
-            } catch (err) { console.error(err); }
+            } catch (err) { 
+                console.error("Critical Profile Error:", err);
+                alert("Connection Timeout. Please refresh the page.");
+            }
         }
 
         function updateUI() {
@@ -808,14 +814,14 @@
             badge.style.border = isConfirmed ? '1px solid rgba(34,197,94,0.2)' : '1px solid rgba(248,113,113,0.2)';
 
             // ID Card Fields
-            document.getElementById('id-name-card').innerText = s.name.toUpperCase();
-            document.getElementById('id-phone-card').innerText = s.phone;
-            document.getElementById('id-dob-card').innerText = toDisplayDate(s.dob);
-            document.getElementById('id-address-card').innerText = s.address || '--';
-            document.getElementById('id-badge-val').innerText = `ID: ${s.id}`;
-            document.getElementById('id-photo-card').src = photoUrl;
-            document.getElementById('id-card-footer').innerText = `- Official Participant ID Card -`;
-            document.getElementById('id-card-event').innerText = s.eventName || 'EVENTORA EVENT';
+            if (document.getElementById('id-name-card')) document.getElementById('id-name-card').innerText = s.name.toUpperCase();
+            if (document.getElementById('id-phone-card')) document.getElementById('id-phone-card').innerText = s.phone;
+            if (document.getElementById('id-dob-card')) document.getElementById('id-dob-card').innerText = toDisplayDate(s.dob);
+            if (document.getElementById('id-address-card')) document.getElementById('id-address-card').innerText = s.address || '--';
+            if (document.getElementById('id-badge-val')) document.getElementById('id-badge-val').innerText = `ID: ${s.id}`;
+            if (document.getElementById('id-photo-card')) document.getElementById('id-photo-card').src = photoUrl;
+            if (document.getElementById('id-card-footer')) document.getElementById('id-card-footer').innerText = `- Official Participant ID Card -`;
+            if (document.getElementById('id-card-event')) document.getElementById('id-card-event').innerText = s.eventName || 'EVENTORA EVENT';
 
             // Edit Form
             document.getElementById('edit-name').value = s.name;
@@ -873,10 +879,12 @@
                     document.getElementById('disp-event-meta').innerHTML = `
                         <span><i data-lucide="calendar" size="14"></i> ${formattedDate}${endDateStr}</span>
                         <span><i data-lucide="clock" size="14"></i> ${formattedTime}${endTimeStr}</span>
-                        <span><i data-lucide="map-pin" size="14"></i> ${eventData.venue}</span>
                     `;
                 }
-                document.getElementById('id-card-view').querySelector('.id-footer-v2').innerText = `- Official Participant`;
+                
+                const cardFooter = document.getElementById('id-card-footer');
+                if (cardFooter) cardFooter.innerText = `- Official Participant Card -`;
+                
                 lucide.createIcons();
 
                 const attData = await fetchJSONP(`${API_URL}?action=get_student_attendance&eventId=${studentData.eventId}&studentId=${studentData.id}`);
