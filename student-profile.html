@@ -633,12 +633,20 @@
                 <div class="id-details-v2">
                     <div class="id-field">NAME</div>
                     <div class="id-name-v2" id="id-name-card">--</div>
-                    <div class="id-field" style="margin-top: 4px;">DATE OF BIRTH</div>
-                    <div class="id-value-v2" id="id-dob-card" style="font-weight: 800;">--</div>
-                    <div class="id-field" style="margin-top: 4px;">CONTACT NO</div>
-                    <div class="id-value-v2" id="id-phone-card" style="font-weight: 800;">--</div>
-                    <div class="id-field" style="margin-top: 4px;">ADDRESS / CITY</div>
-                    <div class="id-value-v2" id="id-address-card" style="font-size: 0.65rem; line-height: 1.1;">--</div>
+                    
+                    <div style="display: flex; justify-content: space-between; gap: 10px; margin-top: 2px;">
+                        <div style="flex: 1;">
+                            <div class="id-field">DOB</div>
+                            <div class="id-value-v2" id="id-dob-card" style="font-size: 0.75rem; white-space: nowrap;">--</div>
+                        </div>
+                        <div style="flex: 1;">
+                            <div class="id-field">MOBILE NO</div>
+                            <div class="id-value-v2" id="id-phone-card" style="font-size: 0.75rem; white-space: nowrap;">--</div>
+                        </div>
+                    </div>
+
+                    <div class="id-field" style="margin-top: 2px;">ADDRESS / CITY</div>
+                    <div class="id-value-v2" id="id-address-card" style="font-size: 0.6rem; line-height: 1; margin-bottom: 0;">--</div>
                 </div>
             </div>
             <div class="id-footer-v2" id="id-card-footer">--</div>
@@ -892,7 +900,9 @@
 
             const markedDates = (attendance || []).map(dt => {
                 const d = new Date(dt);
-                return isNaN(d) ? String(dt) : d.toISOString().split('T')[0];
+                if (isNaN(d)) return String(dt);
+                // Standardize to YYYY-MM-DD
+                return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
             });
 
             const start = new Date(eventData.startDate || new Date());
@@ -906,8 +916,8 @@
             
             while (runner <= lastDate && safety < 100) {
                 safety++;
-                const dateISO = runner.toISOString().split('T')[0];
-                const isPresent = markedDates.includes(dateISO);
+                const currentYMD = `${runner.getFullYear()}-${runner.getMonth() + 1}-${runner.getDate()}`;
+                const isPresent = markedDates.includes(currentYMD);
                 html += `
                     <div style="background: rgba(255,255,255,0.03); padding: 0.75rem 1rem; border-radius: 0.75rem; border: 1px solid var(--glass-border); display: flex; justify-content: space-between; align-items: center;">
                         <span style="font-size: 0.85rem; color: var(--text-muted);">${runner.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}</span>
