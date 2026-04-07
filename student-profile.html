@@ -768,25 +768,59 @@
             }
 
             try {
-                const data = await fetchJSONP(`${API_URL}?action=get_student_profile&eventId=${eventId}&studentId=${studentId}`);
+                // DASHBOARD BUNDLE: Unified call for maximum speed
+                const data = await fetchJSONP(`${API_URL}?action=get_student_dashboard_bundle&eventId=${eventId}&studentId=${studentId}`);
                 if (data.success) {
-                    studentData = data.student;
-                    updateUI();
-                    
-                    // Run these independently so one failing doesn't break the profile
-                    loadAttendance().catch(e => console.error("Attendance fail:", e));
-                    loadActivityGallery().catch(e => console.error("Gallery fail:", e));
+                    studentData = data.studentData;
+                    const eventData = data.eventData;
+
+                    // 1. Update Personal Info UI
+                    updateUI(); 
+
+                    // 2. Update Event Header Information
+                    const cleanDate = (raw) => {
+                        if (!raw) return 'Date TBA';
+                        const d = new Date(raw);
+                        return isNaN(d) ? raw : d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+                    };
+                    const cleanTime = (raw) => {
+                        if (!raw) return '';
+                        if (typeof raw === 'string' && raw.includes('T')) {
+                            const d = new Date(raw);
+                            if (!isNaN(d)) return d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
+                        }
+                        return raw;
+                    };
+
+                    const formattedDate = cleanDate(eventData.startDate);
+                    const formattedTime = cleanTime(eventData.startTime);
+                    const endDateStr = eventData.endDate ? ` - ${cleanDate(eventData.endDate)}` : '';
+                    const endTimeStr = eventData.endTime ? ` - ${cleanTime(eventData.endTime)}` : '';
+
+                    if (document.getElementById('disp-event-name')) document.getElementById('disp-event-name').innerText = eventData.name;
+                    if (document.getElementById('id-card-event')) document.getElementById('id-card-event').innerText = eventData.name.toUpperCase();
+                    if (document.getElementById('disp-event-meta')) {
+                        document.getElementById('disp-event-meta').innerHTML = `
+                            <span><i data-lucide="calendar" size="14"></i> ${formattedDate}${endDateStr}</span>
+                            <span><i data-lucide="clock" size="14"></i> ${formattedTime}${endTimeStr}</span>
+                            <span><i data-lucide="map-pin" size="14"></i> ${eventData.venue}</span>
+                        `;
+                    }
+                    lucide.createIcons();
+
+                    // 3. Render Attendance List
+                    renderAttendance(eventData, data.attendance);
+
+                    // 4. Render Activity Photos
+                    renderGallery(data.photos);
+
                 } else {
-                    alert("Profile loading failed. Please log in again.");
+                    alert("Profile loading failed: " + data.message);
                     logout();
                 }
             } catch (err) { 
                 console.error("Critical Profile Error:", err);
-                if (err.message.includes('Timeout')) {
-                    alert("Cloud is taking longer than usual. Please wait or refresh once.");
-                } else {
-                    alert("Connection issue. Please check your data and refresh.");
-                }
+                alert("Connection problem. Please refresh once.");
             }
         }
 
@@ -795,27 +829,29 @@
             const photoUrl = s.photoId ? `https://lh3.googleusercontent.com/d/${s.photoId}=s300` : `https://api.dicebear.com/7.x/initials/svg?seed=${s.name}`;
 
             // Primary UI
-            document.getElementById('id-name').innerText = s.name;
-            document.getElementById('id-number').innerText = `ID: ${s.id}`;
-            document.getElementById('id-phone').innerText = s.phone;
-            document.getElementById('id-email').innerText = s.email || 'Not Provided';
-            document.getElementById('id-address').innerText = s.address || '--';
-            document.getElementById('id-photo').src = photoUrl;
-            document.getElementById('id-dob').innerText = toDisplayDate(s.dob);
-            document.getElementById('id-age').innerText = s.age || '--';
-            document.getElementById('id-gender').innerText = s.gender || '--';
+            if (document.getElementById('id-name')) document.getElementById('id-name').innerText = s.name;
+            if (document.getElementById('id-number')) document.getElementById('id-number').innerText = `ID: ${s.id}`;
+            if (document.getElementById('id-phone')) document.getElementById('id-phone').innerText = s.phone;
+            if (document.getElementById('id-email')) document.getElementById('id-email').innerText = s.email || 'Not Provided';
+            if (document.getElementById('id-address')) document.getElementById('id-address').innerText = s.address || '--';
+            if (document.getElementById('id-photo')) document.getElementById('id-photo').src = photoUrl;
+            if (document.getElementById('id-dob')) document.getElementById('id-dob').innerText = toDisplayDate(s.dob);
+            if (document.getElementById('id-age')) document.getElementById('id-age').innerText = s.age || '--';
+            if (document.getElementById('id-gender')) document.getElementById('id-gender').innerText = s.gender || '--';
 
             // Payment UI
-            document.getElementById('id-amount').innerText = s.amount ? `₹${s.amount}` : '₹0';
-            document.getElementById('id-payment-mode').innerText = s.paymentMode || 'Cash';
-            document.getElementById('id-utr').innerText = s.utr || '----';
+            if (document.getElementById('id-amount')) document.getElementById('id-amount').innerText = s.amount ? `\u20b9${s.amount}` : '\u20b90';
+            if (document.getElementById('id-payment-mode')) document.getElementById('id-payment-mode').innerText = s.paymentMode || 'Cash';
+            if (document.getElementById('id-utr')) document.getElementById('id-utr').innerText = s.utr || '----';
 
             const badge = document.getElementById('id-status-badge');
-            const isConfirmed = s.status === 'Confirmed';
-            badge.innerText = s.status || 'Pending';
-            badge.style.background = isConfirmed ? 'rgba(34,197,94,0.1)' : 'rgba(248,113,113,0.1)';
-            badge.style.color = isConfirmed ? '#22c55e' : '#f87171';
-            badge.style.border = isConfirmed ? '1px solid rgba(34,197,94,0.2)' : '1px solid rgba(248,113,113,0.2)';
+            if (badge) {
+                const isConfirmed = s.status === 'Confirmed';
+                badge.innerText = s.status || 'Pending';
+                badge.style.background = isConfirmed ? 'rgba(34,197,94,0.1)' : 'rgba(248,113,113,0.1)';
+                badge.style.color = isConfirmed ? '#22c55e' : '#f87171';
+                badge.style.border = isConfirmed ? '1px solid rgba(34,197,94,0.2)' : '1px solid rgba(248,113,113,0.2)';
+            }
 
             // ID Card Fields
             if (document.getElementById('id-name-card')) document.getElementById('id-name-card').innerText = s.name.toUpperCase();
@@ -825,16 +861,66 @@
             if (document.getElementById('id-badge-val')) document.getElementById('id-badge-val').innerText = `ID: ${s.id}`;
             if (document.getElementById('id-photo-card')) document.getElementById('id-photo-card').src = photoUrl;
             if (document.getElementById('id-card-footer')) document.getElementById('id-card-footer').innerText = `- Official Participant ID Card -`;
-            if (document.getElementById('id-card-event')) document.getElementById('id-card-event').innerText = s.eventName || 'EVENTORA EVENT';
 
-            // Edit Form
-            document.getElementById('edit-name').value = s.name;
-            document.getElementById('edit-phone').value = s.phone;
-            document.getElementById('edit-email').value = s.email || '';
-            document.getElementById('edit-address').value = s.address || '';
-            document.getElementById('edit-dob').value = toInputDate(s.dob);
-            document.getElementById('edit-age').value = s.age || '';
-            document.getElementById('edit-gender').value = s.gender || 'Male';
+            // Edit Form Populate
+            if (document.getElementById('edit-name')) document.getElementById('edit-name').value = s.name;
+            if (document.getElementById('edit-phone')) document.getElementById('edit-phone').value = s.phone;
+            if (document.getElementById('edit-email')) document.getElementById('edit-email').value = s.email || '';
+            if (document.getElementById('edit-address')) document.getElementById('edit-address').value = s.address || '';
+            if (document.getElementById('edit-dob')) document.getElementById('edit-dob').value = toInputDate(s.dob);
+            if (document.getElementById('edit-age')) document.getElementById('edit-age').value = s.age || '';
+            if (document.getElementById('edit-gender')) document.getElementById('edit-gender').value = s.gender || 'Male';
+        }
+
+        function renderAttendance(eventData, attendance) {
+            const list = document.getElementById('attendance-list');
+            if (!list) return;
+
+            const markedDates = (attendance || []).map(dt => {
+                const d = new Date(dt);
+                return isNaN(d) ? dt : d.toLocaleDateString();
+            });
+
+            const start = new Date(eventData.startDate || new Date());
+            const today = new Date();
+            const end = eventData.endDate ? new Date(eventData.endDate) : today;
+            const lastDate = today < end ? today : end;
+
+            let html = '';
+            let runner = new Date(start);
+            let safety = 0;
+            
+            while (runner <= lastDate && safety < 100) {
+                safety++;
+                const dateStr = runner.toLocaleDateString();
+                const isPresent = markedDates.includes(dateStr);
+                html += `
+                    <div style="background: rgba(255,255,255,0.03); padding: 0.75rem 1rem; border-radius: 0.75rem; border: 1px solid var(--glass-border); display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-size: 0.85rem; color: var(--text-muted);">${runner.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}</span>
+                        <span style="color: ${isPresent ? '#22c55e' : '#f87171'}; font-weight: 700; font-size: 0.75rem;">
+                            <i data-lucide="${isPresent ? 'check-circle' : 'x-circle'}" size="14"></i> ${isPresent ? 'PRESENT' : 'ABSENT'}
+                        </span>
+                    </div>`;
+                runner.setDate(runner.getDate() + 1);
+            }
+            list.innerHTML = html || '<p style="grid-column: 1/-1; text-align: center; color: var(--text-muted);">No records found.</p>';
+            lucide.createIcons();
+        }
+
+        function renderGallery(photos) {
+            const gallery = document.getElementById('activity-gallery');
+            if (!gallery) return;
+
+            if (!photos || photos.length === 0) {
+                gallery.innerHTML = '<p style="grid-column: 1/-1; text-align: center; padding: 2rem; color: var(--text-muted);">No tagged photos yet. \ud83d\udcf0</p>';
+                return;
+            }
+
+            gallery.innerHTML = photos.map(p => `
+                <div class="gallery-card">
+                    <img src="https://lh3.googleusercontent.com/d/${p.id}=s600" loading="lazy" onclick="window.open('https://lh3.googleusercontent.com/d/${p.id}=s1600', '_blank')">
+                    <div class="photo-badge">${new Date(p.timestamp).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}</div>
+                </div>`).join('');
         }
 
         function calcEditAge(dobStr) {
@@ -845,149 +931,8 @@
             if (today.getMonth() < dob.getMonth() || (today.getMonth() === dob.getMonth() && today.getDate() < dob.getDate())) {
                 age--;
             }
-            document.getElementById('edit-age').value = age >= 0 ? age : 0;
-        }
-
-        async function loadAttendance() {
-            try {
-                const eventData = await fetchJSONP(`${API_URL}?action=get_event_info&eventId=${studentData.eventId}`);
-                if (!eventData.success) return;
-
-                // Update Event Header
-                // Robust Date & Time Formatting
-                const cleanDate = (raw) => {
-                    if (!raw) return 'Date TBD';
-                    const d = new Date(raw);
-                    return isNaN(d) ? raw : d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
-                };
-
-                const cleanTime = (raw) => {
-                    if (!raw) return '';
-                    // Handle ISO strings (T00:00:00.000Z)
-                    if (typeof raw === 'string' && raw.includes('T')) {
-                        const d = new Date(raw);
-                        if (!isNaN(d)) return d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
-                    }
-                    return raw; // Already "10:00 AM" or similar
-                };
-
-                const formattedDate = cleanDate(eventData.startDate);
-                const formattedTime = cleanTime(eventData.startTime);
-                const endDateStr = eventData.endDate ? ` - ${cleanDate(eventData.endDate)}` : '';
-                const endTimeStr = eventData.endTime ? ` - ${cleanTime(eventData.endTime)}` : '';
-
-                if (document.getElementById('disp-event-name')) {
-                    document.getElementById('disp-event-name').innerText = eventData.name;
-                }
-                if (document.getElementById('disp-event-meta')) {
-                    document.getElementById('disp-event-meta').innerHTML = `
-                        <span><i data-lucide="calendar" size="14"></i> ${formattedDate}${endDateStr}</span>
-                        <span><i data-lucide="clock" size="14"></i> ${formattedTime}${endTimeStr}</span>
-                    `;
-                }
-                
-                const cardFooter = document.getElementById('id-card-footer');
-                if (cardFooter) cardFooter.innerText = `- Official Participant Card -`;
-                
-                lucide.createIcons();
-
-                const attData = await fetchJSONP(`${API_URL}?action=get_student_attendance&eventId=${studentData.eventId}&studentId=${studentData.id}`);
-                const markedDates = attData.success ? attData.attendance.map(dt => new Date(dt).toLocaleDateString()) : [];
-
-                const start = new Date(eventData.startDate);
-                const today = new Date();
-                const end = eventData.endDate ? new Date(eventData.endDate) : today;
-                const lastDate = today < end ? today : end;
-
-                const list = document.getElementById('attendance-list');
-                let html = '';
-
-                let runner = new Date(start);
-                while (runner <= lastDate) {
-                    const dateStr = runner.toLocaleDateString();
-                    const isPresent = markedDates.includes(dateStr);
-
-                    html += `
-                        <div style="background: rgba(255,255,255,0.03); padding: 0.75rem 1rem; border-radius: 0.75rem; border: 1px solid var(--glass-border); display: flex; justify-content: space-between; align-items: center;">
-                            <span style="font-size: 0.85rem; color: var(--text-muted);">${runner.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}</span>
-                            <span style="font-weight: 700; color: ${isPresent ? '#4ade80' : '#f87171'}; font-size: 0.9rem;">
-                                ${isPresent ? 'Present' : 'Absent'}
-                                <i data-lucide="${isPresent ? 'check-circle' : 'x-circle'}" size="14" style="vertical-align: middle; margin-left: 4px;"></i>
-                            </span>
-                        </div>
-                    `;
-                    runner.setDate(runner.getDate() + 1);
-                }
-                list.innerHTML = html || `<p style="grid-column: 1/-1; text-align: center; color: var(--text-muted);">Event has not started yet.</p>`;
-                lucide.createIcons();
-            } catch (err) { console.error(err); }
-        }
-
-        async function loadActivityGallery() {
-            const container = document.getElementById('activity-gallery');
-            const isAdmin = !!localStorage.getItem('eventora_user'); // Admin check
-
-            try {
-                const data = await fetchJSONP(`${API_URL}?action=get_activity_photos&eventId=${studentData.eventId}&studentId=${studentData.id}`);
-                if (data.success && data.photos.length > 0) {
-                    // Group by Date
-                    const groups = data.photos.reduce((acc, p) => {
-                        const date = new Date(p.timestamp).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
-                        if (!acc[date]) acc[date] = [];
-                        acc[date].push(p);
-                        return acc;
-                    }, {});
-
-                    let html = '';
-                    for (const [date, photos] of Object.entries(groups)) {
-                        html += `
-                            <div class="date-album-row" style="grid-column: 1/-1;">
-                                <div class="date-header"><i data-lucide="calendar-days" size="16"></i> ${date}</div>
-                                <div class="gallery-grid">
-                                    ${photos.map(p => `
-                                        <div class="gallery-item" id="photo-${p.id}">
-                                            <img src="https://lh3.googleusercontent.com/d/${p.id}=s400" class="gallery-img" onclick="window.open('https://lh3.googleusercontent.com/d/${p.id}=s1600', '_blank')">
-                                            <div class="gallery-actions">
-                                                <a href="https://lh3.googleusercontent.com/d/${p.id}=s2000" download="${p.desc || 'activity'}.jpg" class="action-btn download-btn" title="Download">
-                                                    <i data-lucide="download" size="16"></i>
-                                                </a>
-                                                ${isAdmin ? `
-                                                    <button onclick="deletePhoto('${p.id}')" class="action-btn delete-btn" title="Delete (Admin Only)">
-                                                        <i data-lucide="trash-2" size="16"></i>
-                                                    </button>
-                                                ` : ''}
-                                            </div>
-                                            <div class="gallery-info" style="padding: 0.75rem; font-size: 0.75rem;">
-                                                <div style="font-weight: 700; color: #fff;">${p.desc || 'Activity Photo'}</div>
-                                            </div>
-                                        </div>
-                                    `).join('')}
-                                </div>
-                            </div>
-                        `;
-                    }
-                    container.innerHTML = html;
-                    lucide.createIcons();
-                } else {
-                    container.innerHTML = `<p style="grid-column: 1/-1; text-align: center; padding: 2rem; color: var(--text-muted);">No activity photos yet. Stay tuned!</p>`;
-                }
-            } catch (err) {
-                container.innerHTML = `<p style="grid-column: 1/-1; text-align: center; padding: 2rem; color: var(--text-muted);">Gallery unavailable.</p>`;
-            }
-        }
-
-        async function deletePhoto(photoId) {
-            if (!confirm("Are you sure you want to delete this photo permanently?")) return;
-            try {
-                const data = await fetchJSONP(`${API_URL}?action=delete_activity_photo&eventId=${studentData.eventId}&photoId=${photoId}`);
-                if (data.success) {
-                    const el = document.getElementById(`photo-${photoId}`);
-                    if (el) el.style.opacity = "0.3";
-                    setTimeout(() => loadActivityGallery(), 1000);
-                } else {
-                    alert("Delete failed: " + data.message);
-                }
-            } catch (err) { alert("Error deleting photo."); }
+            const el = document.getElementById('edit-age');
+            if (el) el.value = age >= 0 ? age : 0;
         }
 
         function toggleID() {
@@ -1000,8 +945,10 @@
         async function handleUpdate(e) {
             e.preventDefault();
             const btn = document.getElementById('update-btn');
-            btn.disabled = true;
-            btn.innerText = "Syncing with Cloud... ⏳";
+            if (btn) {
+                btn.disabled = true;
+                btn.innerText = "Syncing with Cloud... \u23f3";
+            }
 
             const payload = {
                 action: 'update_student_profile',

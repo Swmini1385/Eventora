@@ -245,8 +245,85 @@ function handleGetStudentProfile(p, cb) {
 }
 
 /**
- * 5. MARK ATTENDANCE (Admin)
+ * 4b. GET STUDENT DASHBOARD BUNDLE (Combined Profile + Event + Attendance)
+ * This reduces 3 network calls to 1, solving timeout issues.
  */
+function handleGetStudentDashboardBundle(p, cb) {
+  try {
+    const eventId = p.eventId;
+    const studentId = p.studentId;
+    const ss = SpreadsheetApp.openById(eventId);
+    const sheet = ss.getSheets()[0];
+    
+    // 1. Get Student Profile
+    const range = sheet.getRange("A2:A" + sheet.getLastRow());
+    const finder = range.createTextFinder(studentId).matchEntireCell(true).findNext();
+    
+    if (!finder) return response({ success: false, message: "Student not found" }, cb);
+    
+    const row = finder.getRow();
+    const studentData = sheet.getRange(row, 1, 1, 15).getValues()[0];
+    
+    // 2. Get Event Meta (Fast lookup using the same SS)
+    const eventData = {
+      name: ss.getName(),
+      startDate: "", startTime: "", endDate: "", endTime: "", venue: "TBA", fee: 0
+    };
+    try {
+      const meta = sheet.getRange(1, 1, 1, 8).getValues()[0];
+      if (meta[0] === "METADATA") {
+        eventData.startDate = meta[1];
+        eventData.startTime = meta[2];
+        eventData.endDate = meta[3];
+        eventData.endTime = meta[4];
+        eventData.venue = meta[5];
+        eventData.fee = meta[6];
+      }
+    } catch(e) {}
+
+    // 3. Get Attendance
+    let attendance = [];
+    const sheetAtt = ss.getSheetByName("Attendance");
+    if (sheetAtt) {
+      const attRaw = sheetAtt.getDataRange().getValues();
+      attendance = attRaw.filter(r => r[0] === studentId).map(r => r[1]);
+    }
+    
+    // 4. Get Activity Photos
+    let photos = [];
+    const sheetPhotos = ss.getSheetByName("ActivityPhotos");
+    if (sheetPhotos) {
+      const photoRaw = sheetPhotos.getDataRange().getValues();
+      photos = photoRaw.filter(r => String(r[2] || "").split(',').includes(studentId))
+                       .map(r => ({ id: r[0], timestamp: r[1], desc: r[3] }));
+    }
+    
+    return response({
+      success: true,
+      studentData: {
+        id: studentData[0],
+        name: studentData[2],
+        phone: studentData[3],
+        email: studentData[4],
+        paymentMode: studentData[6],
+        status: studentData[7],
+        address: studentData[8],
+        photoId: studentData[9],
+        amount: studentData[10],
+        utr: studentData[12] ? data[11] : studentData[11], // Resilience for UTR
+        dob: studentData[12],
+        age: studentData[13],
+        gender: studentData[14]
+      },
+      eventData: eventData,
+      attendance: attendance,
+      photos: photos
+    }, cb);
+    
+  } catch (e) {
+    return response({ success: false, message: e.toString() }, cb);
+  }
+}
 function handleMarkAttendance(p, cb) {
   try {
     const eventId = p.eventId;
