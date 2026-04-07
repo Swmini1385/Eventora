@@ -71,6 +71,7 @@ function handleRequest(e) {
     if (action === "get_student_attendance") return handleGetStudentAttendance(p, cb);
     if (action === "update_student_profile") return handleUpdateStudentProfile(p, cb);
     if (action === "upload_activity_photos") return handleUploadActivityPhotos(p, cb);
+    if (action === "upload_student_photo") return handleUploadStudentPhoto(p, cb);
     if (action === "get_activity_photos") return handleGetActivityPhotos(p, cb);
     if (action === "delete_activity_photo") return handleDeleteActivityPhoto(p, cb);
     if (action === "update_payment_info") return handleUpdatePaymentInfo(p, cb);
