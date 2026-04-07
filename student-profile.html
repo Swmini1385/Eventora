@@ -754,7 +754,7 @@
                 script.src = `${url}${connector}callback=${name}`;
                 document.body.appendChild(script);
                 function cleanup() { delete window[name]; if (script.parentNode) document.body.removeChild(script); }
-                setTimeout(() => { if (window[name]) { cleanup(); reject(new Error('Cloud Response Timeout')); } }, 30000);
+                setTimeout(() => { if (window[name]) { cleanup(); reject(new Error('Cloud Response Timeout (45s)')); } }, 45000);
             });
         }
 
@@ -782,7 +782,11 @@
                 }
             } catch (err) { 
                 console.error("Critical Profile Error:", err);
-                alert("Connection Timeout. Please refresh the page.");
+                if (err.message.includes('Timeout')) {
+                    alert("Cloud is taking longer than usual. Please wait or refresh once.");
+                } else {
+                    alert("Connection issue. Please check your data and refresh.");
+                }
             }
         }
 

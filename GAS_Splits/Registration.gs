@@ -206,37 +206,41 @@ function handleGetStudentProfile(p, cb) {
   try {
     const eventId = p.eventId;
     const studentId = p.studentId;
-    
     const ss = SpreadsheetApp.openById(eventId);
     const sheet = ss.getSheets()[0];
-    const data = sheet.getDataRange().getValues();
     
-    for (let i = 2; i < data.length; i++) {
-        if (data[i][0] === studentId) {
-            return response({
-                success: true,
-                student: {
-                    id: data[i][0],
-                    name: data[i][2],
-                    phone: data[i][3],
-                    email: data[i][4] || "",
-                    paymentMode: data[i][6],
-                    status: data[i][7],
-                    address: data[i][8] || "",
-                    photoId: data[i][9] || "",
-                    amount: data[i][10] || "",
-                    utr: data[i][11] || "",
-                    dob: data[i][12] || "",
-                    age: data[i][13] || "",
-                    gender: data[i][14] || "",
-                    eventId: eventId
-                }
-            }, cb);
-        }
+    // FAST SEARCH using TextFinder
+    const range = sheet.getRange("A2:A" + sheet.getLastRow()); // Search in ID column
+    const finder = range.createTextFinder(studentId).matchCase(true).matchEntireCell(true).findNext();
+    
+    if (finder) {
+        const row = finder.getRow();
+        const data = sheet.getRange(row, 1, 1, 15).getValues()[0];
+        
+        return response({
+            success: true,
+            student: {
+                id: data[0],
+                name: data[2],
+                phone: data[3],
+                email: data[4] || "",
+                paymentMode: data[6],
+                status: data[7],
+                address: data[8] || "",
+                photoId: data[9] || "",
+                amount: data[10] || "",
+                utr: data[11] || "",
+                dob: data[12] || "",
+                age: data[13] || "",
+                gender: data[14] || "",
+                eventId: eventId,
+                eventName: ss.getName()
+            }
+        }, cb);
     }
-    return response({ success: false, message: "Student not found" }, cb);
+    return response({ success: false, message: "Student record not found." }, cb);
   } catch (e) {
-    return response({ success: false, message: e.toString() }, cb);
+    return response({ success: false, message: "Server busy or error: " + e.toString() }, cb);
   }
 }
 
@@ -247,8 +251,6 @@ function handleMarkAttendance(p, cb) {
   try {
     const eventId = p.eventId;
     const studentId = p.studentId;
-    
-    // Normalize today's date to a string: "yyyy-MM-dd"
     const now = new Date();
     const dateStr = p.date || Utilities.formatDate(now, "GMT+5:30", "yyyy-MM-dd");
     
@@ -259,13 +261,17 @@ function handleMarkAttendance(p, cb) {
       sheetAtt.appendRow(["StudentID", "Date", "Status"]);
     }
     
-    // Check if record exists for this student AND this date
-    const data = sheetAtt.getDataRange().getValues();
-    for (let i = 1; i < data.length; i++) {
-        // Handle both Date objects and strings
-        const rowDate = data[i][1] instanceof Date ? Utilities.formatDate(data[i][1], "GMT+5:30", "yyyy-MM-dd") : String(data[i][1]);
-        if (data[i][0] === studentId && rowDate === dateStr) {
-            sheetAtt.deleteRow(i + 1);
+    // FAST SEARCH using TextFinder in StudentID column (A)
+    const finder = sheetAtt.getRange("A2:A" + Math.max(2, sheetAtt.getLastRow()))
+                           .createTextFinder(studentId).matchEntireCell(true).findAll();
+    
+    for (let f of finder) {
+        const row = f.getRow();
+        const rowDateVal = sheetAtt.getRange(row, 2).getValue();
+        const rowDate = rowDateVal instanceof Date ? Utilities.formatDate(rowDateVal, "GMT+5:30", "yyyy-MM-dd") : String(rowDateVal);
+        
+        if (rowDate === dateStr) {
+            sheetAtt.deleteRow(row);
             return response({ success: true, message: "Unmarked", result: "unmarked" }, cb);
         }
     }
@@ -291,21 +297,22 @@ function handleUpdatePaymentInfo(p, cb) {
     
     const ss = SpreadsheetApp.openById(eventId);
     const sheet = ss.getSheets()[0];
-    const data = sheet.getDataRange().getValues();
     
-    for (let i = 2; i < data.length; i++) {
-        if (data[i][0] === studentId) {
-            // Update columns: 
-            // 7 (Mode), 8 (Status), 11 (Amount), 12 (UTR)
-            sheet.getRange(i + 1, 7).setValue(mode); // Col 7
-            sheet.getRange(i + 1, 8).setValue(status); // Col 8
-            sheet.getRange(i + 1, 11).setValue(amount); // Col 11
-            sheet.getRange(i + 1, 12).setValue(utr); // Col 12
-            
-            return response({ success: true, status: status }, cb);
-        }
+    // FAST SEARCH
+    const finder = sheet.getRange("A2:A" + sheet.getLastRow()).createTextFinder(studentId).matchEntireCell(true).findNext();
+    
+    if (finder) {
+        const r = finder.getRow();
+        // Update columns 7, 8, 11, 12 (Base-1 mapping: G, H, K, L approx)
+        // Adjust these indexes based on your column mapping (0-base: [6], [7], [10], [11])
+        sheet.getRange(r, 7).setValue(mode);   // PaymentMode (Col 7)
+        sheet.getRange(r, 8).setValue(status); // Status (Col 8)
+        sheet.getRange(r, 11).setValue(amount); // Amount (Col 11)
+        sheet.getRange(r, 12).setValue(utr);    // UTR (Col 12)
+        
+        return response({ success: true, message: "Payment updated for " + studentId }, cb);
     }
-    return response({ success: false, message: "Student not found" }, cb);
+    return response({ success: false, message: "Student not found in this event." }, cb);
   } catch (e) {
     return response({ success: false, message: e.toString() }, cb);
   }
