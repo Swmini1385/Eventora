@@ -310,7 +310,7 @@ function handleGetStudentDashboardBundle(p, cb) {
         address: studentData[8],
         photoId: studentData[9],
         amount: studentData[10],
-        utr: studentData[12] ? data[11] : studentData[11], // Resilience for UTR
+        utr: studentData[11], 
         dob: studentData[12],
         age: studentData[13],
         gender: studentData[14],
