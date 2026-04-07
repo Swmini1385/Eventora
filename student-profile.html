@@ -216,14 +216,14 @@
         .id-header-v2 {
             background: var(--primary) !important;
             color: #fff !important;
-            height: 45px;
+            height: 38px;
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: 800;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 0.5px;
             width: 100%;
             border-bottom: 2px solid rgba(255, 255, 255, 0.2);
             padding: 0 10px;
@@ -257,7 +257,7 @@
             display: flex;
             flex-direction: column;
             justify-content: center;
-            gap: 2px;
+            gap: 1px;
         }
 
         .id-field {
@@ -277,18 +277,18 @@
         }
 
         .id-name-v2 {
-            font-size: 1.15rem;
+            font-size: 1.1rem;
             font-weight: 900;
             color: #000;
-            margin: 2px 0 4px 0;
-            line-height: 1.1;
+            margin: 1px 0 2px 0;
+            line-height: 1;
             text-transform: uppercase;
         }
 
         .id-footer-v2 {
             background: var(--primary) !important;
             color: #fff !important;
-            height: 35px;
+            height: 30px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -718,7 +718,15 @@
         function toDisplayDate(val) {
             if (!val) return '--';
             const d = new Date(val);
-            if (isNaN(d)) return val;
+            if (isNaN(d)) {
+                // Try DD-MM-YYYY or YYYY-MM-DD manual split
+                const parts = String(val).split(/[-/]/);
+                if (parts.length === 3) {
+                    if (parts[0].length === 4) return `${parts[2]}-${parts[1]}-${parts[0]}`;
+                    return val;
+                }
+                return val || '--';
+            }
             const day = String(d.getDate()).padStart(2, '0');
             const month = String(d.getMonth() + 1).padStart(2, '0');
             const year = d.getFullYear();
@@ -834,7 +842,7 @@
             if (document.getElementById('id-phone')) document.getElementById('id-phone').innerText = s.phone;
             if (document.getElementById('id-email')) document.getElementById('id-email').innerText = s.email || 'Not Provided';
             if (document.getElementById('id-address')) document.getElementById('id-address').innerText = s.address || '--';
-            if (document.getElementById('id-photo')) document.getElementById('id-photo').src = photoUrl;
+            if (document.getElementById('profile-photo')) document.getElementById('profile-photo').src = photoUrl;
             if (document.getElementById('id-dob')) document.getElementById('id-dob').innerText = toDisplayDate(s.dob);
             if (document.getElementById('id-age')) document.getElementById('id-age').innerText = s.age || '--';
             if (document.getElementById('id-gender')) document.getElementById('id-gender').innerText = s.gender || '--';
@@ -912,15 +920,50 @@
             if (!gallery) return;
 
             if (!photos || photos.length === 0) {
-                gallery.innerHTML = '<p style="grid-column: 1/-1; text-align: center; padding: 2rem; color: var(--text-muted);">No tagged photos yet. \ud83d\udcf0</p>';
+                gallery.innerHTML = '<p style="grid-column: 1/-1; text-align: center; padding: 2rem; color: var(--text-muted);">No tagged photos yet. No records found. \ud83d\udcf0</p>';
                 return;
             }
 
-            gallery.innerHTML = photos.map(p => `
-                <div class="gallery-card">
-                    <img src="https://lh3.googleusercontent.com/d/${p.id}=s600" loading="lazy" onclick="window.open('https://lh3.googleusercontent.com/d/${p.id}=s1600', '_blank')">
-                    <div class="photo-badge">${new Date(p.timestamp).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}</div>
-                </div>`).join('');
+            const isAdmin = !!localStorage.getItem('eventora_user');
+
+            // Group by Date
+            const groups = (photos || []).reduce((acc, p) => {
+                const date = new Date(p.timestamp).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+                if (!acc[date]) acc[date] = [];
+                acc[date].push(p);
+                return acc;
+            }, {});
+
+            let html = '';
+            for (const [date, albumPhotos] of Object.entries(groups)) {
+                html += `
+                    <div class="date-album-row" style="grid-column: 1/-1; width: 100%;">
+                        <div class="date-header"><i data-lucide="calendar-days" size="16"></i> ${date}</div>
+                        <div class="gallery-grid">
+                            ${albumPhotos.map(p => `
+                                <div class="gallery-item" id="photo-${p.id}">
+                                    <img src="https://lh3.googleusercontent.com/d/${p.id}=s600" class="gallery-img" onclick="window.open('https://lh3.googleusercontent.com/d/${p.id}=s1600', '_blank')">
+                                    <div class="gallery-actions">
+                                        <a href="https://lh3.googleusercontent.com/d/${p.id}=s2000" download="${p.desc || 'activity'}.jpg" class="action-btn download-btn" title="Download">
+                                            <i data-lucide="download" size="16"></i>
+                                        </a>
+                                        ${isAdmin ? `
+                                            <button onclick="deletePhoto('${p.id}')" class="action-btn delete-btn" title="Delete (Admin Only)">
+                                                <i data-lucide="trash-2" size="16"></i>
+                                            </button>
+                                        ` : ''}
+                                    </div>
+                                    <div style="padding: 0.5rem; font-size: 0.7rem; color: var(--text-muted); text-align: center;">
+                                        ${p.desc || 'Activity Photo'}
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+            gallery.innerHTML = html;
+            lucide.createIcons();
         }
 
         function calcEditAge(dobStr) {

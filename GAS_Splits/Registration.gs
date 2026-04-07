@@ -291,7 +291,9 @@ function handleGetStudentDashboardBundle(p, cb) {
     const sheetAtt = ss.getSheetByName("Attendance");
     if (sheetAtt) {
       const attRaw = sheetAtt.getDataRange().getValues();
-      attendance = attRaw.filter(r => r[0] === studentId).map(r => r[1]);
+      attendance = attRaw.filter(r => String(r[0]).trim() === String(studentId).trim())
+                       .map(r => r[1])
+                       .sort((a, b) => new Date(a) - new Date(b));
     }
     
     // 4. Get Activity Photos
