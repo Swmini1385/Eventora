@@ -167,10 +167,15 @@ function handleStudentLogin(p, cb) {
     const sheet = ss.getSheets()[0];
     const data = sheet.getDataRange().getValues();
     
-    // Search from row 3 onwards (row indices 2+)
-    for (let i = 2; i < data.length; i++) {
-        const row = data[i];
-        if (row[0] === studentId && String(row[5]) === String(password)) {
+    // FAST SEARCH using TextFinder on IDs
+    const range = sheet.getRange("A2:A" + sheet.getLastRow());
+    const finder = range.createTextFinder(studentId).matchEntireCell(true).findNext();
+    
+    if (finder) {
+        const rowIdx = finder.getRow();
+        const row = sheet.getRange(rowIdx, 1, 1, 15).getValues()[0];
+        
+        if (String(row[5]) === String(password)) {
             return response({
                 success: true,
                 student: {
@@ -183,7 +188,7 @@ function handleStudentLogin(p, cb) {
                     address: row[8] || "",
                     photoId: row[9] || "",
                     amount: row[10] || "",
-                    utr: row[11] || "", // Added UTR
+                    utr: row[11] || "",
                     dob: row[12] || "",
                     age: row[13] || "",
                     gender: row[14] || "",
@@ -424,25 +429,24 @@ function handleUpdateStudentProfile(p, cb) {
   try {
     const eventId = p.eventId;
     const studentId = p.studentId;
-    
     const ss = SpreadsheetApp.openById(eventId);
     const sheet = ss.getSheets()[0];
-    const data = sheet.getDataRange().getValues();
     
-    for (let i = 2; i < data.length; i++) {
-        if (data[i][0] === studentId) {
-            const rowIdx = i + 1;
-            if (p.name) sheet.getRange(rowIdx, 3).setValue(p.name);
-            if (p.phone) sheet.getRange(rowIdx, 4).setValue(p.phone);
-            if (p.email) sheet.getRange(rowIdx, 5).setValue(p.email);
-            if (p.address) sheet.getRange(rowIdx, 9).setValue(p.address); // Col 9
-            if (p.photoId) sheet.getRange(rowIdx, 10).setValue(p.photoId); // Col 10
-            if (p.dob) sheet.getRange(rowIdx, 13).setValue(String(p.dob)); // Col 13
-            if (p.age) sheet.getRange(rowIdx, 14).setValue(p.age); // Col 14
-            if (p.gender) sheet.getRange(rowIdx, 15).setValue(p.gender); // Col 15
-            
-            return response({ success: true, message: "Profile updated" }, cb);
-        }
+    // FAST SEARCH
+    const finder = sheet.getRange("A2:A" + sheet.getLastRow()).createTextFinder(studentId).matchEntireCell(true).findNext();
+    
+    if (finder) {
+        const rowIdx = finder.getRow();
+        if (p.name) sheet.getRange(rowIdx, 3).setValue(p.name);
+        if (p.phone) sheet.getRange(rowIdx, 4).setValue(p.phone);
+        if (p.email) sheet.getRange(rowIdx, 5).setValue(p.email);
+        if (p.address) sheet.getRange(rowIdx, 9).setValue(p.address);
+        if (p.photoId) sheet.getRange(rowIdx, 10).setValue(p.photoId);
+        if (p.dob) sheet.getRange(rowIdx, 13).setValue(String(p.dob));
+        if (p.age) sheet.getRange(rowIdx, 14).setValue(p.age);
+        if (p.gender) sheet.getRange(rowIdx, 15).setValue(p.gender);
+        
+        return response({ success: true, message: "Profile updated" }, cb);
     }
     throw "Student not found";
   } catch (e) {
