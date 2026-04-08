@@ -1181,7 +1181,8 @@
                 const payload = {
                     action: 'delete_activity_photo',
                     eventId: studentData.eventId,
-                    photoId: photoId
+                    photoId: photoId,
+                    studentId: studentData.id
                 };
                 const data = await fetchJSONP(`${API_URL}?${new URLSearchParams(payload).toString()}`);
                 if (data.success) {

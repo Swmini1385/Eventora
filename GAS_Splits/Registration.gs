@@ -271,7 +271,7 @@ function handleGetStudentDashboardBundle(p, cb) {
     
     // 2. Get Event Meta (Fast lookup using the same SS)
     const eventData = {
-      name: ss.getName(),
+      name: ss.getName().replace("EV_", ""),
       startDate: "", startTime: "", endDate: "", endTime: "", venue: "TBA", fee: 0,
       upi: "", wa: "", prefix: "A"
     };
@@ -561,6 +561,8 @@ function handleDeleteActivityPhoto(p, cb) {
   try {
     const eventId = p.eventId;
     const photoId = p.photoId; 
+    const studentId = p.studentId; // Recieve studentId for untagging
+    
     const ss = SpreadsheetApp.openById(eventId);
     const sheet = ss.getSheetByName("ActivityPhotos");
     if (!sheet) return response({ success: false, message: "Sheet not found" }, cb);
@@ -568,11 +570,25 @@ function handleDeleteActivityPhoto(p, cb) {
     const data = sheet.getDataRange().getValues();
     for (let i = 1; i < data.length; i++) {
       if (data[i][0] == photoId) {
+        let tagged = String(data[i][2] || "").split(',').map(s => s.trim()).filter(s => s !== "");
+        
+        if (studentId) {
+          // UNTAG LOGIC: Only remove the specific student
+          tagged = tagged.filter(id => id !== studentId);
+          
+          if (tagged.length > 0) {
+            // Still other students tagged, just update the row
+            sheet.getRange(i + 1, 3).setValue(tagged.join(','));
+            return response({ success: true, message: "Student untagged from photo" }, cb);
+          }
+        }
+        
+        // FULL DELETE: Either no studentId provided, or no students left tagged
         sheet.deleteRow(i + 1);
         try {
           DriveApp.getFileById(photoId).setTrashed(true);
         } catch (e) { }
-        return response({ success: true }, cb);
+        return response({ success: true, message: "Photo deleted fully" }, cb);
       }
     }
     return response({ success: false, message: "Photo not found" }, cb);
