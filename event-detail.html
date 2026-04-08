@@ -190,9 +190,10 @@
                 print-color-adjust: exact;
                 margin-bottom: 5mm; 
                 page-break-inside: avoid;
+                box-shadow: none;
             }
-            .p-header {
-                background: #6366f1 !important; /* Blue theme to match student portal */
+            .id-header-v2 {
+                background: #6366f1 !important; /* Exact var(--primary) fallback */
                 color: #fff !important;
                 height: 38px;
                 display: flex;
@@ -203,60 +204,59 @@
                 text-transform: uppercase;
                 letter-spacing: 0.5px;
                 width: 100%;
-                border-bottom: 2px solid #000;
+                border-bottom: 2px solid rgba(255, 255, 255, 0.2);
                 padding: 0 10px;
                 text-align: center;
                 -webkit-print-color-adjust: exact;
             }
-            .p-body {
+            .id-body-v2 {
                 flex: 1;
                 padding: 10px 14px;
                 display: flex;
                 gap: 15px;
                 align-items: center;
                 background: #fff !important;
-                position: relative;
                 min-height: 0;
+                position: relative;
             }
-            .p-photo {
+            .id-photo-v2 {
                 width: 80px;
                 height: 90px;
-                border: 2px solid #000;
+                border: 2px solid #0f172a;
                 border-radius: 6px;
                 object-fit: cover;
                 background: #f8fafc;
             }
-            .p-details {
+            .id-details-v2 {
                 flex: 1;
                 display: flex;
                 flex-direction: column;
                 justify-content: center;
                 gap: 0;
-                text-align: left;
             }
-            .p-name {
-                font-size: 1.05rem;
-                font-weight: 900;
-                color: #000 !important;
-                margin: 0 0 2px 0;
-                line-height: 1;
-                text-transform: uppercase;
-            }
-            .p-field {
+            .id-field {
                 font-size: 0.55rem;
-                color: #64748b !important;
+                color: #64748b;
                 font-weight: 700;
                 text-transform: uppercase;
                 letter-spacing: 0.3px;
                 margin-bottom: -2px;
             }
-            .p-value {
+            .id-value-v2 {
                 font-size: 0.8rem;
                 font-weight: 700;
-                color: #000 !important;
+                color: #0f172a;
                 margin-bottom: 1px;
             }
-            .p-footer {
+            .id-name-v2 {
+                font-size: 1.05rem;
+                font-weight: 900;
+                color: #000;
+                margin: 0 0 2px 0;
+                line-height: 1;
+                text-transform: uppercase;
+            }
+            .id-footer-v2 {
                 background: #6366f1 !important;
                 color: #fff !important;
                 height: 30px;
@@ -268,13 +268,6 @@
                 width: 100%;
                 letter-spacing: 0.5px;
                 -webkit-print-color-adjust: exact;
-            }
-            .p-row {
-                display: flex;
-                gap: 10px;
-            }
-            .p-row > div {
-                flex: 1;
             }
         }
     </style>
@@ -666,26 +659,24 @@
                 pageItems.forEach(s => {
                     html += `
                     <div class="id-card-print">
-                        <div class="p-header">${eventName}</div>
-                        <div class="p-body">
-                            <img src="${s.photo.replace('=s120', '=s400')}" class="p-photo">
-                            <div class="p-details">
-                                <div class="p-name">${s.name}</div>
-                                <div class="p-field">ID</div>
-                                <div class="p-value">${s.id}</div>
-                                <div class="p-row">
-                                    <div><div class="p-field">CONTACT NO</div><div class="p-value">${s.phone}</div></div>
-                                    <div><div class="p-field">DATE OF BIRTH</div><div class="p-value">${s.dob}</div></div>
+                        <div class="id-header-v2">${eventName}</div>
+                        <div class="id-body-v2">
+                            <img src="${s.photo.replace('=s120', '=s400')}" class="id-photo-v2">
+                            <div class="id-details-v2">
+                                <div class="id-name-v2">${s.name}</div>
+                                <div class="id-field">ID</div>
+                                <div class="id-value-v2">${s.id}</div>
+                                <div style="display: flex; gap: 1rem;">
+                                    <div><div class="id-field">PHONE</div><div class="id-value-v2">${s.phone}</div></div>
+                                    <div><div class="id-field">D.O.B</div><div class="id-value-v2">${s.dob}</div></div>
                                 </div>
-                                <div class="p-row">
-                                    <div><div class="p-field">GENDER</div><div class="p-value">${s.gender}</div></div>
-                                    <div><div class="p-field">AGE</div><div class="p-value">${s.age}</div></div>
+                                <div style="display: flex; gap: 1rem;">
+                                    <div><div class="id-field">GENDER</div><div class="id-value-v2">${s.gender}</div></div>
+                                    <div><div class="id-field">AGE</div><div class="id-value-v2">${s.age}</div></div>
                                 </div>
-                                <div class="p-field">ADDRESS / CITY</div>
-                                <div class="p-value" style="font-size: 0.65rem; line-height: 1.1;">${s.address || '--'}</div>
                             </div>
                         </div>
-                        <div class="p-footer">OFFICIAL PARTICIPANT ID - EVENTORA</div>
+                        <div class="id-footer-v2">OFFICIAL PARTICIPANT ID - EVENTORA</div>
                     </div>
                     `;
                 });
