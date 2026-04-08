@@ -636,12 +636,23 @@
                     
                     <div style="display: flex; justify-content: space-between; gap: 10px; margin-top: 2px;">
                         <div style="flex: 1;">
+                            <div class="id-field">PHONE</div>
+                            <div class="id-value-v2" id="id-phone-card" style="font-size: 0.75rem; white-space: nowrap;">--</div>
+                        </div>
+                        <div style="flex: 1;">
                             <div class="id-field">DOB</div>
                             <div class="id-value-v2" id="id-dob-card" style="font-size: 0.75rem; white-space: nowrap;">--</div>
                         </div>
+                    </div>
+
+                    <div style="display: flex; justify-content: space-between; gap: 10px; margin-top: 2px;">
                         <div style="flex: 1;">
-                            <div class="id-field">MOBILE NO</div>
-                            <div class="id-value-v2" id="id-phone-card" style="font-size: 0.75rem; white-space: nowrap;">--</div>
+                            <div class="id-field">GENDER</div>
+                            <div class="id-value-v2" id="id-gender-card" style="font-size: 0.75rem; white-space: nowrap;">--</div>
+                        </div>
+                        <div style="flex: 1;">
+                            <div class="id-field">AGE</div>
+                            <div class="id-value-v2" id="id-age-card" style="font-size: 0.75rem; white-space: nowrap;">--</div>
                         </div>
                     </div>
 
@@ -880,6 +891,8 @@
             if (document.getElementById('id-name-card')) document.getElementById('id-name-card').innerText = s.name.toUpperCase();
             if (document.getElementById('id-phone-card')) document.getElementById('id-phone-card').innerText = s.phone;
             if (document.getElementById('id-dob-card')) document.getElementById('id-dob-card').innerText = toDisplayDate(s.dob);
+            if (document.getElementById('id-gender-card')) document.getElementById('id-gender-card').innerText = s.gender || '--';
+            if (document.getElementById('id-age-card')) document.getElementById('id-age-card').innerText = s.age || '--';
             if (document.getElementById('id-address-card')) document.getElementById('id-address-card').innerText = s.address || '--';
             if (document.getElementById('id-badge-val')) document.getElementById('id-badge-val').innerText = `ID: ${s.id}`;
             if (document.getElementById('id-photo-card')) document.getElementById('id-photo-card').src = photoUrl;
