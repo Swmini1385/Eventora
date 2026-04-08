@@ -819,8 +819,9 @@
                     const endDateStr = eventData.endDate ? ` - ${cleanDate(eventData.endDate)}` : '';
                     const endTimeStr = eventData.endTime ? ` - ${cleanTime(eventData.endTime)}` : '';
 
-                    if (document.getElementById('disp-event-name')) document.getElementById('disp-event-name').innerText = eventData.name;
-                    if (document.getElementById('id-card-event')) document.getElementById('id-card-event').innerText = eventData.name.toUpperCase();
+                    const evName = (eventData.name || "").replace("EV_", "");
+                    if (document.getElementById('disp-event-name')) document.getElementById('disp-event-name').innerText = evName;
+                    if (document.getElementById('id-card-event')) document.getElementById('id-card-event').innerText = evName.toUpperCase();
                     if (document.getElementById('disp-event-meta')) {
                         document.getElementById('disp-event-meta').innerHTML = `
                             <span><i data-lucide="calendar" size="14"></i> ${formattedDate}${endDateStr}</span>
