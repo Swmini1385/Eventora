@@ -779,17 +779,23 @@
             
             let html = dynamicCSS;
             const perPage = s.layout.cardsPerPage || 8;
+            const actualEventName = document.getElementById('event-title')?.innerText?.toUpperCase() || "EVENT";
 
             for (let i = 0; i < selected.length; i += perPage) { 
                 const pageItems = selected.slice(i, i + perPage);
                 html += `<div class="print-page">`;
                 
                 pageItems.forEach(p => {
+                    let headerText = s.header.text;
+                    if (!headerText || headerText === "EVENT NAME" || headerText === "ID CARD") {
+                        headerText = actualEventName;
+                    }
+
                     html += `
                     <div class="id-card-print" style="border-radius: 16px; border: 1px solid #e2e8f0; overflow: hidden; display: flex; flex-direction: column;">
                         <!-- Header -->
-                        <div class="id-header-v2" style="background: linear-gradient(135deg, ${s.theme.primary}, ${s.theme.accent}) !important; color: #fff; height: 42px; display: ${s.header.text ? 'flex' : 'none'}; align-items: center; justify-content: center; font-weight: 800; font-size: ${s.header.fontSize}; text-transform: uppercase; padding: 0 10px; text-align: center;">
-                            ${s.header.text || document.getElementById('event-title').innerText.toUpperCase()}
+                        <div class="id-header-v2" style="background: linear-gradient(135deg, ${s.theme.primary}, ${s.theme.accent}) !important; color: #fff; height: 42px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: ${s.header.fontSize}; text-transform: uppercase; padding: 0 10px; text-align: center;">
+                            ${headerText}
                         </div>
                         
                         <!-- Body -->
@@ -827,12 +833,12 @@
                                     ${s.fields.gender.visible ? `
                                         <div>
                                             <div class="id-field" style="font-size: 0.5rem; color: #94a3b8; font-weight: 700;">GENDER</div>
-                                            <div class="id-value-v2" style="font-size: ${s.fields.gender.fontSize}; color: #1e293b; font-weight: 600;">${p.gender}</div>
+                                            <div class="id-value-v2" style="font-size: ${s.fields.gender.fontSize}; color: #1e293b; font-weight: 600;">${p.gender || '--'}</div>
                                         </div>` : ''}
                                     ${s.fields.age.visible ? `
                                         <div>
                                             <div class="id-field" style="font-size: 0.5rem; color: #94a3b8; font-weight: 700;">AGE</div>
-                                            <div class="id-value-v2" style="font-size: ${s.fields.age.fontSize}; color: #1e293b; font-weight: 600;">${p.age}</div>
+                                            <div class="id-value-v2" style="font-size: ${s.fields.age.fontSize}; color: #1e293b; font-weight: 600;">${p.age || '--'}</div>
                                         </div>` : ''}
                                 </div>
 

@@ -779,30 +779,35 @@
         });
 
         async function syncIDCardConfig() {
+            const defaults = {
+                theme: { primary: '#6366f1', accent: '#a855f7' },
+                layout: { cardsPerPage: 8 },
+                header: { text: "ID CARD", fontSize: '0.9rem' },
+                footer: { text: 'Official Eventora Cloud ID System', fontSize: '0.65rem' },
+                fields: {
+                    name: { visible: true, fontSize: '1.2rem' },
+                    phone: { visible: true, fontSize: '0.7rem' },
+                    dob: { visible: true, fontSize: '0.7rem' },
+                    gender: { visible: true, fontSize: '0.7rem' },
+                    age: { visible: true, fontSize: '0.7rem' },
+                    address: { visible: true, fontSize: '0.6rem' },
+                    id: { visible: true, fontSize: '0.7rem' }
+                },
+                photo: { visible: true, width: '85px', height: '100px' }
+            };
+
             try {
                 const data = await fetchJSONP(`${API_URL}?action=get_app_config&key=id_card_designer`);
                 if (data.success && data.value) {
                     idCardSettings = JSON.parse(data.value);
                     console.log("✅ ID Card Designer settings loaded from cloud.");
+                } else {
+                    console.log("ℹ️ No cloud config found, using defaults.");
+                    idCardSettings = defaults;
                 }
             } catch (err) {
                 console.warn("Cloud config sync failed, using defaults.");
-                idCardSettings = {
-                    theme: { primary: '#6366f1', accent: '#a855f7' },
-                    layout: { cardsPerPage: 8 },
-                    header: { text: "ID CARD", fontSize: '0.9rem' },
-                    footer: { text: 'Official Eventora Cloud ID System', fontSize: '0.65rem' },
-                    fields: {
-                        name: { visible: true, fontSize: '1.2rem' },
-                        phone: { visible: true, fontSize: '0.7rem' },
-                        dob: { visible: true, fontSize: '0.7rem' },
-                        gender: { visible: true, fontSize: '0.7rem' },
-                        age: { visible: true, fontSize: '0.7rem' },
-                        address: { visible: true, fontSize: '0.6rem' },
-                        id: { visible: true, fontSize: '0.7rem' }
-                    },
-                    photo: { visible: true, width: '85px', height: '100px' }
-                };
+                idCardSettings = defaults;
             }
         }
 
@@ -940,18 +945,25 @@
             const s = idCardSettings;
             const p = studentData;
             
-            if (!container || !s) return;
+            if (!container || !s || !p) return;
+
+            // AUTO EVENT NAME LOGIC: If the settings say "EVENT NAME" or "ID CARD", use the real event name instead.
+            const evName = (document.getElementById('disp-event-name')?.innerText || "EVENT").toUpperCase();
+            let headerText = s.header.text;
+            if (headerText === "EVENT NAME" || headerText === "ID CARD") {
+                headerText = evName;
+            }
 
             container.innerHTML = `
                 <div class="id-header-v2" style="background: linear-gradient(135deg, ${s.theme.primary}, ${s.theme.accent}) !important; font-size: ${s.header.fontSize};">
-                    ${s.header.text}
+                    ${headerText}
                 </div>
                 <div class="id-body-v2">
                     ${s.photo.visible ? `
                         <div style="text-align: center;">
                             <img src="${photo}" style="width: ${s.photo.width}; height: ${s.photo.height}; border: 2px solid ${s.theme.primary}; border-radius: 10px; object-fit: cover;">
                             ${s.fields.id.visible ? `
-                                <div class="id-badge" style="background: linear-gradient(135deg, ${s.theme.primary}, ${s.theme.accent}); font-size: ${s.fields.id.fontSize}; display: block; margin-top: 5px;">
+                                <div class="id-badge" style="background: linear-gradient(135deg, ${s.theme.primary}, ${s.theme.accent}); font-size: ${s.fields.id.fontSize}; display: inline-block; margin-top: 6px;">
                                     ID: ${p.id}
                                 </div>
                             ` : ''}
@@ -960,14 +972,14 @@
                     <div class="id-details-v2">
                         ${s.fields.name.visible ? `
                             <div class="id-field">NAME</div>
-                            <div class="id-name-v2" style="font-size: ${s.fields.name.fontSize};">${p.name.toUpperCase()}</div>
+                            <div class="id-name-v2" style="font-size: ${s.fields.name.fontSize};">${(p.name || "--").toUpperCase()}</div>
                         ` : ''}
                         
                         <div style="display: flex; justify-content: space-between; gap: 10px; margin-top: 2px;">
                             ${s.fields.phone.visible ? `
                                 <div style="flex: 1;">
                                     <div class="id-field">PHONE</div>
-                                    <div class="id-value-v2" style="font-size: ${s.fields.phone.fontSize};">${p.phone}</div>
+                                    <div class="id-value-v2" style="font-size: ${s.fields.phone.fontSize};">${p.phone || "--"}</div>
                                 </div>
                             ` : ''}
                             ${s.fields.dob.visible ? `
