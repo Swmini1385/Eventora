@@ -7,6 +7,7 @@ document.addEventListener('DOMContentLoaded', () => {
     checkAuth();
     loadDashboardData();
     setupPrefixAutoGenerator();
+    setupSettingsDesigner();
     lucide.createIcons();
 });
 
@@ -60,6 +61,19 @@ function checkAuth() {
 function logout() {
     localStorage.removeItem('eventora_user');
     window.location.href = 'index.html';
+}
+
+// Section Management
+function switchSection(id, btn) {
+    document.querySelectorAll('section').forEach(s => s.style.display = 'none');
+    document.getElementById(`section-${id}`).style.display = 'block';
+    
+    document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+    btn.classList.add('active');
+    
+    if (id === 'settings') {
+        updatePreview();
+    }
 }
 
 /* Date & Time Helpers */
@@ -327,4 +341,176 @@ async function deleteEvent(id) {
             loadDashboardData();
         }
     }
+}
+
+// ---------------------------------------------------------
+// ID CARD DESIGNER LOGIC
+// ---------------------------------------------------------
+
+const DEFAULT_CARD_SETTINGS = {
+    theme: {
+        primary: '#6366f1',
+        accent: '#a855f7'
+    },
+    layout: {
+        cardsPerPage: 8
+    },
+    header: {
+        text: 'EVENT NAME',
+        fontSize: '0.9rem'
+    },
+    footer: {
+        text: 'Official Eventora Cloud ID System',
+        fontSize: '0.65rem'
+    },
+    fields: {
+        name: { visible: true, fontSize: '1.2rem' },
+        phone: { visible: true, fontSize: '0.7rem' },
+        dob: { visible: true, fontSize: '0.7rem' },
+        gender: { visible: true, fontSize: '0.7rem' },
+        age: { visible: true, fontSize: '0.7rem' },
+        address: { visible: true, fontSize: '0.6rem' },
+        id: { visible: true, fontSize: '0.7rem' }
+    },
+    photo: {
+        visible: true,
+        width: '85px',
+        height: '100px'
+    }
+};
+
+function setupSettingsDesigner() {
+    // Load existing settings or use defaults
+    const saved = localStorage.getItem('eventora_id_settings');
+    const settings = saved ? JSON.parse(saved) : DEFAULT_CARD_SETTINGS;
+    
+    // Fill UI with values
+    const primaryInput = document.getElementById('set-color-primary');
+    if (!primaryInput) return; // Not on settings page yet
+
+    primaryInput.value = settings.theme.primary;
+    document.getElementById('set-color-primary-hex').value = settings.theme.primary;
+    document.getElementById('set-color-accent').value = settings.theme.accent;
+    document.getElementById('set-color-accent-hex').value = settings.theme.accent;
+    document.getElementById('set-layout-grid').value = settings.layout.cardsPerPage;
+    
+    document.getElementById('set-header-text').value = settings.header.text;
+    document.getElementById('set-header-fs').value = settings.header.fontSize;
+    document.getElementById('set-footer-text').value = settings.footer.text;
+    document.getElementById('set-footer-fs').value = settings.footer.fontSize;
+    
+    document.getElementById('set-field-name-vis').checked = settings.fields.name.visible;
+    document.getElementById('set-field-name-fs').value = settings.fields.name.fontSize;
+    document.getElementById('set-field-phone-vis').checked = settings.fields.phone.visible;
+    document.getElementById('set-field-phone-fs').value = settings.fields.phone.fontSize;
+    document.getElementById('set-field-dob-vis').checked = settings.fields.dob.visible;
+    document.getElementById('set-field-dob-fs').value = settings.fields.dob.fontSize;
+    document.getElementById('set-field-gender-vis').checked = settings.fields.gender.visible;
+    document.getElementById('set-field-gender-fs').value = settings.fields.gender.fontSize;
+    document.getElementById('set-field-age-vis').checked = settings.fields.age.visible;
+    document.getElementById('set-field-age-fs').value = settings.fields.age.fontSize;
+    document.getElementById('set-field-address-vis').checked = settings.fields.address.visible;
+    document.getElementById('set-field-address-fs').value = settings.fields.address.fontSize;
+    document.getElementById('set-field-id-vis').checked = settings.fields.id.visible;
+    document.getElementById('set-field-id-fs').value = settings.fields.id.fontSize;
+    
+    document.getElementById('set-photo-vis').checked = settings.photo.visible;
+    document.getElementById('set-photo-w').value = settings.photo.width;
+    document.getElementById('set-photo-h').value = settings.photo.height;
+    
+    updatePreview();
+}
+
+function collectSettings() {
+    return {
+        theme: {
+            primary: document.getElementById('set-color-primary').value,
+            accent: document.getElementById('set-color-accent').value
+        },
+        layout: {
+            cardsPerPage: parseInt(document.getElementById('set-layout-grid').value)
+        },
+        header: {
+            text: document.getElementById('set-header-text').value,
+            fontSize: document.getElementById('set-header-fs').value
+        },
+        footer: {
+            text: document.getElementById('set-footer-text').value,
+            fontSize: document.getElementById('set-footer-fs').value
+        },
+        fields: {
+            name: { visible: document.getElementById('set-field-name-vis').checked, fontSize: document.getElementById('set-field-name-fs').value },
+            phone: { visible: document.getElementById('set-field-phone-vis').checked, fontSize: document.getElementById('set-field-phone-fs').value },
+            dob: { visible: document.getElementById('set-field-dob-vis').checked, fontSize: document.getElementById('set-field-dob-fs').value },
+            gender: { visible: document.getElementById('set-field-gender-vis').checked, fontSize: document.getElementById('set-field-gender-fs').value },
+            age: { visible: document.getElementById('set-field-age-vis').checked, fontSize: document.getElementById('set-field-age-fs').value },
+            address: { visible: document.getElementById('set-field-address-vis').checked, fontSize: document.getElementById('set-field-address-fs').value },
+            id: { visible: document.getElementById('set-field-id-vis').checked, fontSize: document.getElementById('set-field-id-fs').value }
+        },
+        photo: {
+            visible: document.getElementById('set-photo-vis').checked,
+            width: document.getElementById('set-photo-w').value,
+            height: document.getElementById('set-photo-h').value
+        }
+    };
+}
+
+function updatePreview() {
+    const s = collectSettings();
+    document.getElementById('set-color-primary-hex').value = s.theme.primary;
+    document.getElementById('set-color-accent-hex').value = s.theme.accent;
+    
+    const container = document.getElementById('designer-preview-container');
+    if (!container) return;
+    
+    // Sync styles for the preview ID Card
+    const previewHTML = `
+        <div style="width: 3.5in; height: 2.25in; background: #fff; border-radius: 16px; border: 1px solid #e2e8f0; overflow: hidden; display: flex; flex-direction: column; font-family: 'Outfit', sans-serif; box-shadow: 0 10px 30px rgba(0,0,0,0.1); transform: scale(1.1);">
+            <div style="background: linear-gradient(135deg, ${s.theme.primary}, ${s.theme.accent}) !important; color: #fff; height: 42px; display: ${s.header.text ? 'flex' : 'none'}; align-items: center; justify-content: center; font-weight: 800; font-size: ${s.header.fontSize}; text-transform: uppercase; padding: 0 10px; text-align: center;">
+                ${s.header.text}
+            </div>
+            <div style="flex: 1; padding: 12px 16px; display: flex; gap: 16px; align-items: center; background: #fff;">
+                ${s.photo.visible ? `
+                    <div style="text-align: center;">
+                        <div style="width: ${s.photo.width}; height: ${s.photo.height}; border: 2px solid ${s.theme.primary}; border-radius: 10px; background: #f1f5f9; display: flex; align-items: center; justify-content: center; color: var(--text-muted);">
+                            <i data-lucide="user" size="32"></i>
+                        </div>
+                        ${s.fields.id.visible ? `<div style="background: linear-gradient(135deg, ${s.theme.primary}, ${s.theme.accent}); color: #fff; font-size: ${s.fields.id.fontSize}; font-weight: 800; padding: 3px 10px; border-radius: 6px; display: inline-block; margin-top: 6px;">ID: SE001</div>` : ''}
+                    </div>
+                ` : ''}
+                <div style="flex: 1; display: flex; flex-direction: column; justify-content: center;">
+                    ${s.fields.name.visible ? `<div style="font-size: ${s.fields.name.fontSize}; font-weight: 800; color: #1e293b; margin-bottom: 4px; line-height: 1.1; text-transform: uppercase;">PRADEEP GUPTA</div>` : ''}
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 2px;">
+                        ${s.fields.phone.visible ? `<div><div style="font-size: 0.5rem; color: #94a3b8; font-weight: 700;">PHONE</div><div style="font-size: ${s.fields.phone.fontSize}; color: #1e293b; font-weight: 600;">9876543210</div></div>` : ''}
+                        ${s.fields.dob.visible ? `<div><div style="font-size: 0.5rem; color: #94a3b8; font-weight: 700;">DOB</div><div style="font-size: ${s.fields.dob.fontSize}; color: #1e293b; font-weight: 600;">15-08-1995</div></div>` : ''}
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 2px;">
+                        ${s.fields.gender.visible ? `<div><div style="font-size: 0.5rem; color: #94a3b8; font-weight: 700;">GENDER</div><div style="font-size: ${s.fields.gender.fontSize}; color: #1e293b; font-weight: 600;">MALE</div></div>` : ''}
+                        ${s.fields.age.visible ? `<div><div style="font-size: 0.5rem; color: #94a3b8; font-weight: 700;">AGE</div><div style="font-size: ${s.fields.age.fontSize}; color: #1e293b; font-weight: 600;">28</div></div>` : ''}
+                    </div>
+
+                    ${s.fields.address.visible ? `
+                        <div style="margin-top: 4px;">
+                            <div style="font-size: 0.5rem; color: #94a3b8; font-weight: 700;">ADDRESS</div>
+                            <div style="font-size: ${s.fields.address.fontSize}; line-height: 1.2; color: #64748b;">123, Green Park Road, Mumbai</div>
+                        </div>
+                    ` : ''}
+                </div>
+            </div>
+            <div style="background: #1e293b; color: #94a3b8; height: 28px; display: ${s.footer.text ? 'flex' : 'none'}; align-items: center; justify-content: center; font-size: ${s.footer.fontSize}; font-weight: 600; letter-spacing: 1px; text-transform: uppercase;">
+                ${s.footer.text}
+            </div>
+        </div>
+    `;
+    
+    container.innerHTML = previewHTML;
+    lucide.createIcons();
+}
+
+function saveSettings() {
+    const s = collectSettings();
+    localStorage.setItem('eventora_id_settings', JSON.stringify(s));
+    alert("✅ ID Card settings saved! These will be used for all future prints.");
 }

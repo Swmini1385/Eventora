@@ -124,9 +124,9 @@
             <div class="logo" style="font-size: 1.5rem; margin-bottom: 2rem;">
                 <i data-lucide="sparkles"></i> Eventora
             </div>
-            <a href="#" class="nav-item active"><i data-lucide="layout-dashboard"></i> Overview</a>
-            <a href="#" class="nav-item"><i data-lucide="calendar"></i> My Events</a>
-            <a href="#" class="nav-item"><i data-lucide="settings"></i> Settings</a>
+            <a href="#" onclick="switchSection('overview', this)" class="nav-item active"><i data-lucide="layout-dashboard"></i> Overview</a>
+            <a href="#" onclick="switchSection('overview', this)" class="nav-item"><i data-lucide="calendar"></i> My Events</a>
+            <a href="#" onclick="switchSection('settings', this)" class="nav-item"><i data-lucide="settings"></i> Settings</a>
             <div style="margin-top: auto;">
                 <a href="#" onclick="logout()" class="nav-item" style="color: #f87171;"><i data-lucide="log-out"></i> Logout</a>
             </div>
@@ -134,40 +134,188 @@
 
         <!-- Main Content -->
         <main class="main-content">
-            <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2.5rem;">
-                <div>
-                    <h2 id="welcome-msg">Hello, Organizer!</h2>
-                    <p style="color: var(--text-muted);">Manage your active events and attendees from here.</p>
-                </div>
-                <button class="btn btn-primary" onclick="showCreateModal()">
-                    <i data-lucide="plus"></i> Create Event
-                </button>
-            </header>
+            <!-- Overview Section -->
+            <section id="section-overview">
+                <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2.5rem;">
+                    <div>
+                        <h2 id="welcome-msg">Hello, Organizer!</h2>
+                        <p style="color: var(--text-muted);">Manage your active events and attendees from here.</p>
+                    </div>
+                    <button class="btn btn-primary" onclick="showCreateModal()">
+                        <i data-lucide="plus"></i> Create Event
+                    </button>
+                </header>
 
-            <!-- Stats Overview -->
-            <div class="stats-grid">
-                <div class="glass stat-card">
-                    <p style="color: var(--text-muted); font-size: 0.9rem;">Total Events</p>
-                    <h3 style="font-size: 1.8rem; margin-top: 0.5rem;" id="total-events-stat">0</h3>
+                <!-- Stats Overview -->
+                <div class="stats-grid">
+                    <div class="glass stat-card">
+                        <p style="color: var(--text-muted); font-size: 0.9rem;">Total Events</p>
+                        <h3 style="font-size: 1.8rem; margin-top: 0.5rem;" id="total-events-stat">0</h3>
+                    </div>
+                    <div class="glass stat-card">
+                        <p style="color: var(--text-muted); font-size: 0.9rem;">Total Attendees</p>
+                        <h3 style="font-size: 1.8rem; margin-top: 0.5rem;" id="total-attendees-stat">0</h3>
+                    </div>
+                    <div class="glass stat-card">
+                        <p style="color: var(--text-muted); font-size: 0.9rem;">Total Earnings</p>
+                        <h3 style="font-size: 1.8rem; margin-top: 0.5rem;" id="total-earnings-stat">₹0</h3>
+                    </div>
                 </div>
-                <div class="glass stat-card">
-                    <p style="color: var(--text-muted); font-size: 0.9rem;">Total Attendees</p>
-                    <h3 style="font-size: 1.8rem; margin-top: 0.5rem;" id="total-attendees-stat">0</h3>
-                </div>
-                <div class="glass stat-card">
-                    <p style="color: var(--text-muted); font-size: 0.9rem;">Total Earnings</p>
-                    <h3 style="font-size: 1.8rem; margin-top: 0.5rem;" id="total-earnings-stat">₹0</h3>
-                </div>
-            </div>
 
-            <!-- Events List -->
-            <h3>Your Recent Events</h3>
-            <div id="events-list" style="margin-top: 1.5rem;">
-                <!-- Event cards will be injected here -->
-                <div class="glass" style="padding: 3rem; text-align: center; border-style: dashed; background: transparent;">
-                    <p style="color: var(--text-muted);">No events created yet. Start by creating one!</p>
+                <!-- Events List -->
+                <h3>Your Recent Events</h3>
+                <div id="events-list" style="margin-top: 1.5rem;">
+                    <!-- Event cards will be injected here -->
+                    <div class="glass" style="padding: 3rem; text-align: center; border-style: dashed; background: transparent;">
+                        <p style="color: var(--text-muted);">No events created yet. Start by creating one!</p>
+                    </div>
                 </div>
-            </div>
+            </section>
+
+            <!-- Settings Section -->
+            <section id="section-settings" style="display: none;">
+                <header style="margin-bottom: 2.5rem;">
+                    <h2>ID Card Designer</h2>
+                    <p style="color: var(--text-muted);">Customize the look and layout of your event ID cards.</p>
+                </header>
+
+                <div style="display: grid; grid-template-columns: 1fr 400px; gap: 2.5rem; align-items: start;">
+                    <!-- Controls Column -->
+                    <div class="glass" style="padding: 2.5rem;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                            <h3 style="margin: 0; font-size: 1.25rem;">Configuration</h3>
+                            <button class="btn btn-primary" onclick="saveSettings()" style="padding: 0.6rem 1.25rem; font-size: 0.85rem;">
+                                <i data-lucide="save" size="16"></i> Save Changes
+                            </button>
+                        </div>
+                        
+                        <!-- Theme & Layout -->
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem; border-bottom: 1px solid var(--glass-border); padding-bottom: 2rem;">
+                            <div class="form-group">
+                                <label>Primary Theme Color</label>
+                                <div style="display: flex; gap: 0.75rem; align-items: center;">
+                                    <input type="color" id="set-color-primary" value="#6366f1" oninput="updatePreview()" style="width: 45px; height: 45px; padding: 2px; border: none; background: transparent;">
+                                    <input type="text" id="set-color-primary-hex" value="#6366f1" readonly style="flex: 1; font-family: monospace;">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Accent / Gradient Color</label>
+                                <div style="display: flex; gap: 0.75rem; align-items: center;">
+                                    <input type="color" id="set-color-accent" value="#a855f7" oninput="updatePreview()" style="width: 45px; height: 45px; padding: 2px; border: none; background: transparent;">
+                                    <input type="text" id="set-color-accent-hex" value="#a855f7" readonly style="flex: 1; font-family: monospace;">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Cards per A4 Page</label>
+                                <select id="set-layout-grid" onchange="updatePreview()">
+                                    <option value="8">8 Cards (2 columns x 4 rows)</option>
+                                    <option value="10">10 Cards (2 columns x 5 rows)</option>
+                                    <option value="6">6 Cards (2 columns x 3 rows)</option>
+                                    <option value="4">4 Cards (2 columns x 2 rows)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Header & Footer -->
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem; border-bottom: 1px solid var(--glass-border); padding-bottom: 2rem;">
+                            <div class="form-group">
+                                <label>Header Content</label>
+                                <input type="text" id="set-header-text" value="EVENT NAME" oninput="updatePreview()">
+                            </div>
+                            <div class="form-group">
+                                <label>Header Font Size</label>
+                                <input type="text" id="set-header-fs" value="0.9rem" oninput="updatePreview()">
+                            </div>
+                            <div class="form-group">
+                                <label>Footer Content</label>
+                                <input type="text" id="set-footer-text" value="Official Eventora Cloud ID System" oninput="updatePreview()">
+                            </div>
+                            <div class="form-group">
+                                <label>Footer Font Size</label>
+                                <input type="text" id="set-footer-fs" value="0.65rem" oninput="updatePreview()">
+                            </div>
+                        </div>
+
+                        <!-- Fields Visibility & Font Size -->
+                        <h4 style="margin-bottom: 1.25rem; font-size: 1rem; color: var(--primary);">Field Controls</h4>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+                            <div class="form-group" style="background: rgba(255,255,255,0.03); padding: 1rem; border-radius: 1rem; border: 1px solid var(--glass-border);">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                                    <label style="margin: 0;">Full Name</label>
+                                    <input type="checkbox" id="set-field-name-vis" checked onchange="updatePreview()" style="width: auto;">
+                                </div>
+                                <input type="text" id="set-field-name-fs" value="1.2rem" oninput="updatePreview()" placeholder="Font Size (e.g. 1.2rem)">
+                            </div>
+                            <div class="form-group" style="background: rgba(255,255,255,0.03); padding: 1rem; border-radius: 1rem; border: 1px solid var(--glass-border);">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                                    <label style="margin: 0;">Mobile / Phone</label>
+                                    <input type="checkbox" id="set-field-phone-vis" checked onchange="updatePreview()" style="width: auto;">
+                                </div>
+                                <input type="text" id="set-field-phone-fs" value="0.7rem" oninput="updatePreview()" placeholder="Font Size (e.g. 0.7rem)">
+                            </div>
+                            <div class="form-group" style="background: rgba(255,255,255,0.03); padding: 1rem; border-radius: 1rem; border: 1px solid var(--glass-border);">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                                    <label style="margin: 0;">Date of Birth (DOB)</label>
+                                    <input type="checkbox" id="set-field-dob-vis" checked onchange="updatePreview()" style="width: auto;">
+                                </div>
+                                <input type="text" id="set-field-dob-fs" value="0.7rem" oninput="updatePreview()" placeholder="Font Size (e.g. 0.7rem)">
+                            </div>
+                            <div class="form-group" style="background: rgba(255,255,255,0.03); padding: 1rem; border-radius: 1rem; border: 1px solid var(--glass-border);">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                                    <label style="margin: 0;">Address / City</label>
+                                    <input type="checkbox" id="set-field-address-vis" checked onchange="updatePreview()" style="width: auto;">
+                                </div>
+                                <input type="text" id="set-field-address-fs" value="0.6rem" oninput="updatePreview()" placeholder="Font Size (e.g. 0.6rem)">
+                            </div>
+                            <div class="form-group" style="background: rgba(255,255,255,0.03); padding: 1rem; border-radius: 1rem; border: 1px solid var(--glass-border);">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                                    <label style="margin: 0;">Gender</label>
+                                    <input type="checkbox" id="set-field-gender-vis" checked onchange="updatePreview()" style="width: auto;">
+                                </div>
+                                <input type="text" id="set-field-gender-fs" value="0.7rem" oninput="updatePreview()" placeholder="Font Size (e.g. 0.7rem)">
+                            </div>
+                            <div class="form-group" style="background: rgba(255,255,255,0.03); padding: 1rem; border-radius: 1rem; border: 1px solid var(--glass-border);">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                                    <label style="margin: 0;">Age</label>
+                                    <input type="checkbox" id="set-field-age-vis" checked onchange="updatePreview()" style="width: auto;">
+                                </div>
+                                <input type="text" id="set-field-age-fs" value="0.7rem" oninput="updatePreview()" placeholder="Font Size (e.g. 0.7rem)">
+                            </div>
+                            <div class="form-group" style="background: rgba(255,255,255,0.03); padding: 1rem; border-radius: 1rem; border: 1px solid var(--glass-border);">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                                    <label style="margin: 0;">Student ID Badge</label>
+                                    <input type="checkbox" id="set-field-id-vis" checked onchange="updatePreview()" style="width: auto;">
+                                </div>
+                                <input type="text" id="set-field-id-fs" value="0.7rem" oninput="updatePreview()" placeholder="Font Size (e.g. 0.7rem)">
+                            </div>
+                            <div class="form-group" style="background: rgba(255,255,255,0.03); padding: 1rem; border-radius: 1rem; border: 1px solid var(--glass-border);">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                                    <label style="margin: 0;">Photo</label>
+                                    <input type="checkbox" id="set-photo-vis" checked onchange="updatePreview()" style="width: auto;">
+                                </div>
+                                <div style="display: flex; gap: 0.5rem;">
+                                    <input type="text" id="set-photo-w" value="85px" oninput="updatePreview()" placeholder="W (85px)">
+                                    <input type="text" id="set-photo-h" value="100px" oninput="updatePreview()" placeholder="H (100px)">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Preview Column -->
+                    <div style="position: sticky; top: 2rem;">
+                        <h3 style="margin-bottom: 1.5rem; font-size: 1.25rem;">Live Preview</h3>
+                        <div id="designer-preview-container" style="display: flex; justify-content: center; background: rgba(0,0,0,0.2); padding: 3rem; border-radius: 1.5rem; border: 1px solid var(--glass-border);">
+                            <!-- Preview Card will be injected here -->
+                        </div>
+                        <div style="margin-top: 1.5rem; padding: 1rem; background: rgba(99,102,241,0.05); border-radius: 0.75rem; border: 1px solid rgba(99,102,241,0.1); font-size: 0.85rem;">
+                            <p style="margin: 0; color: var(--text-muted); line-height: 1.4;">
+                                <i data-lucide="info" size="14" style="vertical-align: middle;"></i>
+                                The preview shows how a card will appear when printing. Small adjustments to font sizes can help fit longer names or addresses.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </section>
         </main>
     </div>
 

@@ -733,55 +733,110 @@
             const selected = getSelectedIDs();
             if (selected.length === 0) return alert("Please select participants first.");
             
-            const eventName = document.getElementById('event-title').innerText.toUpperCase();
+            // Load Custom Settings
+            const saved = localStorage.getItem('eventora_id_settings');
+            const s = saved ? JSON.parse(saved) : {
+                theme: { primary: '#6366f1', accent: '#a855f7' },
+                layout: { cardsPerPage: 8 },
+                header: { text: document.getElementById('event-title').innerText.toUpperCase(), fontSize: '0.9rem' },
+                footer: { text: 'Official Eventora Cloud ID System', fontSize: '0.65rem' },
+                fields: {
+                    name: { visible: true, fontSize: '1.2rem' },
+                    phone: { visible: true, fontSize: '0.7rem' },
+                    dob: { visible: true, fontSize: '0.7rem' },
+                    address: { visible: true, fontSize: '0.6rem' },
+                    id: { visible: true, fontSize: '0.7rem' }
+                },
+                photo: { visible: true, width: '85px', height: '100px' }
+            };
+
             const printArea = document.getElementById('print-area');
             printArea.innerHTML = '';
+
+            // Inject Dynamic Style for the Grid
+            const gridRows = s.layout.cardsPerPage === 10 ? 5 : (s.layout.cardsPerPage === 6 ? 3 : (s.layout.cardsPerPage === 4 ? 2 : 4));
+            let dynamicCSS = `
+                <style>
+                    @media print {
+                        .print-page { 
+                            grid-template-columns: repeat(2, 1fr) !important; 
+                            grid-template-rows: repeat(${gridRows}, 1fr) !important; 
+                        }
+                    }
+                </style>
+            `;
             
-            let html = '';
-            for (let i = 0; i < selected.length; i += 8) { 
-                const pageItems = selected.slice(i, i + 8);
+            let html = dynamicCSS;
+            const perPage = s.layout.cardsPerPage || 8;
+
+            for (let i = 0; i < selected.length; i += perPage) { 
+                const pageItems = selected.slice(i, i + perPage);
                 html += `<div class="print-page">`;
                 
-                pageItems.forEach(s => {
+                pageItems.forEach(p => {
                     html += `
-                    <div class="id-card-print">
-                        <div class="id-header-v2">${eventName}</div>
-                        <div class="id-body-v2">
-                            <div style="text-align: center;">
-                                <img src="${s.photo.replace('=s120', '=s400')}" class="id-photo-v2">
-                                <div class="id-badge">ID: ${s.id}</div>
-                            </div>
-                            <div class="id-details-v2">
-                                <div class="id-field">NAME</div>
-                                <div class="id-name-v2">${s.name}</div>
+                    <div class="id-card-print" style="border-radius: 16px; border: 1px solid #e2e8f0; overflow: hidden; display: flex; flex-direction: column;">
+                        <!-- Header -->
+                        <div class="id-header-v2" style="background: linear-gradient(135deg, ${s.theme.primary}, ${s.theme.accent}) !important; color: #fff; height: 42px; display: ${s.header.text ? 'flex' : 'none'}; align-items: center; justify-content: center; font-weight: 800; font-size: ${s.header.fontSize}; text-transform: uppercase; padding: 0 10px; text-align: center;">
+                            ${s.header.text || document.getElementById('event-title').innerText.toUpperCase()}
+                        </div>
+                        
+                        <!-- Body -->
+                        <div class="id-body-v2" style="flex: 1; padding: 12px 16px; display: flex; gap: 16px; align-items: center; background: #fff !important;">
+                            ${s.photo.visible ? `
+                                <div style="text-align: center;">
+                                    <img src="${p.photo.replace('=s120', '=s400')}" class="id-photo-v2" style="width: ${s.photo.width}; height: ${s.photo.height}; border: 2px solid ${s.theme.primary}; border-radius: 10px;">
+                                    ${s.fields.id.visible ? `
+                                        <div class="id-badge" style="background: linear-gradient(135deg, ${s.theme.primary}, ${s.theme.accent}) !important; color: #fff; font-size: ${s.fields.id.fontSize}; font-weight: 800; padding: 3px 10px; border-radius: 6px; display: inline-block; margin-top: 6px;">
+                                            ID: ${p.id}
+                                        </div>` : ''}
+                                </div>
+                            ` : ''}
+                            
+                            <div class="id-details-v2" style="flex: 1; display: flex; flex-direction: column; justify-content: center;">
+                                ${s.fields.name.visible ? `
+                                    <div class="id-name-v2" style="font-size: ${s.fields.name.fontSize}; font-weight: 800; color: #1e293b; margin-bottom: 4px; line-height: 1.1; text-transform: uppercase;">
+                                        ${p.name}
+                                    </div>` : ''}
                                 
                                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 2px;">
-                                    <div>
-                                        <div class="id-field">PHONE</div>
-                                        <div class="id-value-v2" style="font-size: 0.7rem; white-space: nowrap;">${s.phone}</div>
-                                    </div>
-                                    <div>
-                                        <div class="id-field">DOB</div>
-                                        <div class="id-value-v2" style="font-size: 0.7rem; white-space: nowrap;">${s.dob}</div>
-                                    </div>
+                                    ${s.fields.phone.visible ? `
+                                        <div>
+                                            <div class="id-field" style="font-size: 0.5rem; color: #94a3b8; font-weight: 700;">PHONE</div>
+                                            <div class="id-value-v2" style="font-size: ${s.fields.phone.fontSize}; color: #1e293b; font-weight: 600;">${p.phone}</div>
+                                        </div>` : ''}
+                                    ${s.fields.dob.visible ? `
+                                        <div>
+                                            <div class="id-field" style="font-size: 0.5rem; color: #94a3b8; font-weight: 700;">DOB</div>
+                                            <div class="id-value-v2" style="font-size: ${s.fields.dob.fontSize}; color: #1e293b; font-weight: 600;">${p.dob}</div>
+                                        </div>` : ''}
                                 </div>
 
                                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 2px;">
-                                    <div>
-                                        <div class="id-field">GENDER</div>
-                                        <div class="id-value-v2" style="font-size: 0.7rem;">${s.gender}</div>
-                                    </div>
-                                    <div>
-                                        <div class="id-field">AGE</div>
-                                        <div class="id-value-v2" style="font-size: 0.7rem;">${s.age}</div>
-                                    </div>
+                                    ${s.fields.gender.visible ? `
+                                        <div>
+                                            <div class="id-field" style="font-size: 0.5rem; color: #94a3b8; font-weight: 700;">GENDER</div>
+                                            <div class="id-value-v2" style="font-size: ${s.fields.gender.fontSize}; color: #1e293b; font-weight: 600;">${p.gender}</div>
+                                        </div>` : ''}
+                                    ${s.fields.age.visible ? `
+                                        <div>
+                                            <div class="id-field" style="font-size: 0.5rem; color: #94a3b8; font-weight: 700;">AGE</div>
+                                            <div class="id-value-v2" style="font-size: ${s.fields.age.fontSize}; color: #1e293b; font-weight: 600;">${p.age}</div>
+                                        </div>` : ''}
                                 </div>
 
-                                <div class="id-field" style="margin-top: 4px;">ADDRESS / CITY</div>
-                                <div class="id-value-v2" style="font-size: 0.6rem; line-height: 1.2; margin-bottom: 0; color: #64748b;">${s.address || '--'}</div>
+                                ${s.fields.address.visible ? `
+                                    <div style="margin-top: 4px;">
+                                        <div class="id-field" style="font-size: 0.5rem; color: #94a3b8; font-weight: 700;">ADDRESS</div>
+                                        <div class="id-value-v2" style="font-size: ${s.fields.address.fontSize}; line-height: 1.2; color: #64748b;">${p.address || '--'}</div>
+                                    </div>` : ''}
                             </div>
                         </div>
-                        <div class="id-footer-v2">Official Eventora Cloud ID System</div>
+
+                        <!-- Footer -->
+                        <div class="id-footer-v2" style="background: #1e293b; color: #94a3b8; height: 28px; display: ${s.footer.text ? 'flex' : 'none'}; align-items: center; justify-content: center; font-size: ${s.footer.fontSize}; font-weight: 600; letter-spacing: 1px; text-transform: uppercase;">
+                            ${s.footer.text}
+                        </div>
                     </div>
                     `;
                 });
