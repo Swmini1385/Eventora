@@ -272,17 +272,21 @@ function handleGetStudentDashboardBundle(p, cb) {
     // 2. Get Event Meta (Fast lookup using the same SS)
     const eventData = {
       name: ss.getName(),
-      startDate: "", startTime: "", endDate: "", endTime: "", venue: "TBA", fee: 0
+      startDate: "", startTime: "", endDate: "", endTime: "", venue: "TBA", fee: 0,
+      upi: "", wa: "", prefix: "A"
     };
     try {
-      const meta = sheet.getRange(1, 1, 1, 8).getValues()[0];
+      const meta = sheet.getRange(1, 1, 1, 10).getValues()[0];
       if (meta[0] === "METADATA") {
         eventData.startDate = meta[1];
-        eventData.startTime = meta[2];
-        eventData.endDate = meta[3];
-        eventData.endTime = meta[4];
-        eventData.venue = meta[5];
+        eventData.endDate = meta[2];
+        eventData.venue = meta[3];
+        eventData.upi = meta[4];
+        eventData.wa = meta[5];
         eventData.fee = meta[6];
+        eventData.prefix = meta[7];
+        eventData.startTime = meta[8];
+        eventData.endTime = meta[9];
       }
     } catch(e) {}
 
