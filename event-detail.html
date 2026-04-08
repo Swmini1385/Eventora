@@ -362,7 +362,7 @@
         </div>
 
         <!-- Distinct Stats Row -->
-        <div class="stats-row">
+        <div class="stats-row" style="grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));">
             <div class="stat-card-mini glass">
                 <div class="stat-value" id="attendee-count">0</div>
                 <div class="stat-label">Participants</div>
@@ -370,6 +370,14 @@
             <div class="stat-card-mini glass">
                 <div class="stat-value" id="total-collected">₹0</div>
                 <div class="stat-label">Total Amount</div>
+            </div>
+            <div class="stat-card-mini glass">
+                <div class="stat-value" id="event-expenses" style="color: #f87171;">₹0</div>
+                <div class="stat-label">Expense</div>
+            </div>
+            <div class="stat-card-mini glass">
+                <div class="stat-value" id="event-pnl">₹0</div>
+                <div class="stat-label">P&L</div>
             </div>
         </div>
 
@@ -389,6 +397,10 @@
                 <button class="btn btn-outline" onclick="openPhotoModal()"
                     style="border-radius: 1.25rem; background: rgba(168, 85, 247, 0.1); color: #a855f7; border-color: rgba(168, 85, 247, 0.3);">
                     <i data-lucide="image-plus"></i> Activity Photos
+                </button>
+                <button class="btn btn-outline" onclick="openExpenseModal()"
+                    style="border-radius: 1.25rem; background: rgba(248, 113, 113, 0.1); color: #f87171; border-color: rgba(248, 113, 113, 0.3);">
+                    <i data-lucide="calculator"></i> Add Expense
                 </button>
                 <button class="btn btn-outline" onclick="exportData()" style="border-radius: 1.25rem;"><i
                         data-lucide="download"></i> Export</button>
@@ -468,6 +480,35 @@
     <!-- Print Hidden Area -->
     <div id="print-area"></div>
 
+    <!-- Expense Modal -->
+    <div class="modal-overlay" id="expenseModal">
+        <div class="glass modal-card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                <h2 style="display: flex; align-items: center; gap: 0.75rem;">
+                    <i data-lucide="calculator" class="text-primary"></i> Add Expense
+                </h2>
+                <button type="button" onclick="closeExpenseModal()" style="background: none; border: none; color: #fff; cursor: pointer;"><i data-lucide="x"></i></button>
+            </div>
+            <form id="expense-form" onsubmit="handleSaveExpense(event)">
+                <div class="form-group">
+                    <label>Expense Type / Detail</label>
+                    <input type="text" id="exp-type" required placeholder="e.g. Catering, Venue Rent, Printing">
+                </div>
+                <div class="form-group">
+                    <label>Amount (₹)</label>
+                    <input type="number" id="exp-amount" required placeholder="0.00">
+                </div>
+                <button type="submit" class="btn btn-primary" id="save-exp-btn" style="width: 100%; margin-top: 1rem; height: 3.5rem;">
+                    Record Expense
+                </button>
+            </form>
+            <div id="expenses-list-mini" style="margin-top: 2rem; border-top: 1px solid var(--glass-border); padding-top: 1.5rem;">
+                <h4 style="margin-bottom: 1rem; font-size: 0.9rem; color: var(--text-muted);">Recent Expenses</h4>
+                <div id="exp-items-container" style="max-height: 200px; overflow-y: auto;"></div>
+            </div>
+        </div>
+    </div>
+
     <script>
         const API_URL = 'https://script.google.com/macros/s/AKfycby-tuuL2zz38uXKlm_jjU8lTBrSRNxngFKoM7x8RixHdkO5dMzbHQtkW_ncP2nReZaIaA/exec';
         let currentEventId = '';
@@ -519,36 +560,47 @@
             currentEventId = params.get('id');
             try {
                 const data = await fetchJSONP(`${API_URL}?action=get_event_info&eventId=${currentEventId}`);
-                // Robust Date & Time Formatting
-                const cleanDate = (raw) => {
-                    if (!raw) return 'Date TBD';
-                    const d = new Date(raw);
-                    return isNaN(d) ? raw : d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
-                };
-
-                const cleanTime = (raw) => {
-                    if (!raw) return '';
-                    if (typeof raw === 'string' && raw.includes('T')) {
-                        const d = new Date(raw);
-                        if (!isNaN(d)) return d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
-                    }
-                    return raw;
-                };
-
                 if (data.success) {
-                    const formattedDate = cleanDate(data.startDate);
-                    const endDateStr = data.endDate ? ` - ${cleanDate(data.endDate)}` : '';
-                    const formattedTime = cleanTime(data.startTime);
-                    const endTimeStr = data.endTime ? ` - ${cleanTime(data.endTime)}` : '';
+                    const m = data;
+                    document.getElementById('event-title').innerText = m.name;
+                    
+                    // Header Stats Update
+                    document.getElementById('attendee-count').innerText = m.participantCount || 0;
+                    document.getElementById('total-collected').innerText = `₹${(m.totalEarnings || 0).toLocaleString()}`;
+                    document.getElementById('event-expenses').innerText = `₹${(m.totalExpenses || 0).toLocaleString()}`;
+                    
+                    const pnl = (m.totalEarnings || 0) - (m.totalExpenses || 0);
+                    const pnlEl = document.getElementById('event-pnl');
+                    pnlEl.innerText = `₹${pnl.toLocaleString()}`;
+                    pnlEl.style.color = pnl >= 0 ? '#22c55e' : '#f87171';
 
-                    document.getElementById('event-title').innerText = data.name;
+                    // Rest of metadata...
+                    const cleanDate = (raw) => {
+                        if (!raw) return 'Date TBD';
+                        const d = new Date(raw);
+                        return isNaN(d) ? raw : d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+                    };
+                    const cleanTime = (raw) => {
+                        if (!raw) return '';
+                        if (typeof raw === 'string' && raw.includes('T')) {
+                            const d = new Date(raw);
+                            if (!isNaN(d)) return d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
+                        }
+                        return raw;
+                    };
+
+                    const formattedDate = cleanDate(m.startDate);
+                    const endDateStr = m.endDate ? ` - ${cleanDate(m.endDate)}` : '';
+                    const formattedTime = cleanTime(m.startTime);
+                    const endTimeStr = m.endTime ? ` - ${cleanTime(m.endTime)}` : '';
+
                     document.getElementById('event-meta').innerHTML = `
                         <i data-lucide="calendar" size="16"></i> ${formattedDate}${endDateStr} &nbsp;•&nbsp; 
                         <i data-lucide="clock" size="16"></i> ${formattedTime}${endTimeStr} &nbsp;|&nbsp; 
-                        <i data-lucide="indian-rupee" size="16"></i> Fee: ₹${data.fee || '0'}
+                        <i data-lucide="indian-rupee" size="16"></i> Fee: ₹${m.fee || '0'}
                     `;
                     lucide.createIcons();
-                    // Links
+
                     const regUrl = window.location.origin + window.location.pathname.replace('event-detail.html', 'register.html') + '?id=' + currentEventId;
                     document.getElementById('reg-link').value = regUrl;
                     document.getElementById('test-link').href = regUrl;
@@ -851,7 +903,7 @@
                         </div>
 
                         <!-- Footer -->
-                        <div class="id-footer-v2" style="background: #1e293b; color: #94a3b8; height: 28px; display: ${s.footer.text ? 'flex' : 'none'}; align-items: center; justify-content: center; font-size: ${s.footer.fontSize}; font-weight: 600; letter-spacing: 1px; text-transform: uppercase;">
+                        <div class="id-footer-v2" style="background: ${s.footer.themeSync ? `linear-gradient(135deg, ${s.theme.primary}, ${s.theme.accent})` : '#1e293b'} !important; color: ${s.footer.themeSync ? '#fff' : '#94a3b8'} !important; height: 28px; display: ${s.footer.text ? 'flex' : 'none'}; align-items: center; justify-content: center; font-size: ${s.footer.fontSize}; font-weight: 600; letter-spacing: 1px; text-transform: uppercase;">
                             ${s.footer.text}
                         </div>
                     </div>
@@ -964,6 +1016,71 @@
                 };
                 reader.readAsDataURL(file);
             });
+        }
+
+        // --- Expense Management ---
+        function openExpenseModal() {
+            document.getElementById('expenseModal').classList.add('active');
+            loadExpenses();
+        }
+        function closeExpenseModal() {
+            document.getElementById('expenseModal').classList.remove('active');
+        }
+        async function loadExpenses() {
+            const container = document.getElementById('exp-items-container');
+            container.innerHTML = '<div style="font-size: 0.8rem; color: var(--text-muted);">Loading...</div>';
+            try {
+                const data = await fetchJSONP(`${API_URL}?action=get_expenses&eventId=${currentEventId}`);
+                if (data.success) {
+                    if (data.expenses.length === 0) {
+                        container.innerHTML = '<div style="font-size: 0.8rem; color: var(--text-muted);">No expenses recorded yet.</div>';
+                        return;
+                    }
+                    container.innerHTML = data.expenses.map(exp => `
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; background: rgba(255,255,255,0.02); border-radius: 0.75rem; margin-bottom: 0.5rem; border: 1px solid var(--glass-border);">
+                            <div>
+                                <div style="font-size: 0.9rem; font-weight: 600;">${exp.type}</div>
+                                <div style="font-size: 0.7rem; color: var(--text-muted);">${new Date(exp.timestamp).toLocaleDateString()}</div>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                                <div style="font-weight: 700; color: #f87171;">₹${exp.amount}</div>
+                                <button onclick="deleteExpense('${exp.id}')" style="background: none; border: none; color: #f87171; cursor: pointer; padding: 4px;"><i data-lucide="trash-2" size="14"></i></button>
+                            </div>
+                        </div>
+                    `).join('');
+                    lucide.createIcons();
+                }
+            } catch (err) { console.error(err); }
+        }
+        async function handleSaveExpense(e) {
+            e.preventDefault();
+            const btn = document.getElementById('save-exp-btn');
+            btn.innerText = "Saving... ⏳";
+            btn.disabled = true;
+            
+            const type = document.getElementById('exp-type').value;
+            const amount = document.getElementById('exp-amount').value;
+            
+            try {
+                const data = await fetchJSONP(`${API_URL}?action=save_expense&eventId=${currentEventId}&type=${encodeURIComponent(type)}&amount=${amount}&identifier=${JSON.parse(localStorage.getItem('eventora_user'))?.identifier}`);
+                if (data.success) {
+                    document.getElementById('expense-form').reset();
+                    loadExpenses();
+                    loadEventDetails(); // Refresh stats in header
+                }
+            } catch (err) { alert("Failed to save expense"); }
+            btn.innerText = "Record Expense";
+            btn.disabled = false;
+        }
+        async function deleteExpense(id) {
+            if (!confirm("Are you sure?")) return;
+            try {
+                const data = await fetchJSONP(`${API_URL}?action=delete_expense&id=${id}`);
+                if (data.success) {
+                    loadExpenses();
+                    loadEventDetails();
+                }
+            } catch (err) { alert("Failed to delete expense"); }
         }
     </script>
 </body>

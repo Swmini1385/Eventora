@@ -147,18 +147,22 @@
                 </header>
 
                 <!-- Stats Overview -->
-                <div class="stats-grid">
+                <div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));">
                     <div class="glass stat-card">
-                        <p style="color: var(--text-muted); font-size: 0.9rem;">Total Events</p>
-                        <h3 style="font-size: 1.8rem; margin-top: 0.5rem;" id="total-events-stat">0</h3>
+                        <p style="color: var(--text-muted); font-size: 0.85rem;">Total Events</p>
+                        <h3 style="font-size: 1.6rem; margin-top: 0.5rem;" id="total-events-stat">0</h3>
                     </div>
                     <div class="glass stat-card">
-                        <p style="color: var(--text-muted); font-size: 0.9rem;">Total Attendees</p>
-                        <h3 style="font-size: 1.8rem; margin-top: 0.5rem;" id="total-attendees-stat">0</h3>
+                        <p style="color: var(--text-muted); font-size: 0.85rem;">Total Earnings</p>
+                        <h3 style="font-size: 1.6rem; margin-top: 0.5rem; color: #22c55e;" id="total-earnings-stat">₹0</h3>
                     </div>
                     <div class="glass stat-card">
-                        <p style="color: var(--text-muted); font-size: 0.9rem;">Total Earnings</p>
-                        <h3 style="font-size: 1.8rem; margin-top: 0.5rem;" id="total-earnings-stat">₹0</h3>
+                        <p style="color: var(--text-muted); font-size: 0.85rem;">Total Expense</p>
+                        <h3 style="font-size: 1.6rem; margin-top: 0.5rem; color: #f87171;" id="total-expenses-stat">₹0</h3>
+                    </div>
+                    <div class="glass stat-card">
+                        <p style="color: var(--text-muted); font-size: 0.85rem;">Profit & Loss (P&L)</p>
+                        <h3 style="font-size: 1.6rem; margin-top: 0.5rem;" id="total-pnl-stat">₹0</h3>
                     </div>
                 </div>
 
@@ -233,6 +237,10 @@
                             <div class="form-group">
                                 <label>Footer Font Size</label>
                                 <input type="text" id="set-footer-fs" value="0.65rem" oninput="updatePreview()">
+                            </div>
+                            <div class="form-group" style="grid-column: span 2; display: flex; align-items: center; gap: 1rem; background: rgba(99,102,241,0.05); padding: 0.75rem 1rem; border-radius: 0.75rem; border: 1px solid rgba(99,102,241,0.1);">
+                                <label style="margin: 0; flex: 1;">Use Primary Theme Color for Footer?</label>
+                                <input type="checkbox" id="set-footer-theme-sync" onchange="updatePreview()" style="width: auto;">
                             </div>
                         </div>
 

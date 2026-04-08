@@ -195,10 +195,23 @@ function renderEvents(events) {
 }
 
 function updateStats(events) {
+    let totalEarnings = 0;
+    let totalExpenses = 0;
+    
+    events.forEach(e => {
+        totalEarnings += e.earnings || 0;
+        totalExpenses += e.expenses || 0;
+    });
+
+    const pnl = totalEarnings - totalExpenses;
+
     document.getElementById('total-events-stat').innerText = events.length;
-    // Mocking other stats for now
-    document.getElementById('total-attendees-stat').innerText = '0';
-    document.getElementById('total-earnings-stat').innerText = '₹0';
+    document.getElementById('total-earnings-stat').innerText = `₹${totalEarnings.toLocaleString()}`;
+    document.getElementById('total-expenses-stat').innerText = `₹${totalExpenses.toLocaleString()}`;
+    
+    const pnlEl = document.getElementById('total-pnl-stat');
+    pnlEl.innerText = `₹${pnl.toLocaleString()}`;
+    pnlEl.style.color = pnl >= 0 ? '#22c55e' : '#f87171';
 }
 
 /**
@@ -417,6 +430,8 @@ function setupSettingsDesigner() {
     document.getElementById('set-photo-w').value = settings.photo.width;
     document.getElementById('set-photo-h').value = settings.photo.height;
     
+    document.getElementById('set-footer-theme-sync').checked = settings.footer.themeSync || false;
+
     updatePreview();
 }
 
@@ -435,7 +450,8 @@ function collectSettings() {
         },
         footer: {
             text: document.getElementById('set-footer-text').value,
-            fontSize: document.getElementById('set-footer-fs').value
+            fontSize: document.getElementById('set-footer-fs').value,
+            themeSync: document.getElementById('set-footer-theme-sync').checked
         },
         fields: {
             name: { visible: document.getElementById('set-field-name-vis').checked, fontSize: document.getElementById('set-field-name-fs').value },

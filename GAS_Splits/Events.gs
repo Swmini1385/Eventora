@@ -114,10 +114,27 @@ function handleGetEventInfo(p, cb) {
       };
     }
     
+    // Calculate local stats
+    const attendees = sheet.getDataRange().getValues();
+    let earnings = 0;
+    let participantCount = 0;
+    for (let i = 1; i < attendees.length; i++) {
+      if (attendees[i][0]) {
+        participantCount++;
+        if (attendees[i][7] === "Confirmed") {
+          earnings += parseFloat(attendees[i][10]) || 0;
+        }
+      }
+    }
+    const expenses = getEventExpenseTotal(eventId);
+    
     return response({ 
       success: true, 
       name: name,
-      ...meta
+      ...meta,
+      participantCount: participantCount,
+      totalEarnings: earnings,
+      totalExpenses: expenses
     }, cb);
   } catch (err) {
     return response({ success: false, message: err.toString() }, cb);
@@ -133,12 +150,36 @@ function handleListEvents(p, cb) {
   while (files.hasNext()) {
     const file = files.next();
     const fileName = file.getName();
-    if (fileName.startsWith("EV_") || fileName.includes("Event")) {
+    if (fileName.startsWith("EV_")) {
+      const eventId = file.getId();
+      const ssData = SpreadsheetApp.openById(eventId);
+      const sheetData = ssData.getSheets()[0];
+      const name = fileName.replace("EV_", "");
+      
+      // Calculate earnings from Attendees sheet
+      const attendees = sheetData.getDataRange().getValues();
+      let earnings = 0;
+      let participantCount = 0;
+      for (let i = 1; i < attendees.length; i++) {
+        if (attendees[i][0]) {
+          participantCount++;
+          // Sum fees of confirmed participants
+          if (attendees[i][7] === "Confirmed") {
+            earnings += parseFloat(attendees[i][10]) || 0;
+          }
+        }
+      }
+
+      // Get expenses from central sheet
+      const expenses = getEventExpenseTotal(eventId);
+
       events.push({
-        id: file.getId(),
-        name: fileName.replace("EV_", ""),
+        id: eventId,
+        name: name,
         date: "Cloud Event", 
-        fee: "100"
+        participantCount: participantCount,
+        earnings: earnings,
+        expenses: expenses
       });
     }
   }

@@ -77,6 +77,9 @@ function handleRequest(e) {
     if (action === "update_payment_info") return handleUpdatePaymentInfo(p, cb);
     if (action === "save_app_config") return handleSaveAppConfig(p, cb);
     if (action === "get_app_config") return handleGetAppConfig(p, cb);
+    if (action === "save_expense") return handleSaveExpense(p, cb);
+    if (action === "get_expenses") return handleGetExpenses(p, cb);
+    if (action === "delete_expense") return handleDeleteExpense(p, cb);
     
     return response({ success: false, message: "Invalid action: " + action }, cb);
   } catch (err) {
