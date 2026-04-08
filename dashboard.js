@@ -3,6 +3,8 @@
  * Handles Event management and UI synchronization
  */
 
+const API_URL = 'https://script.google.com/macros/s/AKfycby-tuuL2zz38uXKlm_jjU8lTBrSRNxngFKoM7x8RixHdkO5dMzbHQtkW_ncP2nReZaIaA/exec';
+
 document.addEventListener('DOMContentLoaded', () => {
     checkAuth();
     loadDashboardData();
@@ -509,8 +511,36 @@ function updatePreview() {
     lucide.createIcons();
 }
 
-function saveSettings() {
+async function saveSettings() {
     const s = collectSettings();
     localStorage.setItem('eventora_id_settings', JSON.stringify(s));
-    alert("✅ ID Card settings saved! These will be used for all future prints.");
+    
+    const saveBtn = document.querySelector('.btn-primary[onclick="saveSettings()"]');
+    if (saveBtn) {
+        saveBtn.disabled = true;
+        saveBtn.innerText = "Syncing with Cloud... \u23f3";
+    }
+
+    try {
+        const payload = {
+            action: 'save_app_config',
+            key: 'id_card_designer',
+            value: JSON.stringify(s)
+        };
+        
+        const data = await fetchJSONP(`${API_URL}?${new URLSearchParams(payload).toString()}`);
+        if (data.success) {
+            alert("✅ ID Card settings saved to Cloud! These will be used for all students and admins.");
+        } else {
+            alert("⚠️ Saved locally, but cloud sync failed: " + data.message);
+        }
+    } catch (err) {
+        console.error("Cloud Error:", err);
+        alert("⚠️ Saved locally, but couldn't sync with cloud. Check internet connection.");
+    } finally {
+        if (saveBtn) {
+            saveBtn.disabled = false;
+            saveBtn.innerText = "Save Changes";
+        }
+    }
 }

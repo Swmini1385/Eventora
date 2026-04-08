@@ -476,8 +476,19 @@
         document.addEventListener('DOMContentLoaded', () => {
             loadEventDetails();
             loadAttendees();
+            syncIDCardConfig();
             lucide.createIcons();
         });
+
+        async function syncIDCardConfig() {
+            try {
+                const data = await fetchJSONP(`${API_URL}?action=get_app_config&key=id_card_designer`);
+                if (data.success && data.value) {
+                    localStorage.setItem('eventora_id_settings', data.value);
+                    console.log("✅ ID Card Config synced from Cloud");
+                }
+            } catch (err) { console.warn("Cloud config sync failed, using local/default."); }
+        }
 
         /* Date Helpers */
         function toDisplayDate(val) {

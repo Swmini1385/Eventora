@@ -771,11 +771,40 @@
 
         const API_URL = 'https://script.google.com/macros/s/AKfycby-tuuL2zz38uXKlm_jjU8lTBrSRNxngFKoM7x8RixHdkO5dMzbHQtkW_ncP2nReZaIaA/exec';
         let studentData = null;
+        let idCardSettings = null;
 
         document.addEventListener('DOMContentLoaded', () => {
             loadProfile();
             lucide.createIcons();
         });
+
+        async function syncIDCardConfig() {
+            try {
+                const data = await fetchJSONP(`${API_URL}?action=get_app_config&key=id_card_designer`);
+                if (data.success && data.value) {
+                    idCardSettings = JSON.parse(data.value);
+                    console.log("✅ ID Card Designer settings loaded from cloud.");
+                }
+            } catch (err) {
+                console.warn("Cloud config sync failed, using defaults.");
+                idCardSettings = {
+                    theme: { primary: '#6366f1', accent: '#a855f7' },
+                    layout: { cardsPerPage: 8 },
+                    header: { text: "ID CARD", fontSize: '0.9rem' },
+                    footer: { text: 'Official Eventora Cloud ID System', fontSize: '0.65rem' },
+                    fields: {
+                        name: { visible: true, fontSize: '1.2rem' },
+                        phone: { visible: true, fontSize: '0.7rem' },
+                        dob: { visible: true, fontSize: '0.7rem' },
+                        gender: { visible: true, fontSize: '0.7rem' },
+                        age: { visible: true, fontSize: '0.7rem' },
+                        address: { visible: true, fontSize: '0.6rem' },
+                        id: { visible: true, fontSize: '0.7rem' }
+                    },
+                    photo: { visible: true, width: '85px', height: '100px' }
+                };
+            }
+        }
 
         // JSONP Helper
         function fetchJSONP(url, callbackName) {
@@ -802,8 +831,13 @@
             }
 
             try {
-                // DASHBOARD BUNDLE: Unified call for maximum speed
-                const data = await fetchJSONP(`${API_URL}?action=get_student_dashboard_bundle&eventId=${eventId}&studentId=${studentId}`);
+                // Fetch settings parallel with bundle
+                const [bundleRes, _config] = await Promise.all([
+                    fetchJSONP(`${API_URL}?action=get_student_dashboard_bundle&eventId=${eventId}&studentId=${studentId}`),
+                    syncIDCardConfig()
+                ]);
+
+                const data = bundleRes;
                 if (data.success) {
                     studentData = data.studentData;
                     const eventData = data.eventData;
@@ -888,16 +922,8 @@
                 badge.style.border = isConfirmed ? '1px solid rgba(34,197,94,0.2)' : '1px solid rgba(248,113,113,0.2)';
             }
 
-            // ID Card Fields
-            if (document.getElementById('id-name-card')) document.getElementById('id-name-card').innerText = s.name.toUpperCase();
-            if (document.getElementById('id-phone-card')) document.getElementById('id-phone-card').innerText = s.phone;
-            if (document.getElementById('id-dob-card')) document.getElementById('id-dob-card').innerText = toDisplayDate(s.dob);
-            if (document.getElementById('id-gender-card')) document.getElementById('id-gender-card').innerText = s.gender || '--';
-            if (document.getElementById('id-age-card')) document.getElementById('id-age-card').innerText = s.age || '--';
-            if (document.getElementById('id-address-card')) document.getElementById('id-address-card').innerText = s.address || '--';
-            if (document.getElementById('id-badge-val')) document.getElementById('id-badge-val').innerText = `ID: ${s.id}`;
-            if (document.getElementById('id-photo-card')) document.getElementById('id-photo-card').src = photoUrl;
-            if (document.getElementById('id-card-footer')) document.getElementById('id-card-footer').innerText = `- Official Participant ID Card -`;
+            // DYNAMICALLY RENDER ID CARD
+            renderDynamicIDCard(photoUrl);
 
             // Edit Form Populate
             if (document.getElementById('edit-name')) document.getElementById('edit-name').value = s.name;
@@ -907,6 +933,76 @@
             if (document.getElementById('edit-dob')) document.getElementById('edit-dob').value = toInputDate(s.dob);
             if (document.getElementById('edit-age')) document.getElementById('edit-age').value = s.age || '';
             if (document.getElementById('edit-gender')) document.getElementById('edit-gender').value = s.gender || 'Male';
+        }
+
+        function renderDynamicIDCard(photo) {
+            const container = document.getElementById('id-card-view');
+            const s = idCardSettings;
+            const p = studentData;
+            
+            if (!container || !s) return;
+
+            container.innerHTML = `
+                <div class="id-header-v2" style="background: linear-gradient(135deg, ${s.theme.primary}, ${s.theme.accent}) !important; font-size: ${s.header.fontSize};">
+                    ${s.header.text}
+                </div>
+                <div class="id-body-v2">
+                    ${s.photo.visible ? `
+                        <div style="text-align: center;">
+                            <img src="${photo}" style="width: ${s.photo.width}; height: ${s.photo.height}; border: 2px solid ${s.theme.primary}; border-radius: 10px; object-fit: cover;">
+                            ${s.fields.id.visible ? `
+                                <div class="id-badge" style="background: linear-gradient(135deg, ${s.theme.primary}, ${s.theme.accent}); font-size: ${s.fields.id.fontSize}; display: block; margin-top: 5px;">
+                                    ID: ${p.id}
+                                </div>
+                            ` : ''}
+                        </div>
+                    ` : ''}
+                    <div class="id-details-v2">
+                        ${s.fields.name.visible ? `
+                            <div class="id-field">NAME</div>
+                            <div class="id-name-v2" style="font-size: ${s.fields.name.fontSize};">${p.name.toUpperCase()}</div>
+                        ` : ''}
+                        
+                        <div style="display: flex; justify-content: space-between; gap: 10px; margin-top: 2px;">
+                            ${s.fields.phone.visible ? `
+                                <div style="flex: 1;">
+                                    <div class="id-field">PHONE</div>
+                                    <div class="id-value-v2" style="font-size: ${s.fields.phone.fontSize};">${p.phone}</div>
+                                </div>
+                            ` : ''}
+                            ${s.fields.dob.visible ? `
+                                <div style="flex: 1;">
+                                    <div class="id-field">DOB</div>
+                                    <div class="id-value-v2" style="font-size: ${s.fields.dob.fontSize};">${toDisplayDate(p.dob)}</div>
+                                </div>
+                            ` : ''}
+                        </div>
+
+                        <div style="display: flex; justify-content: space-between; gap: 10px; margin-top: 2px;">
+                            ${s.fields.gender.visible ? `
+                                <div style="flex: 1;">
+                                    <div class="id-field">GENDER</div>
+                                    <div class="id-value-v2" style="font-size: ${s.fields.gender.fontSize};">${p.gender || '--'}</div>
+                                </div>
+                            ` : ''}
+                            ${s.fields.age.visible ? `
+                                <div style="flex: 1;">
+                                    <div class="id-field">AGE</div>
+                                    <div class="id-value-v2" style="font-size: ${s.fields.age.fontSize};">${p.age || '--'}</div>
+                                </div>
+                            ` : ''}
+                        </div>
+
+                        ${s.fields.address.visible ? `
+                            <div class="id-field" style="margin-top: 2px;">ADDRESS / CITY</div>
+                            <div class="id-value-v2" style="font-size: ${s.fields.address.fontSize}; line-height: 1.1;">${p.address || '--'}</div>
+                        ` : ''}
+                    </div>
+                </div>
+                <div class="id-footer-v2" style="font-size: ${s.footer.fontSize};">
+                    ${s.footer.text}
+                </div>
+            `;
         }
 
         function renderAttendance(eventData, attendance) {
