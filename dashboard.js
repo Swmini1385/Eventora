@@ -264,9 +264,6 @@ async function editEvent(id) {
         saveBtn.innerText = "Update Event";
     }
 }
-
-const API_URL = 'https://script.google.com/macros/s/AKfycby-tuuL2zz38uXKlm_jjU8lTBrSRNxngFKoM7x8RixHdkO5dMzbHQtkW_ncP2nReZaIaA/exec';
-
 // Event creation/edit logic
 async function handleCreateEvent(e) {
     e.preventDefault();
