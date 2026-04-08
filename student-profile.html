@@ -957,7 +957,8 @@
                 return;
             }
 
-            const isAdmin = !!localStorage.getItem('eventora_user');
+            const urlParams = new URLSearchParams(window.location.search);
+            const isAdmin = urlParams.get('admin') === 'true' && !!localStorage.getItem('eventora_user');
 
             // Group by Date
             const groups = (photos || []).reduce((acc, p) => {
