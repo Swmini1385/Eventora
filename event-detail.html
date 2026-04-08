@@ -218,7 +218,7 @@
             }
 
             .id-header-v2 {
-                background: #6366f1 !important;
+                background: #6366f1 !important; /* Indigo primary */
                 color: #fff !important;
                 height: 38px;
                 display: flex;
@@ -302,16 +302,16 @@
                 -webkit-print-color-adjust: exact;
             }
 
-            /* Note: .id-*-v2 classes are already defined above and reused here */
-        }
-
-            .p-row {
-                display: flex;
-                gap: 10px;
-            }
-
-            .p-row>div {
-                flex: 1;
+            .id-badge {
+                background: #0f172a !important;
+                color: #fff !important;
+                font-size: 0.7rem;
+                font-weight: 800;
+                padding: 2px 8px;
+                border-radius: 4px;
+                display: inline-block;
+                margin-top: 5px;
+                -webkit-print-color-adjust: exact;
             }
         }
     </style>
@@ -728,7 +728,7 @@
                         <div class="id-body-v2">
                             <div style="text-align:center;">
                                 <img src="${s.photo.replace('=s120', '=s400')}" class="id-photo-v2">
-                                <div class="id-badge" style="background:#0f172a; color:#fff; font-size:0.7rem; font-weight:800; padding:2px 8px; border-radius:4px; display:inline-block; margin-top:5px;">ID: ${s.id}</div>
+                                <div class="id-badge">ID: ${s.id}</div>
                             </div>
                             <div class="id-details-v2">
                                 <div class="id-field">NAME</div>
