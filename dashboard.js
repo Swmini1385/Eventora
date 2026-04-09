@@ -124,9 +124,11 @@ function closeCreateModal() {
     document.getElementById('create-modal').classList.remove('active');
 }
 
-// --- Expense Modal ---
-function openExpenseModal(eventId, e) {
-    if (e) e.stopPropagation();
+// --- Expense Popup ---
+let currentExpenseEventId = null;
+
+function openExpensePopup(eventId) {
+    currentExpenseEventId = eventId;
     document.getElementById('expense-event-id').value = eventId;
     document.getElementById('expense-date').value = new Date().toISOString().split('T')[0];
     document.getElementById('expense-title').value = '';
@@ -137,14 +139,21 @@ function openExpenseModal(eventId, e) {
 
 function closeExpenseModal() {
     document.getElementById('expense-modal').classList.remove('active');
+    currentExpenseEventId = null;
 }
 
 function saveExpense(e) {
-    e.preventDefault();
-    const eventId = document.getElementById('expense-event-id').value;
+    if (e) e.preventDefault();
+    
+    const eventId = currentExpenseEventId || document.getElementById('expense-event-id').value;
     const title = document.getElementById('expense-title').value;
     const amount = document.getElementById('expense-amount').value;
     const date = document.getElementById('expense-date').value;
+
+    if (!title || !amount) {
+        alert("Please fill in both title and amount.");
+        return;
+    }
 
     const expense = {
         title,
@@ -153,12 +162,13 @@ function saveExpense(e) {
         id: Date.now()
     };
 
+    // Store in local expenses array for this specific event
     const localExpenses = JSON.parse(localStorage.getItem('eventora_local_expenses_' + eventId) || '[]');
     localExpenses.push(expense);
     localStorage.setItem('eventora_local_expenses_' + eventId, JSON.stringify(localExpenses));
 
     closeExpenseModal();
-    loadDashboardData(); // Refresh UI
+    loadDashboardData(); // Refresh list, stats, and P&L
     alert("✅ Expense added successfully!");
 }
 
@@ -245,7 +255,7 @@ function renderEvents(events) {
                         <button class="btn btn-outline" style="padding: 0.5rem; color: var(--primary);" onclick="editEvent('${event.id}', event)"><i data-lucide="pencil" size="16"></i></button>
                         <button class="btn btn-outline" style="padding: 0.5rem; color: #f87171;" onclick="deleteEvent('${event.id}', event)"><i data-lucide="trash-2" size="16"></i></button>
                     </div>
-                    <button class="btn btn-outline" style="font-size: 0.75rem; padding: 0.3rem 0.6rem; border-color: #a855f7; color: #a855f7; margin-top: 0.5rem;" onclick="openExpenseModal('${event.id}', event)">
+                    <button class="btn btn-outline" style="font-size: 0.75rem; padding: 0.3rem 0.6rem; border-color: #a855f7; color: #a855f7; margin-top: 0.5rem;" onclick="openExpensePopup('${event.id}')">
                         <i data-lucide="plus" size="14"></i> Add Expense
                     </button>
                 </div>
