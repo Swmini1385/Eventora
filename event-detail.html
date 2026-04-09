@@ -377,7 +377,7 @@
             </div>
             <div class="stat-card-mini glass">
                 <div class="stat-value" id="event-pnl">₹0</div>
-                <div class="stat-label">P&L</div>
+                <div class="stat-label">Profit & Loss</div>
             </div>
         </div>
 
@@ -487,7 +487,9 @@
                 <h2 style="display: flex; align-items: center; gap: 0.75rem;">
                     <i data-lucide="calculator" class="text-primary"></i> Add Expense
                 </h2>
-                <button type="button" onclick="closeExpenseModal()" style="background: none; border: none; color: #fff; cursor: pointer;"><i data-lucide="x"></i></button>
+                <button type="button" onclick="closeExpenseModal()"
+                    style="background: none; border: none; color: #fff; cursor: pointer;"><i
+                        data-lucide="x"></i></button>
             </div>
             <form id="expense-form" onsubmit="handleSaveExpense(event)">
                 <div class="form-group">
@@ -498,11 +500,13 @@
                     <label>Amount (₹)</label>
                     <input type="number" id="exp-amount" required placeholder="0.00">
                 </div>
-                <button type="submit" class="btn btn-primary" id="save-exp-btn" style="width: 100%; margin-top: 1rem; height: 3.5rem;">
+                <button type="submit" class="btn btn-primary" id="save-exp-btn"
+                    style="width: 100%; margin-top: 1rem; height: 3.5rem;">
                     Record Expense
                 </button>
             </form>
-            <div id="expenses-list-mini" style="margin-top: 2rem; border-top: 1px solid var(--glass-border); padding-top: 1.5rem;">
+            <div id="expenses-list-mini"
+                style="margin-top: 2rem; border-top: 1px solid var(--glass-border); padding-top: 1.5rem;">
                 <h4 style="margin-bottom: 1rem; font-size: 0.9rem; color: var(--text-muted);">Recent Expenses</h4>
                 <div id="exp-items-container" style="max-height: 200px; overflow-y: auto;"></div>
             </div>
@@ -563,12 +567,12 @@
                 if (data.success) {
                     const m = data;
                     document.getElementById('event-title').innerText = m.name;
-                    
+
                     // Header Stats Update
                     document.getElementById('attendee-count').innerText = m.participantCount || 0;
                     document.getElementById('total-collected').innerText = `₹${(m.totalEarnings || 0).toLocaleString()}`;
                     document.getElementById('event-expenses').innerText = `₹${(m.totalExpenses || 0).toLocaleString()}`;
-                    
+
                     const pnl = (m.totalEarnings || 0) - (m.totalExpenses || 0);
                     const pnlEl = document.getElementById('event-pnl');
                     pnlEl.innerText = `₹${pnl.toLocaleString()}`;
@@ -795,7 +799,7 @@
         async function printSelectedIDs() {
             const selected = getSelectedIDs();
             if (selected.length === 0) return alert("Please select participants first.");
-            
+
             // Load Custom Settings
             const saved = localStorage.getItem('eventora_id_settings');
             const s = saved ? JSON.parse(saved) : {
@@ -828,15 +832,15 @@
                     }
                 </style>
             `;
-            
+
             let html = dynamicCSS;
             const perPage = s.layout.cardsPerPage || 8;
             const actualEventName = document.getElementById('event-title')?.innerText?.toUpperCase() || "EVENT";
 
-            for (let i = 0; i < selected.length; i += perPage) { 
+            for (let i = 0; i < selected.length; i += perPage) {
                 const pageItems = selected.slice(i, i + perPage);
                 html += `<div class="print-page">`;
-                
+
                 pageItems.forEach(p => {
                     let headerText = s.header.text;
                     if (!headerText || headerText === "EVENT NAME" || headerText === "ID CARD") {
@@ -909,10 +913,10 @@
                     </div>
                     `;
                 });
-                
+
                 html += `</div>`;
             }
-            
+
             printArea.innerHTML = html;
 
             const images = printArea.querySelectorAll('img');
@@ -920,7 +924,7 @@
                 if (img.complete) return Promise.resolve();
                 return new Promise(resolve => {
                     img.onload = resolve;
-                    img.onerror = resolve; 
+                    img.onerror = resolve;
                 });
             });
 
@@ -1057,10 +1061,10 @@
             const btn = document.getElementById('save-exp-btn');
             btn.innerText = "Saving... ⏳";
             btn.disabled = true;
-            
+
             const type = document.getElementById('exp-type').value;
             const amount = document.getElementById('exp-amount').value;
-            
+
             try {
                 const data = await fetchJSONP(`${API_URL}?action=save_expense&eventId=${currentEventId}&type=${encodeURIComponent(type)}&amount=${amount}&identifier=${JSON.parse(localStorage.getItem('eventora_user'))?.identifier}`);
                 if (data.success) {
