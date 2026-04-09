@@ -173,24 +173,54 @@ function renderEvents(events) {
         return;
     }
 
-    container.innerHTML = events.map(event => `
-        <div class="glass glass-hover event-card" style="margin-bottom: 1rem;">
-            <div style="display: flex; align-items: center; gap: 1.5rem;">
-                <div style="background: rgba(99, 102, 241, 0.1); width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; border-radius: 0.75rem; color: var(--primary);">
-                    <i data-lucide="calendar"></i>
+    container.innerHTML = events.map(event => {
+        const collections = event.earnings || 0;
+        const expenses = event.expenses || 0;
+        const pnl = collections - expenses;
+        const pnlClass = pnl >= 0 ? 'badge-profit' : 'badge-loss';
+        const pnlSign = pnl >= 0 ? '+' : '';
+
+        return `
+        <div class="glass glass-hover event-card" style="margin-bottom: 1rem; display: block; padding: 1.5rem;">
+            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1.25rem;">
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <div style="background: rgba(99, 102, 241, 0.1); width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; border-radius: 0.75rem; color: var(--primary);">
+                        <i data-lucide="calendar"></i>
+                    </div>
+                    <div>
+                        <h4 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 0.2rem;">${event.name}</h4>
+                        <p style="color: var(--text-muted); font-size: 0.8rem;">
+                            <i data-lucide="calendar-days" size="14" style="vertical-align: middle;"></i> ${toDisplayDate(event.date)}
+                        </p>
+                    </div>
                 </div>
-                <div>
-                    <h4 style="font-size: 1.1rem; font-weight: 700;">${event.name}</h4>
-                    <p style="color: var(--text-muted); font-size: 0.85rem;">Date: ${toDisplayDate(event.date)} | Fee: ₹${event.fee}</p>
+                <div style="display: flex; gap: 0.5rem;">
+                    <button class="btn btn-outline" style="padding: 0.5rem; color: var(--primary);" onclick="editEvent('${event.id}')"><i data-lucide="pencil" size="16"></i></button>
+                    <button class="btn btn-outline" style="padding: 0.5rem; color: #f87171;" onclick="deleteEvent('${event.id}')"><i data-lucide="trash-2" size="16"></i></button>
                 </div>
             </div>
-            <div style="display: flex; gap: 0.75rem;">
-                <button class="btn btn-outline" style="padding: 0.5rem 1rem; font-size: 0.85rem;" onclick="viewEvent('${event.id}')">Manage</button>
-                <button class="btn btn-outline" style="padding: 0.5rem; color: var(--primary);" onclick="editEvent('${event.id}')"><i data-lucide="pencil" size="18"></i></button>
-                <button class="btn btn-outline" style="padding: 0.5rem; color: #f87171;" onclick="deleteEvent('${event.id}')"><i data-lucide="trash-2" size="18"></i></button>
+
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 1.5rem; background: rgba(255,255,255,0.02); padding: 1rem; border-radius: 1rem; border: 1px solid var(--glass-border);">
+                <div style="text-align: center;">
+                    <p style="font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.3rem;">Fee</p>
+                    <p style="font-weight: 700; font-size: 0.9rem;">₹${event.fee}</p>
+                </div>
+                <div style="text-align: center;">
+                    <p style="font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.3rem;">Students</p>
+                    <p style="font-weight: 700; font-size: 0.9rem;">${event.participantCount || 0}</p>
+                </div>
+                <div style="text-align: center;">
+                    <p style="font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.3rem;">P&L</p>
+                    <span class="badge-finance ${pnlClass}">${pnlSign}₹${Math.abs(pnl).toLocaleString()}</span>
+                </div>
             </div>
+
+            <button class="btn btn-primary" style="width: 100%; height: 3.5rem; font-weight: 700;" onclick="viewEvent('${event.id}')">
+                Manage Event Details <i data-lucide="chevron-right" size="18" style="margin-left: 0.5rem;"></i>
+            </button>
         </div>
-    `).join('');
+        `;
+    }).join('');
     lucide.createIcons();
 }
 
@@ -211,7 +241,16 @@ function updateStats(events) {
     
     const pnlEl = document.getElementById('total-pnl-stat');
     pnlEl.innerText = `₹${pnl.toLocaleString()}`;
-    pnlEl.style.color = pnl >= 0 ? '#22c55e' : '#f87171';
+    
+    // Applying the new utility classes
+    const pnlCard = pnlEl.closest('.stat-card');
+    if (pnl >= 0) {
+        pnlEl.className = "text-profit";
+        if (pnlCard) pnlCard.style.borderColor = "rgba(34, 197, 94, 0.3)";
+    } else {
+        pnlEl.className = "text-loss";
+        if (pnlCard) pnlCard.style.borderColor = "rgba(248, 113, 113, 0.3)";
+    }
 }
 
 /**

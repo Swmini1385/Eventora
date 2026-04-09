@@ -402,9 +402,9 @@
                     style="border-radius: 1.25rem; background: rgba(168, 85, 247, 0.1); color: #a855f7; border-color: rgba(168, 85, 247, 0.3);">
                     <i data-lucide="image-plus"></i> Activity Photos
                 </button>
-                <button class="btn btn-outline" onclick="openExpenseModal()"
-                    style="border-radius: 1.25rem; background: rgba(248, 113, 113, 0.1); color: #f87171; border-color: rgba(248, 113, 113, 0.3);">
-                    <i data-lucide="calculator"></i> Add Expense
+                <button class="btn btn-outline" onclick="openMessagingModal()"
+                    style="border-radius: 1.25rem; background: rgba(34, 197, 94, 0.1); color: #4ade80; border-color: rgba(34, 197, 94, 0.3);">
+                    <i data-lucide="message-square"></i> WhatsApp Message
                 </button>
                 <button class="btn btn-outline" onclick="exportData()" style="border-radius: 1.25rem;"><i
                         data-lucide="download"></i> Export</button>
@@ -430,6 +430,7 @@
                         <th style="width: 90px;">Amount</th>
                         <th style="width: 110px;">Payment</th>
                         <th style="width: 100px;">Status</th>
+                        <th style="width: 60px; text-align: center;"><i data-lucide="message-circle"></i></th>
                     </tr>
                 </thead>
                 <tbody id="attendee-list">
@@ -500,9 +501,15 @@
                     <label>Expense Type / Detail</label>
                     <input type="text" id="exp-type" required placeholder="e.g. Catering, Venue Rent, Printing">
                 </div>
-                <div class="form-group">
-                    <label>Amount (₹)</label>
-                    <input type="number" id="exp-amount" required placeholder="0.00">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div class="form-group">
+                        <label>Date</label>
+                        <input type="date" id="exp-date" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Amount (₹)</label>
+                        <input type="number" id="exp-amount" required placeholder="0.00">
+                    </div>
                 </div>
                 <button type="submit" class="btn btn-primary" id="save-exp-btn"
                     style="width: 100%; margin-top: 1rem; height: 3.5rem;">
@@ -517,7 +524,51 @@
         </div>
     </div>
 
-    <!-- Bottom Navigation -->
+    <!-- Messaging Modal -->
+    <div class="modal-overlay" id="messagingModal">
+        <div class="glass modal-card" style="max-width: 600px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                <h2 style="display: flex; align-items: center; gap: 0.75rem;">
+                    <i data-lucide="message-square" class="text-primary"></i> WhatsApp Manager
+                </h2>
+                <button type="button" onclick="closeMessagingModal()"
+                    style="background: none; border: none; color: #fff; cursor: pointer;"><i
+                        data-lucide="x"></i></button>
+            </div>
+
+            <div id="messaging-target-info" style="background: rgba(34, 197, 94, 0.05); padding: 1rem; border-radius: 1rem; border: 1px solid rgba(34, 197, 94, 0.1); margin-bottom: 1.5rem;">
+                <p style="font-size: 0.8rem; color: #4ade80; font-weight: 700; margin: 0 0 0.5rem 0; text-transform: uppercase;">Recipients:</p>
+                <div id="message-target-names" style="font-size: 0.9rem; font-weight: 600;">All Participants</div>
+            </div>
+
+            <div class="form-group">
+                <label>Choose Message Template</label>
+                <select id="message-template-select" onchange="applyTemplate()" style="margin-bottom: 1rem;">
+                    <option value="">-- Select Template --</option>
+                    <option value="reminder">Event Start Reminder</option>
+                    <option value="payment">Payment Reminder</option>
+                    <option value="photos">Photo Upload Update</option>
+                    <option value="meeting">Parent Meeting Reminder</option>
+                    <option value="custom">Custom Message</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Message Content (Editable)</label>
+                <textarea id="message-body" rows="6" style="background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); border-radius: 0.75rem; color: #fff; width: 100%; padding: 1rem; font-family: inherit; font-size: 0.9rem;"></textarea>
+                <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.5rem;">
+                    Use: <b>[Name]</b>, <b>[Event]</b>, <b>[Date]</b> for dynamic replacement.
+                </p>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 2rem;">
+                <button type="button" onclick="closeMessagingModal()" class="btn btn-outline">Cancel</button>
+                <button type="button" onclick="sendWhatsAppProcess()" class="btn btn-primary" id="final-send-btn" style="background: #22c55e; border-color: #22c55e;">
+                    <i data-lucide="send"></i> Send Message
+                </button>
+            </div>
+        </div>
+    </div>
     <nav class="bottom-nav">
         <a href="index.html" class="bottom-nav-item">
             <i data-lucide="home"></i>
@@ -601,7 +652,7 @@
                     const pnl = (m.totalEarnings || 0) - (m.totalExpenses || 0);
                     const pnlEl = document.getElementById('event-pnl');
                     pnlEl.innerText = `₹${pnl.toLocaleString()}`;
-                    pnlEl.style.color = pnl >= 0 ? '#22c55e' : '#f87171';
+                    pnlEl.className = pnl >= 0 ? "stat-value text-profit" : "stat-value text-loss";
 
                     // Rest of metadata...
                     const cleanDate = (raw) => {
@@ -714,6 +765,11 @@
                         <span class="status-badge ${statusConfirm ? 'status-confirmed' : 'status-pending'}" id="status-${att.id}">
                             ${statusConfirm ? 'Confirmed' : 'Pending'}
                         </span>
+                    </td>
+                    <td style="text-align: center;">
+                        <button onclick="openMessagingModal('${att.id}')" class="btn btn-outline" style="padding: 0.5rem; border-radius: 50%; color: #4ade80;">
+                            <i data-lucide="message-circle" size="18"></i>
+                        </button>
                     </td>
                 </tr>
                 `;
@@ -1047,6 +1103,95 @@
             });
         }
 
+        // --- Messaging & WhatsApp ---
+        let currentMessagingTargets = [];
+
+        function openMessagingModal(singleStudentId = null) {
+            const modal = document.getElementById('messagingModal');
+            const targetInfo = document.getElementById('message-target-names');
+            
+            if (singleStudentId) {
+                const student = allAttendees.find(a => a.id === singleStudentId);
+                currentMessagingTargets = [student];
+                targetInfo.innerText = `Sending to: ${student.name}`;
+            } else {
+                currentMessagingTargets = getSelectedIDs();
+                if (currentMessagingTargets.length === 0) {
+                    currentMessagingTargets = allAttendees;
+                    targetInfo.innerText = `Sending to: ALL Participants (${allAttendees.length})`;
+                } else {
+                    targetInfo.innerText = `Sending to: SELECTED (${currentMessagingTargets.length})`;
+                }
+            }
+
+            modal.style.display = 'flex';
+            lucide.createIcons();
+        }
+
+        function closeMessagingModal() {
+            document.getElementById('messagingModal').style.display = 'none';
+        }
+
+        const templates = {
+            reminder: "Hello [Name], your event [Event] is starting on [Date]. Be ready!",
+            payment: "Hello [Name], your payment for [Event] is pending. Please complete it soon.",
+            photos: "Hello [Name], photos of [Event] are now uploaded. Please check.",
+            meeting: "Hello [Name], parent meeting for [Event] is scheduled on [Date].",
+            custom: ""
+        };
+
+        function applyTemplate() {
+            const select = document.getElementById('message-template-select');
+            const body = document.getElementById('message-body');
+            const tmpl = templates[select.value] || "";
+            body.value = tmpl;
+        }
+
+        function replaceDynamic(text, student) {
+            const eventName = document.getElementById('event-title').innerText;
+            const eventDate = document.getElementById('event-meta').innerText.split('|')[0].trim();
+            
+            return text
+                .replace(/\[Name\]/g, student.name)
+                .replace(/\[Event\]/g, eventName)
+                .replace(/\[Date\]/g, eventDate);
+        }
+
+        async function sendWhatsAppProcess() {
+            const bodyTmpl = document.getElementById('message-body').value;
+            if (!bodyTmpl) return alert("Please enter a message!");
+
+            const btn = document.getElementById('final-send-btn');
+            const originalText = btn.innerHTML;
+
+            if (currentMessagingTargets.length === 1) {
+                const s = currentMessagingTargets[0];
+                const finalMsg = replaceDynamic(bodyTmpl, s);
+                window.open(`https://wa.me/${s.phone}?text=${encodeURIComponent(finalMsg)}`, '_blank');
+                closeMessagingModal();
+            } else {
+                // Bulk Messaging Flow
+                if (confirm(`Target: ${currentMessagingTargets.length} students. This will process them one by one. Continue?`)) {
+                    for (let i = 0; i < currentMessagingTargets.length; i++) {
+                        const s = currentMessagingTargets[i];
+                        const finalMsg = replaceDynamic(bodyTmpl, s);
+                        
+                        btn.innerHTML = `<i data-lucide="loader" class="animate-spin"></i> Processing ${i+1}/${currentMessagingTargets.length}`;
+                        lucide.createIcons();
+
+                        // Open in background/new window
+                        window.open(`https://wa.me/${s.phone}?text=${encodeURIComponent(finalMsg)}`, '_blank');
+                        
+                        // Small pause to avoid browser block
+                        await new Promise(r => setTimeout(r, 800));
+                    }
+                    alert("✅ Bulk messaging loop finished. Check your WhatsApp tabs.");
+                    btn.innerHTML = originalText;
+                    closeMessagingModal();
+                }
+            }
+        }
+
         // --- Expense Management ---
         function openExpenseModal() {
             document.getElementById('expenseModal').classList.add('active');
@@ -1089,9 +1234,10 @@
 
             const type = document.getElementById('exp-type').value;
             const amount = document.getElementById('exp-amount').value;
+            const date = document.getElementById('exp-date').value;
 
             try {
-                const data = await fetchJSONP(`${API_URL}?action=save_expense&eventId=${currentEventId}&type=${encodeURIComponent(type)}&amount=${amount}&identifier=${JSON.parse(localStorage.getItem('eventora_user'))?.identifier}`);
+                const data = await fetchJSONP(`${API_URL}?action=save_expense&eventId=${currentEventId}&type=${encodeURIComponent(type)}&amount=${amount}&date=${date}&identifier=${JSON.parse(localStorage.getItem('eventora_user'))?.identifier}`);
                 if (data.success) {
                     document.getElementById('expense-form').reset();
                     loadExpenses();

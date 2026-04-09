@@ -144,6 +144,21 @@ nav {
     -webkit-text-fill-color: transparent;
 }
 
+.text-profit { color: #22c55e !important; }
+.text-loss { color: #f87171 !important; }
+
+.badge-finance {
+    padding: 0.25rem 0.75rem;
+    border-radius: 2rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+.badge-profit { background: rgba(34, 197, 94, 0.1); color: #4ade80; border: 1px solid rgba(74, 222, 128, 0.2); }
+.badge-loss { background: rgba(248, 113, 113, 0.1); color: #f87171; border: 1px solid rgba(248, 113, 113, 0.2); }
+
 /* Animations */
 @keyframes float {
     0% { transform: translateY(0px); }
@@ -159,6 +174,42 @@ nav {
     h1 { font-size: 2.5rem; }
     .container { padding: 0 1rem; }
     nav { display: none; } /* Hide top nav on mobile, use bottom nav instead */
+}
+
+/* Modals */
+.modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    z-index: 2000;
+    justify-content: center;
+    align-items: center;
+    padding: 1.5rem;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.modal-card {
+    width: 100%;
+    max-width: 500px;
+    background: rgba(30, 41, 59, 0.7);
+    border: 1px solid var(--glass-border);
+    border-radius: 1.5rem;
+    padding: 2rem;
+    box-shadow: var(--shadow-lg);
+    animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
 }
 
 /* Bottom Navigation */
