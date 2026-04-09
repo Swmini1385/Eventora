@@ -5,7 +5,7 @@ const ASSETS_TO_CACHE = [
   './style.css',
   './app.js',
   './manifest.json',
-  './Eventora Aap Logo.png',
+  './Eventora Aap Logo.jpg',
   'https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap',
   'https://unpkg.com/lucide@latest'
 ];
