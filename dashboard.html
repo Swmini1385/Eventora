@@ -398,6 +398,38 @@
         </div>
     </div>
 
+    <!-- Add Expense Modal -->
+    <div id="expense-modal" class="modal-overlay">
+        <div class="glass modal-card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                <h2 style="margin: 0;">Add Expense</h2>
+                <button onclick="closeExpenseModal()" style="background: none; border: none; color: #fff; cursor: pointer;">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+            
+            <form onsubmit="saveExpense(event)">
+                <input type="hidden" id="expense-event-id">
+                <div class="form-group">
+                    <label>Expense Title</label>
+                    <input type="text" id="expense-title" required placeholder="e.g. Snacks, Travel">
+                </div>
+                <div class="form-group">
+                    <label>Amount (₹)</label>
+                    <input type="number" id="expense-amount" required placeholder="0">
+                </div>
+                <div class="form-group">
+                    <label>Date</label>
+                    <input type="date" id="expense-date" required>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 2rem;">
+                    <button type="button" onclick="closeExpenseModal()" class="btn btn-outline">Cancel</button>
+                    <button type="submit" class="btn btn-primary" style="font-weight: 700;">Save Expense</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- Bottom Navigation -->
     <nav class="bottom-nav">
         <a href="index.html" class="bottom-nav-item">

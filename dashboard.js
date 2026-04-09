@@ -112,11 +112,54 @@ function toInputTime(val) {
 
 // Modal handling
 function showCreateModal() {
-    document.getElementById('createModal').style.display = 'flex';
+    const form = document.getElementById('create-event-form');
+    form.reset();
+    document.getElementById('event-id').value = '';
+    document.getElementById('modal-title').innerText = "Create New Event";
+    document.getElementById('create-modal').classList.add('active');
+    lucide.createIcons();
 }
 
 function closeCreateModal() {
-    document.getElementById('createModal').style.display = 'none';
+    document.getElementById('create-modal').classList.remove('active');
+}
+
+// --- Expense Modal ---
+function openExpenseModal(eventId, e) {
+    if (e) e.stopPropagation();
+    document.getElementById('expense-event-id').value = eventId;
+    document.getElementById('expense-date').value = new Date().toISOString().split('T')[0];
+    document.getElementById('expense-title').value = '';
+    document.getElementById('expense-amount').value = '';
+    document.getElementById('expense-modal').classList.add('active');
+    lucide.createIcons();
+}
+
+function closeExpenseModal() {
+    document.getElementById('expense-modal').classList.remove('active');
+}
+
+function saveExpense(e) {
+    e.preventDefault();
+    const eventId = document.getElementById('expense-event-id').value;
+    const title = document.getElementById('expense-title').value;
+    const amount = document.getElementById('expense-amount').value;
+    const date = document.getElementById('expense-date').value;
+
+    const expense = {
+        title,
+        amount,
+        date,
+        id: Date.now()
+    };
+
+    const localExpenses = JSON.parse(localStorage.getItem('eventora_local_expenses_' + eventId) || '[]');
+    localExpenses.push(expense);
+    localStorage.setItem('eventora_local_expenses_' + eventId, JSON.stringify(localExpenses));
+
+    closeExpenseModal();
+    loadDashboardData(); // Refresh UI
+    alert("✅ Expense added successfully!");
 }
 
 // Data loading (Backend-driven)
@@ -175,8 +218,11 @@ function renderEvents(events) {
 
     container.innerHTML = events.map(event => {
         const collections = event.earnings || 0;
-        const expenses = event.expenses || 0;
-        const pnl = collections - expenses;
+        const localExpenses = JSON.parse(localStorage.getItem('eventora_local_expenses_' + event.id) || '[]');
+        const totalLocalAmount = localExpenses.reduce((sum, exp) => sum + parseFloat(exp.amount || 0), 0);
+        
+        const totalExp = (event.expenses || 0) + totalLocalAmount;
+        const pnl = collections - totalExp;
         const pnlClass = pnl >= 0 ? 'badge-profit' : 'badge-loss';
         const pnlSign = pnl >= 0 ? '+' : '';
 
@@ -194,29 +240,38 @@ function renderEvents(events) {
                         </p>
                     </div>
                 </div>
-                <div style="display: flex; gap: 0.5rem;">
-                    <button class="btn btn-outline" style="padding: 0.5rem; color: var(--primary);" onclick="editEvent('${event.id}')"><i data-lucide="pencil" size="16"></i></button>
-                    <button class="btn btn-outline" style="padding: 0.5rem; color: #f87171;" onclick="deleteEvent('${event.id}')"><i data-lucide="trash-2" size="16"></i></button>
+                <div style="display: flex; gap: 0.5rem; flex-direction: column; align-items: end;">
+                    <div style="display: flex; gap: 0.5rem;">
+                        <button class="btn btn-outline" style="padding: 0.5rem; color: var(--primary);" onclick="editEvent('${event.id}', event)"><i data-lucide="pencil" size="16"></i></button>
+                        <button class="btn btn-outline" style="padding: 0.5rem; color: #f87171;" onclick="deleteEvent('${event.id}', event)"><i data-lucide="trash-2" size="16"></i></button>
+                    </div>
+                    <button class="btn btn-outline" style="font-size: 0.75rem; padding: 0.3rem 0.6rem; border-color: #a855f7; color: #a855f7; margin-top: 0.5rem;" onclick="openExpenseModal('${event.id}', event)">
+                        <i data-lucide="plus" size="14"></i> Add Expense
+                    </button>
                 </div>
             </div>
 
-            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 1.5rem; background: rgba(255,255,255,0.02); padding: 1rem; border-radius: 1rem; border: 1px solid var(--glass-border);">
+            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.5rem; margin-bottom: 1.5rem; background: rgba(255,255,255,0.02); padding: 0.75rem; border-radius: 1rem; border: 1px solid var(--glass-border);">
                 <div style="text-align: center;">
-                    <p style="font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.3rem;">Fee</p>
-                    <p style="font-weight: 700; font-size: 0.9rem;">₹${event.fee}</p>
+                    <p style="font-size: 0.6rem; color: var(--text-muted); text-transform: uppercase;">Date</p>
+                    <p style="font-weight: 700; font-size: 0.75rem;">${toDisplayDate(event.date)}</p>
                 </div>
                 <div style="text-align: center;">
-                    <p style="font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.3rem;">Students</p>
-                    <p style="font-weight: 700; font-size: 0.9rem;">${event.participantCount || 0}</p>
+                    <p style="font-size: 0.6rem; color: var(--text-muted); text-transform: uppercase;">Fee</p>
+                    <p style="font-weight: 700; font-size: 0.75rem;">₹${event.fee}</p>
                 </div>
                 <div style="text-align: center;">
-                    <p style="font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.3rem;">P&L</p>
-                    <span class="badge-finance ${pnlClass}">${pnlSign}₹${Math.abs(pnl).toLocaleString()}</span>
+                    <p style="font-size: 0.6rem; color: var(--text-muted); text-transform: uppercase;">Students</p>
+                    <p style="font-weight: 700; font-size: 0.75rem;">${event.participantCount || 0}</p>
+                </div>
+                <div style="text-align: center;">
+                    <p style="font-size: 0.6rem; color: var(--text-muted); text-transform: uppercase;">P&L</p>
+                    <span class="badge-finance ${pnlClass}" style="font-size: 0.65rem;">${pnlSign}₹${Math.abs(pnl).toLocaleString()}</span>
                 </div>
             </div>
 
-            <button class="btn btn-primary" style="width: 100%; height: 3.5rem; font-weight: 700;" onclick="viewEvent('${event.id}')">
-                Manage Event Details <i data-lucide="chevron-right" size="18" style="margin-left: 0.5rem;"></i>
+            <button class="btn btn-primary" style="width: 100%; height: 3rem; font-weight: 700;" onclick="viewEvent('${event.id}')">
+                Manage Event <i data-lucide="chevron-right" size="18" style="margin-left: 0.5rem;"></i>
             </button>
         </div>
         `;
@@ -230,7 +285,9 @@ function updateStats(events) {
     
     events.forEach(e => {
         totalEarnings += e.earnings || 0;
-        totalExpenses += e.expenses || 0;
+        const localExpenses = JSON.parse(localStorage.getItem('eventora_local_expenses_' + e.id) || '[]');
+        const totalLocalAmount = localExpenses.reduce((sum, exp) => sum + parseFloat(exp.amount || 0), 0);
+        totalExpenses += (e.expenses || 0) + totalLocalAmount;
     });
 
     const pnl = totalEarnings - totalExpenses;
