@@ -10,6 +10,10 @@
         rel="stylesheet">
     <!-- CSS -->
     <link rel="stylesheet" href="style.css">
+    <!-- PWA -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#4f46e5">
+    <link rel="apple-touch-icon" href="Eventora Aap Logo.jpg">
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
@@ -513,6 +517,27 @@
         </div>
     </div>
 
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+        <a href="index.html" class="bottom-nav-item">
+            <i data-lucide="home"></i>
+            <span>Home</span>
+        </a>
+        <a href="dashboard.html" class="bottom-nav-item">
+            <i data-lucide="calendar"></i>
+            <span>Events</span>
+        </a>
+        <a href="dashboard.html" class="bottom-nav-item">
+            <i data-lucide="layout-dashboard"></i>
+            <span>Dashboard</span>
+        </a>
+        <a href="student-profile.html" class="bottom-nav-item">
+            <i data-lucide="user"></i>
+            <span>Profile</span>
+        </a>
+    </nav>
+
+    <script src="app.js"></script>
     <script>
         const API_URL = 'https://script.google.com/macros/s/AKfycby-tuuL2zz38uXKlm_jjU8lTBrSRNxngFKoM7x8RixHdkO5dMzbHQtkW_ncP2nReZaIaA/exec';
         let currentEventId = '';

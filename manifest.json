@@ -1,0 +1,17 @@
+{
+  "name": "Eventora",
+  "short_name": "Eventora",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#4f46e5",
+  "description": "Smart Way to Manage Your Awesome Events",
+  "icons": [
+    {
+      "src": "Eventora Aap Logo.jpg",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

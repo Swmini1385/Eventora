@@ -15,6 +15,7 @@
     --glass-border: rgba(255, 255, 255, 0.1);
     --shadow-lg: 0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
     --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --nav-height: 70px;
 }
 
 * {
@@ -33,6 +34,7 @@ body {
     line-height: 1.6;
     min-height: 100vh;
     overflow-x: hidden;
+    padding-bottom: var(--nav-height); /* Space for bottom nav */
 }
 
 .container {
@@ -66,6 +68,7 @@ h1 {
     margin-bottom: 1.5rem;
     background: linear-gradient(to right, #fff, #94a3b8);
     -webkit-background-clip: text;
+    background-clip: text;
     -webkit-text-fill-color: transparent;
 }
 
@@ -126,6 +129,7 @@ nav {
     font-weight: 800;
     background: linear-gradient(to right, var(--primary), var(--secondary));
     -webkit-background-clip: text;
+    background-clip: text;
     -webkit-text-fill-color: transparent;
     display: flex;
     align-items: center;
@@ -136,6 +140,7 @@ nav {
 .text-gradient {
     background: linear-gradient(to right, var(--primary), var(--secondary));
     -webkit-background-clip: text;
+    background-clip: text;
     -webkit-text-fill-color: transparent;
 }
 
@@ -152,4 +157,112 @@ nav {
 
 @media (max-width: 768px) {
     h1 { font-size: 2.5rem; }
+    .container { padding: 0 1rem; }
+    nav { display: none; } /* Hide top nav on mobile, use bottom nav instead */
+}
+
+/* Bottom Navigation */
+.bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: var(--nav-height);
+    background: rgba(15, 23, 42, 0.9);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    border-top: 1px solid var(--glass-border);
+    z-index: 1000;
+}
+
+.bottom-nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 0.75rem;
+    font-weight: 500;
+    transition: var(--transition);
+    gap: 0.25rem;
+}
+
+.bottom-nav-item i {
+    width: 24px;
+    height: 24px;
+}
+
+.bottom-nav-item.active {
+    color: var(--primary);
+}
+
+.bottom-nav-item.active i {
+    transform: translateY(-4px);
+}
+
+/* PWA Install Popup */
+.install-popup {
+    position: fixed;
+    bottom: 85px;
+    left: 1rem;
+    right: 1rem;
+    padding: 1.25rem;
+    z-index: 1001;
+    animation: slideUp 0.5s ease;
+}
+
+.install-content {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    position: relative;
+}
+
+.app-icon-mini {
+    width: 50px;
+    height: 50px;
+    border-radius: 12px;
+}
+
+.install-text {
+    flex: 1;
+}
+
+.install-text strong {
+    display: block;
+    font-size: 1rem;
+}
+
+.install-text p {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin: 0;
+}
+
+.btn-close {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 1.25rem;
+    cursor: pointer;
+}
+
+@keyframes slideUp {
+    from { transform: translateY(100%); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+.fade-in {
+    animation: fadeIn 0.4s ease-in;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
 }

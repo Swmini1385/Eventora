@@ -10,6 +10,10 @@
         rel="stylesheet">
     <!-- CSS -->
     <link rel="stylesheet" href="style.css">
+    <!-- PWA -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#4f46e5">
+    <link rel="apple-touch-icon" href="Eventora Aap Logo.jpg">
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
@@ -27,6 +31,7 @@
             font-family: 'Outfit', sans-serif;
             margin: 0;
             line-height: 1.6;
+            padding-bottom: var(--nav-height);
         }
 
         .profile-container {
@@ -146,7 +151,7 @@
             gap: 1rem;
         }
 
-        .detail-item {}
+
 
         .detail-label {
             font-size: 0.7rem;
@@ -164,7 +169,7 @@
         }
 
         /* PAYMENT INFO */
-        .payment-card {}
+
 
         .payment-box {
             background: rgba(255, 255, 255, 0.03);
@@ -229,6 +234,7 @@
             padding: 0 10px;
             text-align: center;
             -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
         }
 
         .id-body-v2 {
@@ -298,6 +304,7 @@
             width: 100%;
             letter-spacing: 0.5px;
             -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
         }
 
         .id-badge {
@@ -329,6 +336,7 @@
                 margin: 0;
                 box-shadow: none;
                 -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
             }
         }
 
@@ -739,6 +747,27 @@
         </div>
     </div>
 
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+        <a href="index.html" class="bottom-nav-item">
+            <i data-lucide="home"></i>
+            <span>Home</span>
+        </a>
+        <a href="dashboard.html" class="bottom-nav-item">
+            <i data-lucide="calendar"></i>
+            <span>Events</span>
+        </a>
+        <a href="dashboard.html" class="bottom-nav-item">
+            <i data-lucide="layout-dashboard"></i>
+            <span>Dashboard</span>
+        </a>
+        <a href="student-profile.html" class="bottom-nav-item active">
+            <i data-lucide="user"></i>
+            <span>Profile</span>
+        </a>
+    </nav>
+
+    <script src="app.js"></script>
     <script>
         /* Date Helpers */
         function toDisplayDate(val) {
