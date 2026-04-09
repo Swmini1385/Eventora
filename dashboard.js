@@ -62,14 +62,6 @@ function checkAuth() {
 // Logout
 function logout() {
     localStorage.removeItem('eventora_user');
-    // Clear other session-related items if any
-    const keysToRemove = [];
-    for(let i=0; i<localStorage.length; i++) {
-        if(localStorage.key(i).startsWith('eventora_')) {
-            keysToRemove.push(localStorage.key(i));
-        }
-    }
-    keysToRemove.forEach(k => localStorage.removeItem(k));
     window.location.href = 'index.html';
 }
 
@@ -186,29 +178,46 @@ function renderEvents(events) {
         const expenses = event.expenses || 0;
         const pnl = collections - expenses;
         const pnlClass = pnl >= 0 ? 'badge-profit' : 'badge-loss';
-        const pnlSign = pnl >= 0 ? '+' : '-';
-        
-        // Safe checks for data
-        const eventName = event.name || "Untitled Event";
-        const eventDate = toDisplayDate(event.date) || "TBD";
-        const eventFee = event.fee || 0;
-        const studentCount = event.participantCount || 0;
+        const pnlSign = pnl >= 0 ? '+' : '';
 
         return `
-        <div class="glass glass-hover event-compact-row" style="margin-bottom: 0.5rem; display: flex; align-items: center; justify-content: space-between;" onclick="viewEvent('${event.id}')">
-            <div style="flex: 1; min-width: 0;">
-                <h4 style="font-size: 0.95rem; font-weight: 700; margin-bottom: 0.15rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${eventName}</h4>
-                <div class="event-info-line" style="font-size: 0.75rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                    <span>Date: <b>${eventDate}</b></span> | 
-                    <span>Fee: <b>₹${eventFee}</b></span> | 
-                    <span>Students: <b>${studentCount}</b></span>
+        <div class="glass glass-hover event-card" style="margin-bottom: 1rem; display: block; padding: 1.5rem;">
+            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1.25rem;">
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <div style="background: rgba(99, 102, 241, 0.1); width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; border-radius: 0.75rem; color: var(--primary);">
+                        <i data-lucide="calendar"></i>
+                    </div>
+                    <div>
+                        <h4 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 0.2rem;">${event.name}</h4>
+                        <p style="color: var(--text-muted); font-size: 0.8rem;">
+                            <i data-lucide="calendar-days" size="14" style="vertical-align: middle;"></i> ${toDisplayDate(event.date)}
+                        </p>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 0.5rem;">
+                    <button class="btn btn-outline" style="padding: 0.5rem; color: var(--primary);" onclick="editEvent('${event.id}')"><i data-lucide="pencil" size="16"></i></button>
+                    <button class="btn btn-outline" style="padding: 0.5rem; color: #f87171;" onclick="deleteEvent('${event.id}')"><i data-lucide="trash-2" size="16"></i></button>
                 </div>
             </div>
-            <div style="margin-left: 1rem; text-align: right; flex-shrink: 0;">
-                <span class="badge-finance ${pnlClass}" style="font-size: 0.7rem; padding: 0.2rem 0.5rem;">
-                    ${pnlSign}₹${Math.abs(pnl).toLocaleString()}
-                </span>
+
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 1.5rem; background: rgba(255,255,255,0.02); padding: 1rem; border-radius: 1rem; border: 1px solid var(--glass-border);">
+                <div style="text-align: center;">
+                    <p style="font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.3rem;">Fee</p>
+                    <p style="font-weight: 700; font-size: 0.9rem;">₹${event.fee}</p>
+                </div>
+                <div style="text-align: center;">
+                    <p style="font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.3rem;">Students</p>
+                    <p style="font-weight: 700; font-size: 0.9rem;">${event.participantCount || 0}</p>
+                </div>
+                <div style="text-align: center;">
+                    <p style="font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.3rem;">P&L</p>
+                    <span class="badge-finance ${pnlClass}">${pnlSign}₹${Math.abs(pnl).toLocaleString()}</span>
+                </div>
             </div>
+
+            <button class="btn btn-primary" style="width: 100%; height: 3.5rem; font-weight: 700;" onclick="viewEvent('${event.id}')">
+                Manage Event Details <i data-lucide="chevron-right" size="18" style="margin-left: 0.5rem;"></i>
+            </button>
         </div>
         `;
     }).join('');

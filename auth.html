@@ -155,12 +155,6 @@
 
         // Check URL for mode
         window.onload = () => {
-            const user = localStorage.getItem('eventora_user');
-            if (user) {
-                window.location.href = 'dashboard.html';
-                return;
-            }
-
             const urlParams = new URLSearchParams(window.location.search);
             const mode = urlParams.get('mode');
             if (mode === 'signup') {
