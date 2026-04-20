@@ -430,6 +430,31 @@
         </div>
     </div>
 
+    <!-- Share Modal -->
+    <div id="share-modal" class="modal-overlay">
+        <div class="glass modal-card" style="text-align: center;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                <h2 style="margin: 0;">Share Registration</h2>
+                <button onclick="closeShareModal()" style="background: none; border: none; color: #fff; cursor: pointer;">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+            
+            <div id="qrcode-container" style="background: white; padding: 1rem; border-radius: 1.5rem; display: inline-block; margin-bottom: 1.5rem; box-shadow: 0 10px 30px rgba(0,0,0,0.3);">
+                <img id="share-qrcode" src="" alt="QR Code" style="width: 200px; height: 200px; display: block;">
+            </div>
+            
+            <p style="color: var(--text-muted); margin-bottom: 0.75rem; font-size: 0.9rem;">Public Registration Link:</p>
+            <div class="glass" style="padding: 1rem; margin-bottom: 1.5rem; word-break: break-all; font-family: monospace; font-size: 0.85rem; background: rgba(255,255,255,0.03); border: 1px solid var(--border);">
+                <span id="share-link-text"></span>
+            </div>
+            
+            <button class="btn btn-primary" onclick="copyLinkFromModal()" style="width: 100%; font-weight: 700; height: 3.5rem;">
+                <i data-lucide="copy" size="18" style="margin-right: 0.5rem;"></i> Copy Registration Link
+            </button>
+        </div>
+    </div>
+
     <!-- Bottom Navigation -->
     <nav class="bottom-nav">
         <a href="index.html" class="bottom-nav-item">

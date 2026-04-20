@@ -280,9 +280,14 @@ function renderEvents(events) {
                 </div>
             </div>
 
-            <button class="btn btn-primary" style="width: 100%; height: 3rem; font-weight: 700;" onclick="viewEvent('${event.id}')">
-                Manage Event <i data-lucide="chevron-right" size="18" style="margin-left: 0.5rem;"></i>
-            </button>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-top: 1rem;">
+                <button class="btn btn-outline" style="border-color: var(--primary); color: var(--primary); font-weight: 600;" onclick="copyRegistrationLink('${event.id}', event)">
+                    <i data-lucide="share-2" size="16" style="margin-right: 0.5rem;"></i> Share Link
+                </button>
+                <button class="btn btn-primary" style="font-weight: 700;" onclick="viewEvent('${event.id}')">
+                    Manage <i data-lucide="chevron-right" size="18" style="margin-left: 0.3rem;"></i>
+                </button>
+            </div>
         </div>
         `;
     }).join('');
@@ -661,5 +666,58 @@ async function saveSettings() {
             saveBtn.disabled = false;
             saveBtn.innerText = "Save Changes";
         }
+    }
+}
+
+/**
+ * ---------------------------------------------------------
+ * PUBLIC REGISTRATION SHARING
+ * ---------------------------------------------------------
+ */
+let currentShareLink = "";
+
+function copyRegistrationLink(eventId, event) {
+    if (event) event.stopPropagation();
+    
+    // Construct the unique public URL
+    const baseUrl = "http://127.0.0.1:8000"; // Django server address
+    currentShareLink = `${baseUrl}/event/register/${eventId}/`;
+    
+    // Set text in modal
+    document.getElementById('share-link-text').innerText = currentShareLink;
+    
+    // Generate QR Code using Google Charts API (Quick & Easy)
+    const qrUrl = `https://chart.googleapis.com/chart?cht=qr&chl=${encodeURIComponent(currentShareLink)}&chs=300x300&choe=UTF-8&chld=L|2`;
+    document.getElementById('share-qrcode').src = qrUrl;
+    
+    // Open Modal
+    document.getElementById('share-modal').classList.add('active');
+    lucide.createIcons();
+}
+
+function closeShareModal() {
+    document.getElementById('share-modal').classList.remove('active');
+}
+
+function copyLinkFromModal() {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(currentShareLink).then(() => {
+            const btn = document.querySelector('#share-modal .btn-primary');
+            const originalHTML = btn.innerHTML;
+            btn.innerHTML = '<i data-lucide="check" size="18" style="margin-right: 0.5rem;"></i> Copied!';
+            btn.style.background = "#22c55e";
+            lucide.createIcons();
+            
+            setTimeout(() => {
+                btn.innerHTML = originalHTML;
+                btn.style.background = "";
+                lucide.createIcons();
+            }, 2000);
+        }).catch(err => {
+            console.error("Clipboard Error:", err);
+            prompt("Copy this link:", currentShareLink);
+        });
+    } else {
+        prompt("Copy this link:", currentShareLink);
     }
 }
